@@ -1,0 +1,40 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:vm="using:RenPyVisualScriptMVVM.Modules.Projects.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="RenPyVisualScriptMVVM.Modules.Projects.Views.NewProjectDialog"
+        Title="NewProjectDialog"
+		x:DataType="vm:NewProjectDialogViewModel"
+		Background="#1e1e1e"
+		>
+	<!-- DataContext is set by WindowService when showing the dialog -->
+	<Grid RowDefinitions="*,Auto"
+          ColumnDefinitions="*,Auto"
+          Margin="20">
+		
+		<StackPanel Grid.Column="0">
+			<TextBlock Foreground="White" Margin="0 4">Project name:</TextBlock>
+			<TextBox Text="{Binding ProjectName, UpdateSourceTrigger=PropertyChanged}"
+                     Watermark="Enter project name"/>
+			<TextBlock FontSize="11" Foreground="Gray" Margin="4 0">
+				Это не имя новеллы, а проекта
+			</TextBlock>
+		</StackPanel>
+
+		<StackPanel Grid.Column="1" Grid.Row="1"
+                    Orientation="Horizontal"
+                    Spacing="6"
+                    HorizontalAlignment="Right">
+
+			<Button Content="Create"
+                    Command="{Binding OkCmd}"
+                    Foreground="Orange"/>
+
+			<Button Content="Cancel"
+                    Command="{Binding CancelCmd}"
+                    Background="Red"/>
+		</StackPanel>
+	</Grid> 
+</Window>

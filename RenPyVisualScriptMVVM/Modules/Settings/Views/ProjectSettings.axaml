@@ -1,0 +1,39 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:pg="clr-namespace:Avalonia.PropertyGrid.Controls;assembly=Avalonia.PropertyGrid"
+		xmlns:vm="using:RenPyVisualScriptMVVM.Modules.Settings.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="RenPyVisualScriptMVVM.Modules.Settings.Views.ProjectSettings"
+		x:DataType="vm:ProjectSettingsViewModel"
+        Title="ProjectSettings"
+		RequestedThemeVariant="Dark"
+		>
+	<Design.DataContext>
+		<vm:ProjectSettingsViewModel/>
+	</Design.DataContext>
+
+	
+	
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="auto"/>
+		</Grid.RowDefinitions>
+		<ScrollViewer Grid.Row="0" Margin="8">
+			<pg:PropertyGrid
+			  DataContext="{Binding EditedSettings}"
+			  NameWidth="220" />
+		</ScrollViewer>
+		<Button
+	  Grid.Row="1"
+	  HorizontalAlignment="Right"
+	  Command="{Binding SaveProjectSettings}" Margin="0,0,10,5" Background="#EA592A">
+			Save Settings
+		</Button>
+	</Grid>
+	
+	
+	
+</Window>

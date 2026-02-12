@@ -13,6 +13,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AvaloniaResource Remove="Assets\RenpyProjectSourceFiles\**" />
+    <AvaloniaXaml Remove="Assets\RenpyProjectSourceFiles\**" />
+    <Compile Remove="Assets\RenpyProjectSourceFiles\**" />
+    <EmbeddedResource Remove="Assets\RenpyProjectSourceFiles\**" />
+    <None Remove="Assets\RenpyProjectSourceFiles\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.0" />
     <PackageReference Include="Avalonia.AvaloniaEdit" Version="11.3.0" />
     <PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.3.0" />
@@ -38,10 +46,6 @@
     <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="15.4.1" />
     <PackageReference Include="System.IO.Abstractions" Version="22.0.15" />
     <PackageReference Include="TextMateSharp.Grammars" Version="1.0.70" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Assets\RenpyProjectSourceFiles\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using RenPyVisualScriptMVVM.Modules.Shell.ViewModels;
 
 namespace RenPyVisualScriptMVVM.Modules.Shell.Views
@@ -8,8 +8,11 @@ namespace RenPyVisualScriptMVVM.Modules.Shell.Views
         public MainWindow()
         {
             InitializeComponent();
-            if (DataContext is MainWindowViewModel vm)
-                vm.RequestClose += Close;
+            DataContextChanged += (_, __) =>
+            {
+                if (DataContext is MainWindowViewModel vm)
+                    vm.RequestClose += () => Close();
+            };
         }
     }
 }

@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
 using RenPyVisualScriptMVVM.Core.Models;
 using RenPyVisualScriptMVVM.Core.Services;
 using RenPyVisualScriptMVVM.Core.Services.Interfaces;
@@ -19,6 +19,7 @@ public sealed class MainWindowViewModel : BaseViewModel
     private readonly IProjectStorage _storage;
     private readonly IWindowService _windows;
     private readonly ISettingsService _settings;
+    private readonly IProjectCreator _projectCreator;
 
     public IAsyncRelayCommand NewProjectCmd { get; }
     public IAsyncRelayCommand OpenProjectCmd { get; }
@@ -28,12 +29,15 @@ public sealed class MainWindowViewModel : BaseViewModel
         IProjectContext ctx,
         IProjectStorage storage,
         IWindowService windows,
-        ISettingsService settings)
+        ISettingsService settings,
+        IProjectCreator projectCreator
+        )
     {
-        _ctx = ctx;
-        _storage = storage;
-        _windows = windows;
-        _settings = settings;
+        _projectCreator = projectCreator ?? throw new ArgumentNullException(nameof(projectCreator));
+        _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+        _windows = windows ?? throw new ArgumentNullException(nameof(windows));
+        _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        _ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
 
         NewProjectCmd = new AsyncRelayCommand(NewProjectAsync);
         OpenProjectCmd = new AsyncRelayCommand(OpenProjectAsync);
@@ -48,16 +52,22 @@ public sealed class MainWindowViewModel : BaseViewModel
         {
             var dlgVm = Locator.Current.GetService<NewProjectDialogViewModel>()!;
             var ok = await _windows.ShowDialogAsync(dlgVm);
-            if (ok != true || string.IsNullOrWhiteSpace(dlgVm.ProjectName))
+
+            if (ok != true || dlgVm.Result is null)
                 return;
 
-            var model = _storage.Create(dlgVm.ProjectName.Trim());
+            var model = await _projectCreator.CreateAsync(dlgVm.Result);
+
             UpdateContextAndSettings(model);
             OpenEditorAndCloseMain();
         }
         catch (Exception ex)
         {
             LogError(ex);
+            // Show error to user; otherwise it looks like "nothing happened".
+            await _windows.ShowDialogAsync(new MessageDialogViewModel(
+                "Project creation failed",
+                ex.ToString()));
         }
     }
 

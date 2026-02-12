@@ -1,40 +1,75 @@
-<Window xmlns="https://github.com/avaloniaui"
+﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-		xmlns:vm="using:RenPyVisualScriptMVVM.Modules.Projects.ViewModels"
+        xmlns:vm="using:RenPyVisualScriptMVVM.Modules.Projects.ViewModels"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="RenPyVisualScriptMVVM.Modules.Projects.Views.NewProjectDialog"
         Title="NewProjectDialog"
-		x:DataType="vm:NewProjectDialogViewModel"
-		Background="#1e1e1e"
-		>
-	<!-- DataContext is set by WindowService when showing the dialog -->
-	<Grid RowDefinitions="*,Auto"
-          ColumnDefinitions="*,Auto"
-          Margin="20">
-		
-		<StackPanel Grid.Column="0">
-			<TextBlock Foreground="White" Margin="0 4">Project name:</TextBlock>
-			<TextBox Text="{Binding ProjectName, UpdateSourceTrigger=PropertyChanged}"
-                     Watermark="Enter project name"/>
-			<TextBlock FontSize="11" Foreground="Gray" Margin="4 0">
-				Это не имя новеллы, а проекта
-			</TextBlock>
-		</StackPanel>
+        x:DataType="vm:NewProjectDialogViewModel"
+        Background="#1e1e1e">
 
-		<StackPanel Grid.Column="1" Grid.Row="1"
-                    Orientation="Horizontal"
-                    Spacing="6"
-                    HorizontalAlignment="Right">
+  <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+        ColumnDefinitions="*,Auto"
+        Margin="20"
+        RowSpacing="10">
 
-			<Button Content="Create"
-                    Command="{Binding OkCmd}"
-                    Foreground="Orange"/>
+    <!-- Project name -->
+    <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+      <TextBlock Foreground="White" Margin="0 4">Project name:</TextBlock>
+      <TextBox Text="{Binding ProjectName, UpdateSourceTrigger=PropertyChanged}"
+               Watermark="Enter project name"/>
+      <TextBlock FontSize="11" Foreground="Gray" Margin="4 0">
+        Это не имя новеллы, а проекта
+      </TextBlock>
+    </StackPanel>
 
-			<Button Content="Cancel"
-                    Command="{Binding CancelCmd}"
-                    Background="Red"/>
-		</StackPanel>
-	</Grid> 
+    <!-- Resolution -->
+    <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+      <TextBlock Foreground="White" Margin="0 4">Resolution:</TextBlock>
+      <ComboBox ItemsSource="{Binding Resolutions}"
+                SelectedItem="{Binding SelectedResolution}"
+                HorizontalAlignment="Stretch"/>
+    </StackPanel>
+
+    <!-- Accent Color -->
+    <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
+      <TextBlock Foreground="White" Margin="0 4">Accent color:</TextBlock>
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <ComboBox Width="220"
+                  ItemsSource="{Binding AccentColors}"
+                  SelectedItem="{Binding SelectedAccentColor}"/>
+        <!-- превью цвета -->
+        <Border Width="24" Height="24"
+                CornerRadius="4"
+                BorderBrush="#444" BorderThickness="1"
+                Background="{Binding SelectedAccentColorBrush}"/>
+      </StackPanel>
+      <TextBlock FontSize="11" Foreground="Gray" Margin="4 0">
+        Используется для --accent (hex)
+      </TextBlock>
+    </StackPanel>
+
+    <!-- Language -->
+    <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2">
+      <TextBlock Foreground="White" Margin="0 4">Language:</TextBlock>
+      <ComboBox ItemsSource="{Binding Languages}"
+                SelectedItem="{Binding SelectedLanguage}"
+                HorizontalAlignment="Stretch"/>
+    </StackPanel>
+
+    <!-- Buttons -->
+    <StackPanel Grid.Row="4" Grid.Column="1"
+                Orientation="Horizontal"
+                Spacing="6"
+                HorizontalAlignment="Right">
+      <Button Content="Create"
+              Command="{Binding OkCmd}"
+              Background="Orange"/>
+      <Button Content="Cancel"
+              Command="{Binding CancelCmd}"
+              Background="Red"/>
+    </StackPanel>
+
+  </Grid>
 </Window>

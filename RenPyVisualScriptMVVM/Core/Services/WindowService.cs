@@ -19,15 +19,19 @@ namespace RenPyVisualScriptMVVM.Core.Services
 
         private static Window CreateWindow(object vm)
         {
-            var vmType = vm.GetType();                          
-            var baseName = vmType.Name.Replace("ViewModel", ""); 
+            var vmType = vm.GetType();
+            var baseName = vmType.Name.Replace("ViewModel", "");
             var viewNs = vmType.Namespace!.Replace(".ViewModels", ".Views");
             var viewType = vmType.Assembly.GetType($"{viewNs}.{baseName}")
-                 ?? throw new InvalidOperationException(
-                      $"View {baseName} not found");
+                 ?? throw new InvalidOperationException($"View {baseName} not found");
 
             var win = (Window)Activator.CreateInstance(viewType)!;
             win.DataContext = vm;
+
+            // ВАЖНО: закрываем окно по событию VM
+            if (vm is ICloseRequest cr)
+                cr.RequestClose += result => win.Close(result);
+
             return win;
         }
 

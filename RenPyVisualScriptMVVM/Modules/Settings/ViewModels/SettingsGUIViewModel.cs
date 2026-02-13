@@ -1,7 +1,7 @@
 using RenPyVisualScriptMVVM.Modules.Settings.Models;
 using System;
 using System.Collections.Generic;
-using RenPyVisualScriptMVVM.Core.ViewModels;
+using RenPyVisualScriptMVVM.Modules.Shell.ViewModels;
 
 
 namespace RenPyVisualScriptMVVM.Modules.Settings.ViewModels

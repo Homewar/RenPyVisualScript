@@ -1,7 +1,7 @@
 ﻿using Avalonia.Media;
 using RenPyVisualScriptMVVM.Core.Models;
 using RenPyVisualScriptMVVM.Core.Services.Interfaces;
-using RenPyVisualScriptMVVM.Modules.Projects.Models;
+using RenPyVisualScriptMVVM.Core.Models;
 using System;
 using System.Diagnostics;
 using System.IO;

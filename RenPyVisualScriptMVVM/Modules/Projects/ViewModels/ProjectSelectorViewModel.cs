@@ -4,7 +4,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using RenPyVisualScriptMVVM.Core.ViewModels;
+using RenPyVisualScriptMVVM.Modules.Shell.ViewModels;
 using RenPyVisualScriptMVVM.Core.Services.Interfaces;
 using RenPyVisualScriptMVVM.Modules.Settings.Services;
 

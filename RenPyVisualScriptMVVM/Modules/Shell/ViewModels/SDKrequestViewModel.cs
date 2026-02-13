@@ -5,7 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using RenPyVisualScriptMVVM.Core.Models;
 using RenPyVisualScriptMVVM.Core.Services;
 using RenPyVisualScriptMVVM.Core.Services.Interfaces;
-using RenPyVisualScriptMVVM.Core.ViewModels;
+using RenPyVisualScriptMVVM.Modules.Shell.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

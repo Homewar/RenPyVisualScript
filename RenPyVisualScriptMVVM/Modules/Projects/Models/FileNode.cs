@@ -1,5 +1,4 @@
-﻿using RenPyVisualScriptMVVM.Core.ViewModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -9,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace RenPyVisualScriptMVVM.Modules.Projects.Models
 {
-    public sealed class FileNode : BaseViewModel
+    public sealed class FileNode
     {
         public string Name { get; }
         public string FullPath { get; }

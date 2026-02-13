@@ -1,5 +1,5 @@
 ﻿using RenPyVisualScriptMVVM.Core.Models;
-using RenPyVisualScriptMVVM.Modules.Projects.Models;
+using RenPyVisualScriptMVVM.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

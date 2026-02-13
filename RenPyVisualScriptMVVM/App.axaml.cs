@@ -2,9 +2,10 @@
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using RenPyVisualScriptMVVM.Core.Services;
+using RenPyVisualScriptMVVM.Modules.Shell.Services;
 using RenPyVisualScriptMVVM.Core.Services.Interfaces;
+using RenPyVisualScriptMVVM.Modules.Shell.Services.Interfaces;
 using RenPyVisualScriptMVVM.Modules.Editors.ViewModels;
-using RenPyVisualScriptMVVM.Modules.Projects.Services;
 using RenPyVisualScriptMVVM.Modules.Projects.ViewModels;
 using RenPyVisualScriptMVVM.Modules.Settings.Services;
 using RenPyVisualScriptMVVM.Modules.Settings.ViewModels;
@@ -59,15 +60,22 @@ namespace RenPyVisualScriptMVVM
                     Locator.Current.GetService<RenPyVisualScriptMVVM.Core.Models.IDESettings>()!,
                     Locator.Current.GetService<IProjectStorage>()!));
 
+            loc.RegisterLazySingleton<IProjectApplicationService>(() =>
+                new ProjectApplicationService(
+                    Locator.Current.GetService<IProjectCreator>()!,
+                    Locator.Current.GetService<IProjectStorage>()!));
+
             /* ---------- view-model’и ---------- */
 
             loc.RegisterLazySingleton<MainWindowViewModel>(() =>
                 new MainWindowViewModel(
                     ctx,
-                    Locator.Current.GetService<IProjectStorage>()!,
+                    Locator.Current.GetService<IProjectApplicationService>()!,
                     Locator.Current.GetService<IWindowService>()!,
                     settingsSvc,
-                    Locator.Current.GetService<IProjectCreator>()!));
+                    () => Locator.Current.GetService<NewProjectDialogViewModel>()!,
+                    () => Locator.Current.GetService<ProjectSelectorViewModel>()!,
+                    () => Locator.Current.GetService<ScriptEditorViewModel>()!));
 
             loc.Register<NewProjectDialogViewModel>(() => new NewProjectDialogViewModel());
             loc.Register<ProjectSelectorViewModel>(() => new ProjectSelectorViewModel(settingsSvc));

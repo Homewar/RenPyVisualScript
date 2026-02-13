@@ -3,7 +3,7 @@ using RenPyVisualScriptMVVM.Modules.Settings.Models;
 using RenPyVisualScriptMVVM.Core.Services;
 using System;
 using System.IO;
-using RenPyVisualScriptMVVM.Core.ViewModels;
+using RenPyVisualScriptMVVM.Modules.Shell.ViewModels;
 using RenPyVisualScriptMVVM.Core.Services.Interfaces;
 
 namespace RenPyVisualScriptMVVM.Modules.Settings.ViewModels

@@ -1,7 +1,7 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using RenPyVisualScriptMVVM.Core.ViewModels;
+using RenPyVisualScriptMVVM.Modules.Shell.ViewModels;
 
 namespace RenPyVisualScriptMVVM
 {

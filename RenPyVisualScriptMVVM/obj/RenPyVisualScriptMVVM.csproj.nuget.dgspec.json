@@ -1,0 +1,155 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\Homewarriors\\source\\repos\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\Homewarriors\\source\\repos\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\Homewarriors\\source\\repos\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+        "projectName": "RenPyVisualScriptMVVM",
+        "projectPath": "C:\\Users\\Homewarriors\\source\\repos\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+        "packagesPath": "C:\\Users\\Homewarriors\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Homewarriors\\source\\repos\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\Homewarriors\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Avalonia": {
+              "target": "Package",
+              "version": "[11.3.0, )"
+            },
+            "Avalonia.AvaloniaEdit": {
+              "target": "Package",
+              "version": "[11.3.0, )"
+            },
+            "Avalonia.Controls.ColorPicker": {
+              "target": "Package",
+              "version": "[11.3.0, )"
+            },
+            "Avalonia.Controls.TreeDataGrid": {
+              "target": "Package",
+              "version": "[11.1.1, )"
+            },
+            "Avalonia.Desktop": {
+              "target": "Package",
+              "version": "[11.3.0, )"
+            },
+            "Avalonia.Diagnostics": {
+              "target": "Package",
+              "version": "[11.3.0, )"
+            },
+            "Avalonia.Fonts.Inter": {
+              "target": "Package",
+              "version": "[11.3.0, )"
+            },
+            "Avalonia.Themes.Fluent": {
+              "target": "Package",
+              "version": "[11.3.0, )"
+            },
+            "AvaloniaEdit.TextMate": {
+              "target": "Package",
+              "version": "[11.3.0, )"
+            },
+            "CommunityToolkit.Mvvm": {
+              "target": "Package",
+              "version": "[8.4.0, )"
+            },
+            "Dock.Avalonia": {
+              "target": "Package",
+              "version": "[11.3.0.2, )"
+            },
+            "Markdown.Avalonia": {
+              "target": "Package",
+              "version": "[11.0.2, )"
+            },
+            "Markdown.Avalonia.SyntaxHigh": {
+              "target": "Package",
+              "version": "[11.0.2, )"
+            },
+            "Splat": {
+              "target": "Package",
+              "version": "[15.4.1, )"
+            },
+            "Splat.Microsoft.Extensions.DependencyInjection": {
+              "target": "Package",
+              "version": "[15.4.1, )"
+            },
+            "System.IO.Abstractions": {
+              "target": "Package",
+              "version": "[22.0.15, )"
+            },
+            "TextMateSharp.Grammars": {
+              "target": "Package",
+              "version": "[1.0.70, )"
+            },
+            "bodong.Avalonia.PropertyGrid": {
+              "target": "Package",
+              "version": "[11.3.0.16, )"
+            },
+            "bodong.BuildPipeline.Core": {
+              "target": "Package",
+              "version": "[1.0.0.2, )"
+            },
+            "bodong.PropertyModels": {
+              "target": "Package",
+              "version": "[11.3.0.16, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.306/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

@@ -353,3 +353,4 @@ C:\Users\Homewarriors\Desktop\test\RenPyVisualScriptMVVM_updated\RenPyVisualScri
 C:\Users\Homewarriors\Desktop\test\RenPyVisualScriptMVVM_updated\RenPyVisualScriptMVVM\obj\Debug\net8.0\RenPyVisualScriptMVVM.genruntimeconfig.cache
 C:\Users\Homewarriors\Desktop\test\RenPyVisualScriptMVVM_updated\RenPyVisualScriptMVVM\obj\Debug\net8.0\ref\RenPyVisualScriptMVVM.dll
 C:\Users\Homewarriors\source\repos\RenPyVisualScriptMVVM\RenPyVisualScriptMVVM\bin\Debug\net8.0\create_renpy_project.py
+C:\Users\Homewarriors\Desktop\test\RenPyVisualScriptMVVM\RenPyVisualScriptMVVM\bin\Debug\net8.0\run_renpy_project.py

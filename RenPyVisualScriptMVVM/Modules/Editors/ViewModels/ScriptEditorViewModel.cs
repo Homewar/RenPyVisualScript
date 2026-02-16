@@ -25,12 +25,14 @@ public sealed class ScriptEditorViewModel : BaseViewModel
 {
     private readonly IProjectContext _ctx;
     private readonly ISettingsService _settings;
+    private readonly IDESettings _ide;
     private readonly IWindowService _windows;
     private readonly IReadonlyDependencyResolver _loc;
 
     public IRelayCommand SaveCmd { get; }
     public IRelayCommand ShowProjectSetCmd { get; }
     public IRelayCommand ShowAppSettingsCmd { get; }
+    public IRelayCommand RunProjectCmd { get; }
 
     public ObservableCollection<TabItemModel> Tabs { get; } = new();
 
@@ -68,11 +70,13 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     public ScriptEditorViewModel(
         IProjectContext ctx,
         ISettingsService settings,
+        IDESettings ide,
         IWindowService windows,
         IReadonlyDependencyResolver? loc = null)
     {
         _ctx = ctx;
         _settings = settings;
+        _ide = ide;
         _windows = windows;
         _loc = loc ?? Locator.Current;
 
@@ -81,6 +85,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         SaveCmd = new RelayCommand(SaveProject);
         ShowProjectSetCmd = new RelayCommand(OpenProjectSettings);
         ShowAppSettingsCmd = new RelayCommand(OpenAppSettings);
+        RunProjectCmd = new RelayCommand(RunProject);
 
         CharacterList = InitCharacters();
 
@@ -138,6 +143,26 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     {
         var vm = _loc.GetService<SettingsGUIViewModel>()!;
         _windows.ShowWindow(vm);
+    }
+
+
+    private void RunProject()
+    {
+        if (string.IsNullOrWhiteSpace(_ctx.ProjectPath))
+            return;
+
+        if (string.IsNullOrWhiteSpace(_ide.RenPySDKPath))
+            return;
+
+        try
+        {
+            var req = new RenPyVisualScriptMVVM.Core.Services.RunProjectRequest(_ide.RenPySDKPath!, _ctx.ProjectPath!);
+            req.Run();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"RunProject error: {ex}");
+        }
     }
 
     private static ObservableCollection<Character> InitCharacters() =>

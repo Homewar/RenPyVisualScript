@@ -27,7 +27,7 @@
 		<Button
 	  Grid.Row="1"
 	  HorizontalAlignment="Right"
-	  Click="" Margin="0,0,10,5" Background="#EA592A">
+	  Command="{Binding SaveGUISettings}" Margin="0,0,10,5" Background="#EA592A">
 			Save Settings
 		</Button>
 	</Grid>

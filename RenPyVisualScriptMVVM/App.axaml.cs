@@ -84,13 +84,15 @@ namespace RenPyVisualScriptMVVM
                 new ScriptEditorViewModel(
                     Locator.Current.GetService<IProjectContext>()!,
                     Locator.Current.GetService<ISettingsService>()!,
+                    Locator.Current.GetService<RenPyVisualScriptMVVM.Core.Models.IDESettings>()!,
                     Locator.Current.GetService<IWindowService>()!,
                     Locator.Current));
 
             loc.Register<FileTreeViewModel>(() =>
                 new FileTreeViewModel(Locator.Current.GetService<IProjectContext>()!));
 
-            loc.Register<SettingsGUIViewModel>(() => new SettingsGUIViewModel());
+            loc.Register<SettingsGUIViewModel>(() =>
+                new SettingsGUIViewModel(Locator.Current.GetService<IProjectContext>()!));
 
             loc.Register<ProjectSettingsViewModel>(() =>
                 new ProjectSettingsViewModel(Locator.Current.GetService<IProjectContext>()!));

@@ -99,6 +99,11 @@ public sealed class ScriptEditorViewModel : BaseViewModel
             if (!File.Exists(node.FullPath))
                 return;
 
+            // Не открываем изображения в редакторе кода
+            var ext = Path.GetExtension(node.FullPath);
+            if (IsImageExtension(ext))
+                return;
+
             var existing = Tabs.FirstOrDefault(t => t.FilePath == node.FullPath);
             if (existing != null)
             {
@@ -120,6 +125,22 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         {
             Debug.WriteLine($"OpenFileInTab error: {ex}");
         }
+    }
+
+    private static bool IsImageExtension(string? ext)
+    {
+        if (string.IsNullOrWhiteSpace(ext))
+            return false;
+
+        // Основные форматы + те, что часто встречаются в проектах Ren'Py
+        return ext.Equals(".png", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".jpg", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".jpeg", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".gif", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".webp", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".bmp", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".ico", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".svg", StringComparison.OrdinalIgnoreCase);
     }
 
     private void SaveProject()

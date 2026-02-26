@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using Avalonia.Media;
+using System.Text;
 
 namespace RenPyVisualScriptMVVM.Modules.Editors.Views
 {
@@ -130,9 +131,13 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
                     if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
                         return;
 
+                    // На всякий случай не пытаемся открывать изображения как текст
+                    if (IsImageExtension(Path.GetExtension(path)))
+                        return;
+
                     try
                     {
-                        var content = File.ReadAllText(path);
+                        var content = ReadFileAsTextSafe(path);
                         textEditor.Text = content;
                         ScriptText = content;
                         LanguageExtension = Path.GetExtension(path);
@@ -216,6 +221,45 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
 
             textEditor.TextArea.TextEntering += TextArea_TextEntering;
             textEditor.TextArea.TextEntered += TextArea_TextEntered;
+        }
+
+        private static bool IsImageExtension(string? ext)
+        {
+            if (string.IsNullOrWhiteSpace(ext))
+                return false;
+
+            return ext.Equals(".png", StringComparison.OrdinalIgnoreCase)
+                || ext.Equals(".jpg", StringComparison.OrdinalIgnoreCase)
+                || ext.Equals(".jpeg", StringComparison.OrdinalIgnoreCase)
+                || ext.Equals(".gif", StringComparison.OrdinalIgnoreCase)
+                || ext.Equals(".webp", StringComparison.OrdinalIgnoreCase)
+                || ext.Equals(".bmp", StringComparison.OrdinalIgnoreCase)
+                || ext.Equals(".ico", StringComparison.OrdinalIgnoreCase)
+                || ext.Equals(".svg", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Читает файл как текст. Если стандартное чтение падает (например, из‑за блокировки/кодировки),
+        /// пытается прочитать байты и декодировать их в UTF‑8 с заменой некорректных последовательностей.
+        /// </summary>
+        private static string ReadFileAsTextSafe(string path)
+        {
+            // Обычный путь (с автоопределением BOM)
+            try
+            {
+                return File.ReadAllText(path);
+            }
+            catch
+            {
+                // Более "живучий" вариант: разрешаем чтение при FileShare.ReadWrite
+                using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using var ms = new MemoryStream();
+                fs.CopyTo(ms);
+
+                // UTF-8 с заменой неверных байтов, чтобы "бинарь" хотя бы открывался как текст
+                var utf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);
+                return utf8.GetString(ms.ToArray());
+            }
         }
 
         private void TextArea_TextEntered(object? sender, TextInputEventArgs e)

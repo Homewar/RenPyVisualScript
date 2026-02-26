@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "hJHXunQW1mM=",
+  "dgSpecHash": "BLgXCPsvOdQ=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Homewarriors\\source\\repos\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+  "projectFilePath": "C:\\Users\\Homewarriors\\Source\\Repos\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Homewarriors\\.nuget\\packages\\avalonia\\11.3.0\\avalonia.11.3.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\avalonia.angle.windows.natives\\2.1.22045.20230930\\avalonia.angle.windows.natives.2.1.22045.20230930.nupkg.sha512",

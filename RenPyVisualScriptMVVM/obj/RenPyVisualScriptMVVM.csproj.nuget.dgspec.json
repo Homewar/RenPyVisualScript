@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Homewarriors\\source\\repos\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj": {}
+    "C:\\Users\\Homewarriors\\Source\\Repos\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Homewarriors\\source\\repos\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj": {
+    "C:\\Users\\Homewarriors\\Source\\Repos\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Homewarriors\\source\\repos\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+        "projectUniqueName": "C:\\Users\\Homewarriors\\Source\\Repos\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
         "projectName": "RenPyVisualScriptMVVM",
-        "projectPath": "C:\\Users\\Homewarriors\\source\\repos\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+        "projectPath": "C:\\Users\\Homewarriors\\Source\\Repos\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
         "packagesPath": "C:\\Users\\Homewarriors\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Homewarriors\\source\\repos\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM\\obj\\",
+        "outputPath": "C:\\Users\\Homewarriors\\Source\\Repos\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

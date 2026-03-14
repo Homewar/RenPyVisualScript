@@ -8,6 +8,7 @@ using RenPyVisualScriptMVVM.Modules.Shell.Services.Interfaces;
 using Splat;
 using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -18,6 +19,8 @@ using RenPyVisualScriptMVVM.Modules.Settings.ViewModels;
 using RenPyVisualScriptMVVM.Modules.Projects.ViewModels;
 using RenPyVisualScriptMVVM.Core.Models;
 using RenPyVisualScriptMVVM.Modules.Projects.Models;
+using RenPyVisualScriptMVVM.Modules.GraphEditor.ViewModels;
+using RenPyVisualScriptMVVM.Modules.Editors.Services;
 
 namespace RenPyVisualScriptMVVM.Modules.Editors.ViewModels;
 
@@ -28,13 +31,26 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     private readonly IDESettings _ide;
     private readonly IWindowService _windows;
     private readonly IReadonlyDependencyResolver _loc;
+    private readonly RenPyStructureReader _structureReader = new();
 
     public IRelayCommand SaveCmd { get; }
     public IRelayCommand ShowProjectSetCmd { get; }
     public IRelayCommand ShowAppSettingsCmd { get; }
     public IRelayCommand RunProjectCmd { get; }
+    public IRelayCommand OpenGraphCmd { get; }
+    public IRelayCommand RefreshStructureCmd { get; }
 
     public ObservableCollection<TabItemModel> Tabs { get; } = new();
+    public ObservableCollection<Character> CharacterList { get; } = new();
+    public ObservableCollection<LabelOutlineItem> LabelList { get; } = new();
+    public ObservableCollection<StructureLinkItem> StructureLinks { get; } = new();
+
+    private string _structureSummary = "Проект ещё не разобран";
+    public string StructureSummary
+    {
+        get => _structureSummary;
+        private set => SetProperty(ref _structureSummary, value);
+    }
 
     private TabItemModel? _selectedTab;
     public TabItemModel? SelectedTab
@@ -65,8 +81,6 @@ public sealed class ScriptEditorViewModel : BaseViewModel
 
     public string? ProjectPath => _ctx.ProjectPath;
 
-    public ObservableCollection<Character> CharacterList { get; }
-
     public ScriptEditorViewModel(
         IProjectContext ctx,
         ISettingsService settings,
@@ -86,10 +100,42 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         ShowProjectSetCmd = new RelayCommand(OpenProjectSettings);
         ShowAppSettingsCmd = new RelayCommand(OpenAppSettings);
         RunProjectCmd = new RelayCommand(RunProject);
+        OpenGraphCmd = new RelayCommand(OpenGraphWindow);
+        RefreshStructureCmd = new RelayCommand(RefreshStructure);
 
-        CharacterList = InitCharacters();
+        _ctx.PropertyChanged += OnProjectContextChanged;
+        RefreshStructure();
 
         Debug.WriteLine("ScriptEditorViewModel initialized");
+    }
+
+    private void OnProjectContextChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(IProjectContext.ProjectPath))
+        {
+            RefreshStructure();
+        }
+    }
+
+    private void RefreshStructure()
+    {
+        CharacterList.Clear();
+        LabelList.Clear();
+        StructureLinks.Clear();
+
+        var snapshot = _structureReader.Read(_ctx.ProjectPath);
+
+        foreach (var character in snapshot.Characters)
+            CharacterList.Add(character);
+
+        foreach (var label in snapshot.Labels)
+            LabelList.Add(label);
+
+        foreach (var link in snapshot.Links)
+            StructureLinks.Add(link);
+
+        var projectName = string.IsNullOrWhiteSpace(ProjectName) ? "Проект" : ProjectName;
+        StructureSummary = $"{projectName}: {CharacterList.Count} персонажей, {LabelList.Count} label, {StructureLinks.Count} связей";
     }
 
     private void OpenFileInTab(FileNode node)
@@ -99,7 +145,6 @@ public sealed class ScriptEditorViewModel : BaseViewModel
             if (!File.Exists(node.FullPath))
                 return;
 
-            // Не открываем изображения в редакторе кода
             var ext = Path.GetExtension(node.FullPath);
             if (IsImageExtension(ext))
                 return;
@@ -132,7 +177,6 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         if (string.IsNullOrWhiteSpace(ext))
             return false;
 
-        // Основные форматы + те, что часто встречаются в проектах Ren'Py
         return ext.Equals(".png", StringComparison.OrdinalIgnoreCase)
             || ext.Equals(".jpg", StringComparison.OrdinalIgnoreCase)
             || ext.Equals(".jpeg", StringComparison.OrdinalIgnoreCase)
@@ -166,6 +210,11 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         _windows.ShowWindow(vm);
     }
 
+    private void OpenGraphWindow()
+    {
+        var vm = _loc.GetService<GraphEditorWindowViewModel>()!;
+        _windows.ShowWindow(vm);
+    }
 
     private void RunProject()
     {
@@ -185,15 +234,6 @@ public sealed class ScriptEditorViewModel : BaseViewModel
             Debug.WriteLine($"RunProject error: {ex}");
         }
     }
-
-    private static ObservableCollection<Character> InitCharacters() =>
-        new()
-        {
-            new("Alice", "#FF0000", "A"),
-            new("Bob",   "Blue",    "B"),
-            new("Clara", "Green",   "C"),
-            new("David", "Yellow",  "D")
-        };
 }
 
 public sealed class StringToBrushConverter : IValueConverter

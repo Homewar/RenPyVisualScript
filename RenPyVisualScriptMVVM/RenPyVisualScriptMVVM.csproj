@@ -26,10 +26,8 @@
     <PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.3.0" />
     <PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="11.1.1" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.0" />
-    <!-- ReactiveUI removed: project uses CommunityToolkit.Mvvm for MVVM -->
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.0" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.0" />
-    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Include="Avalonia.Diagnostics" Version="11.3.0">
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
@@ -49,14 +47,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Views\NewProjectDialog.axaml.cs">
+    <Compile Update="Modules\Editors\Views\ScriptEditor.axaml.cs">
+      <DependentUpon>ScriptEditor.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Modules\Projects\Views\NewProjectDialog.axaml.cs">
       <DependentUpon>NewProjectDialog.axaml</DependentUpon>
     </Compile>
-    <Compile Update="Views\ProjectSelector.axaml.cs">
+    <Compile Update="Modules\Projects\Views\ProjectSelector.axaml.cs">
       <DependentUpon>ProjectSelector.axaml</DependentUpon>
     </Compile>
-    <Compile Update="Views\ScriptEditor.axaml.cs">
-      <DependentUpon>ScriptEditor.axaml</DependentUpon>
+    <Compile Update="Modules\GraphEditor\Views\GraphEditorWindow.axaml.cs">
+      <DependentUpon>GraphEditorWindow.axaml</DependentUpon>
     </Compile>
   </ItemGroup>
 
@@ -64,7 +65,7 @@
     <None Include="create_renpy_project.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-      <None Include="run_renpy_project.py">
+    <None Include="run_renpy_project.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

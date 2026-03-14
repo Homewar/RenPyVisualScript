@@ -11,6 +11,7 @@ using RenPyVisualScriptMVVM.Modules.Settings.Services;
 using RenPyVisualScriptMVVM.Modules.Settings.ViewModels;
 using RenPyVisualScriptMVVM.Modules.Shell.ViewModels;
 using RenPyVisualScriptMVVM.Modules.Shell.Views;
+using RenPyVisualScriptMVVM.Modules.GraphEditor.ViewModels;
 using Splat;
 using System.IO.Abstractions;
 
@@ -96,6 +97,8 @@ namespace RenPyVisualScriptMVVM
 
             loc.Register<ProjectSettingsViewModel>(() =>
                 new ProjectSettingsViewModel(Locator.Current.GetService<IProjectContext>()!));
+
+            loc.Register<GraphEditorWindowViewModel>(() => new GraphEditorWindowViewModel());
 
             /* ---------- запуск UI ---------- */
 

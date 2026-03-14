@@ -33,9 +33,21 @@ namespace RenPyVisualScriptMVVM.Core.Services
 
         public ProjectFiles Load(string rootFolder)
         {
-            // можно добавить проверки существования
+            // Нормализуем путь старых проектов, которые могли быть созданы как root/name.
+            var resolvedRoot = rootFolder;
             var name = Path.GetFileName(rootFolder);
-            return new ProjectFiles(name, rootFolder);
+
+            if (!_fs.Directory.Exists(_fs.Path.Combine(rootFolder, "game")))
+            {
+                var nested = _fs.Path.Combine(rootFolder, name);
+                if (_fs.Directory.Exists(_fs.Path.Combine(nested, "game")))
+                {
+                    resolvedRoot = nested;
+                    name = Path.GetFileName(resolvedRoot);
+                }
+            }
+
+            return new ProjectFiles(name, resolvedRoot);
         }
     }
 }

@@ -31,7 +31,9 @@ def main() -> int:
     cmd = [python, renpy_py, project]
 
     try:
-        subprocess.Popen(cmd, cwd=sdk)
+        # Запускаем Ren'Py из папки проекта, а не из SDK/IDE.
+        # Так относительные пути и временные файлы будут создаваться рядом с файлами игры.
+        subprocess.Popen(cmd, cwd=project)
     except Exception as e:
         print(f"ERROR: failed to start Ren'Py: {e}", file=sys.stderr)
         return 4

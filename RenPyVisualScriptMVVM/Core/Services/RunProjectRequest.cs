@@ -36,7 +36,9 @@ namespace RenPyVisualScriptMVVM.Core.Services
                 FileName = pythonExe,
                 UseShellExecute = false,
                 CreateNoWindow = true,
-                WorkingDirectory = AppContext.BaseDirectory,
+                // Запускаем промежуточный python-скрипт из папки проекта,
+                // чтобы все относительные пути и временные файлы создавались рядом с игрой.
+                WorkingDirectory = _projectPath,
             };
 
             psi.ArgumentList.Add(scriptPath);

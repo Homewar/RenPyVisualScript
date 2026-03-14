@@ -29,10 +29,18 @@ def copy_template_project(sdk: Path, project_dir: Path):
     if not template_dir.exists():
         raise FileNotFoundError(f"Не найден шаблон {template_dir}")
 
-    if project_dir.exists() and any(project_dir.iterdir()):
-        raise FileExistsError(f"Папка проекта уже существует и не пуста: {project_dir}")
+    if project_dir.exists():
+        if any(project_dir.iterdir()):
+            raise FileExistsError(f"Папка проекта уже существует и не пуста: {project_dir}")
+    else:
+        project_dir.mkdir(parents=True, exist_ok=True)
 
-    shutil.copytree(template_dir, project_dir)
+    for item in template_dir.iterdir():
+        dst = project_dir / item.name
+        if item.is_dir():
+            shutil.copytree(item, dst)
+        else:
+            shutil.copy2(item, dst)
 
 def run_generate_gui(sdk: Path, project_dir: Path, width: int, height: int,
                      accent: str, boring: str, light: bool, language: str | None):
@@ -77,7 +85,13 @@ def main():
     args = ap.parse_args()
 
     sdk = Path(args.sdk).resolve()
-    project_dir = (Path(args.out).resolve() / args.name)
+    out_dir = Path(args.out).resolve()
+    # Если out уже указывает на папку проекта (например .../Project/MyGame),
+    # не создаём вложенную папку MyGame/MyGame.
+    if out_dir.name == args.name:
+        project_dir = out_dir
+    else:
+        project_dir = out_dir / args.name
 
     copy_template_project(sdk, project_dir)
     run_generate_gui(

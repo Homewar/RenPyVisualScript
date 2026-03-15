@@ -1,4 +1,4 @@
-﻿# The script of the game goes in this file.
+# The script of the game goes in this file.
 
 # Declare characters used by this game. The color argument colorizes the
 # name of the character.
@@ -30,4 +30,19 @@ label start:
 
     # This ends the game.
 
-    return
+    jump finish
+
+label finish:
+
+    show eileen happy
+
+    jump f1
+
+label f1:
+
+    show eileen happy
+    jump f2
+    
+label f2:
+    show eileen happy
+return

@@ -213,6 +213,8 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     private void OpenGraphWindow()
     {
         var vm = _loc.GetService<GraphEditorWindowViewModel>()!;
+        var snapshot = _structureReader.Read(_ctx.ProjectPath);
+        vm.LoadSnapshot(snapshot, ProjectName);
         _windows.ShowWindow(vm);
     }
 

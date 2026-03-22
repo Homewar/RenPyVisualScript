@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using RenPyVisualScriptMVVM.Modules.Editors.Models;
@@ -214,7 +214,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     {
         var vm = _loc.GetService<GraphEditorWindowViewModel>()!;
         var snapshot = _structureReader.Read(_ctx.ProjectPath);
-        vm.LoadSnapshot(snapshot, ProjectName);
+        vm.LoadSnapshot(snapshot, ProjectName, _ctx.ProjectPath);
         _windows.ShowWindow(vm);
     }
 

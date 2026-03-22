@@ -11,28 +11,28 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Services;
 public sealed class RenPyStructureReader
 {
     private static readonly Regex CharacterRegex = new(
-    @"^\s*define\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*Character\(\s*""([^""]+)""(?<args>.*)\)\s*$",
-    RegexOptions.Compiled);
+        "^\\s*define\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*=\\s*Character\\(\\s*\"([^\"]+)\"(?<args>.*)\\)\\s*$",
+        RegexOptions.Compiled);
 
     private static readonly Regex ColorRegex = new(
-    @"color\s*=\s*""([^""]+)""",
-    RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        "color\\s*=\\s*\"([^\"]+)\"",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     private static readonly Regex LabelRegex = new(
-    @"^\s*label\s+([A-Za-z_][A-Za-z0-9_]*)\s*:\s*$",
-    RegexOptions.Compiled);
+        @"^\s*label\s+([A-Za-z_][A-Za-z0-9_]*)\s*:\s*$",
+        RegexOptions.Compiled);
 
     private static readonly Regex JumpRegex = new(
-    @"^\s*jump\s+([A-Za-z_][A-Za-z0-9_]*)\b",
-    RegexOptions.Compiled);
+        @"^\s*jump\s+([A-Za-z_][A-Za-z0-9_]*)\b",
+        RegexOptions.Compiled);
 
     private static readonly Regex CallRegex = new(
-    @"^\s*call\s+([A-Za-z_][A-Za-z0-9_]*)\b",
-    RegexOptions.Compiled);
+        @"^\s*call\s+([A-Za-z_][A-Za-z0-9_]*)\b",
+        RegexOptions.Compiled);
 
     private static readonly Regex MenuChoiceRegex = new(
-    @"^\s*""([^""]+)""\s*:\s*$",
-    RegexOptions.Compiled);
+        "^\\s*\"([^\"]+)\"\\s*:\\s*$",
+        RegexOptions.Compiled);
 
     private static readonly HashSet<string> ExcludedFileNames = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -63,12 +63,13 @@ public sealed class RenPyStructureReader
         if (string.IsNullOrWhiteSpace(projectPath) || !Directory.Exists(projectPath))
             return new ProjectStructureSnapshot(Array.Empty<Character>(), Array.Empty<LabelOutlineItem>(), Array.Empty<StructureLinkItem>());
 
+        var normalizedProjectPath = Path.GetFullPath(projectPath);
         var characters = new List<Character>();
         var labels = new List<LabelOutlineItem>();
         var links = new List<StructureLinkItem>();
 
-        foreach (var file in EnumerateGameScriptFiles(projectPath))
-            ParseFile(file, characters, labels, links);
+        foreach (var file in EnumerateGameScriptFiles(normalizedProjectPath))
+            ParseFile(normalizedProjectPath, file, characters, labels, links);
 
         return new ProjectStructureSnapshot(characters, labels, links);
     }
@@ -95,7 +96,7 @@ public sealed class RenPyStructureReader
             .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         var normalizedFile = Path.GetFullPath(filePath);
         var relativePath = Path.GetRelativePath(normalizedProject, normalizedFile)
-        .Replace('\\', '/');
+            .Replace('\\', '/');
 
         if (relativePath.StartsWith("game/tl/", StringComparison.OrdinalIgnoreCase))
             return false;
@@ -115,57 +116,83 @@ public sealed class RenPyStructureReader
     }
 
     private static void ParseFile(
+        string projectPath,
         string filePath,
         List<Character> characters,
         List<LabelOutlineItem> labels,
         List<StructureLinkItem> links)
     {
         var lines = File.ReadAllLines(filePath);
+        var relativePath = Path.GetRelativePath(projectPath, filePath).Replace('\\', '/');
         var fileName = Path.GetFileName(filePath);
-
-        string? currentLabel = null;
-        var currentLabelLine = 0;
-        var currentStatementCount = 0;
-        var includeCurrentLabel = false;
 
         for (var i = 0; i < lines.Length; i++)
         {
-            var lineNumber = i + 1;
-            var line = lines[i];
-            var trimmed = line.Trim();
+            var characterMatch = CharacterRegex.Match(lines[i]);
+            if (!characterMatch.Success)
+                continue;
 
-            var characterMatch = CharacterRegex.Match(line);
-            if (characterMatch.Success)
-            {
-                var codeName = characterMatch.Groups[1].Value;
-                var inGameName = characterMatch.Groups[2].Value;
-                var args = characterMatch.Groups["args"].Value;
-                var color = ExtractColor(args);
-                characters.Add(new Character(codeName, color, inGameName));
-            }
+            var codeName = characterMatch.Groups[1].Value;
+            var inGameName = characterMatch.Groups[2].Value;
+            var args = characterMatch.Groups["args"].Value;
+            var color = ExtractColor(args);
+            characters.Add(new Character(codeName, color, inGameName));
+        }
 
-            var labelMatch = LabelRegex.Match(line);
+        var labelHeaders = new List<(string name, int startIndex)>();
+        for (var i = 0; i < lines.Length; i++)
+        {
+            var labelMatch = LabelRegex.Match(lines[i]);
             if (labelMatch.Success)
+                labelHeaders.Add((labelMatch.Groups[1].Value, i));
+        }
+
+        for (var i = 0; i < labelHeaders.Count; i++)
+        {
+            var (labelName, startIndex) = labelHeaders[i];
+            var endIndex = i + 1 < labelHeaders.Count ? labelHeaders[i + 1].startIndex - 1 : lines.Length - 1;
+            var includeCurrentLabel = IsGameLabel(labelName);
+            if (!includeCurrentLabel)
+                continue;
+
+            var bodyLines = lines.Skip(startIndex + 1).Take(Math.Max(0, endIndex - startIndex)).ToList();
+            var statementCount = bodyLines.Count(static line =>
             {
-                FlushCurrentLabel(labels, includeCurrentLabel, fileName, ref currentLabel, ref currentLabelLine, ref currentStatementCount);
-                currentLabel = labelMatch.Groups[1].Value;
-                includeCurrentLabel = IsGameLabel(currentLabel);
-                currentLabelLine = lineNumber;
-                continue;
-            }
+                var trimmed = line.Trim();
+                return trimmed.Length > 0 && !trimmed.StartsWith('#');
+            });
 
-            if (currentLabel is null || !includeCurrentLabel)
-                continue;
+            labels.Add(new LabelOutlineItem(
+                labelName,
+                fileName,
+                relativePath,
+                statementCount,
+                startIndex + 1,
+                endIndex + 1,
+                bodyLines));
 
-            if (trimmed.Length > 0 && !trimmed.StartsWith('#'))
-                currentStatementCount++;
+            ParseLinksForLabel(relativePath, labelName, startIndex + 2, bodyLines, links);
+        }
+    }
+
+    private static void ParseLinksForLabel(
+        string relativePath,
+        string currentLabel,
+        int bodyStartLine,
+        IReadOnlyList<string> bodyLines,
+        List<StructureLinkItem> links)
+    {
+        for (var i = 0; i < bodyLines.Count; i++)
+        {
+            var line = bodyLines[i];
+            var lineNumber = bodyStartLine + i;
 
             var jumpMatch = JumpRegex.Match(line);
             if (jumpMatch.Success)
             {
                 var target = jumpMatch.Groups[1].Value;
                 if (IsGameLabel(target))
-                    links.Add(new StructureLinkItem("jump", currentLabel, target, $"jump → {target}", fileName, lineNumber));
+                    links.Add(new StructureLinkItem("jump", currentLabel, target, $"jump → {target}", relativePath, lineNumber));
                 continue;
             }
 
@@ -174,7 +201,7 @@ public sealed class RenPyStructureReader
             {
                 var target = callMatch.Groups[1].Value;
                 if (IsGameLabel(target))
-                    links.Add(new StructureLinkItem("call", currentLabel, target, $"call → {target}", fileName, lineNumber));
+                    links.Add(new StructureLinkItem("call", currentLabel, target, $"call → {target}", relativePath, lineNumber));
                 continue;
             }
 
@@ -182,13 +209,46 @@ public sealed class RenPyStructureReader
             if (menuChoiceMatch.Success)
             {
                 var choiceText = menuChoiceMatch.Groups[1].Value;
-                var target = TryFindMenuTarget(lines, i + 1);
+                var choiceIndent = GetIndentWidth(line);
+                var target = TryFindMenuTarget(bodyLines, i + 1, choiceIndent);
                 if (target is null || IsGameLabel(target))
-                    links.Add(new StructureLinkItem("menu", currentLabel, target ?? "(inline branch)", choiceText, fileName, lineNumber));
+                    links.Add(new StructureLinkItem("menu", currentLabel, target ?? "(inline branch)", choiceText, relativePath, lineNumber));
             }
         }
+    }
 
-        FlushCurrentLabel(labels, includeCurrentLabel, fileName, ref currentLabel, ref currentLabelLine, ref currentStatementCount);
+    private static string? TryFindMenuTarget(IReadOnlyList<string> bodyLines, int startIndex, int choiceIndent)
+    {
+        for (var i = startIndex; i < bodyLines.Count; i++)
+        {
+            var line = bodyLines[i];
+            var trimmed = line.Trim();
+            if (trimmed.Length == 0 || trimmed.StartsWith('#'))
+                continue;
+
+            var indent = GetIndentWidth(line);
+            if (indent <= choiceIndent)
+                return null;
+
+            var jumpMatch = JumpRegex.Match(line);
+            if (jumpMatch.Success)
+                return jumpMatch.Groups[1].Value;
+
+            var callMatch = CallRegex.Match(line);
+            if (callMatch.Success)
+                return callMatch.Groups[1].Value;
+        }
+
+        return null;
+    }
+
+    private static int GetIndentWidth(string line)
+    {
+        var count = 0;
+        while (count < line.Length && char.IsWhiteSpace(line[count]))
+            count++;
+
+        return count;
     }
 
     private static bool IsGameLabel(string labelName)
@@ -202,48 +262,12 @@ public sealed class RenPyStructureReader
         return !labelName.StartsWith("_", StringComparison.Ordinal);
     }
 
-    private static void FlushCurrentLabel(
-        List<LabelOutlineItem> labels,
-        bool includeCurrentLabel,
-        string fileName,
-        ref string? currentLabel,
-        ref int currentLabelLine,
-        ref int currentStatementCount)
-    {
-        if (includeCurrentLabel && !string.IsNullOrWhiteSpace(currentLabel))
-            labels.Add(new LabelOutlineItem(currentLabel, fileName, currentStatementCount, currentLabelLine));
-
-        currentLabel = null;
-        currentLabelLine = 0;
-        currentStatementCount = 0;
-    }
-
     private static string ExtractColor(string args)
     {
         var match = ColorRegex.Match(args);
-        return match.Success ? match.Groups[1].Value : "#808080";
-    }
+        if (!match.Success)
+            return "";
 
-    private static string? TryFindMenuTarget(IReadOnlyList<string> lines, int startIndex)
-    {
-        for (var i = startIndex; i < lines.Count; i++)
-        {
-            var trimmed = lines[i].Trim();
-            if (trimmed.Length == 0 || trimmed.StartsWith('#'))
-                continue;
-
-            var jumpMatch = JumpRegex.Match(lines[i]);
-            if (jumpMatch.Success)
-                return jumpMatch.Groups[1].Value;
-
-            var callMatch = CallRegex.Match(lines[i]);
-            if (callMatch.Success)
-                return callMatch.Groups[1].Value;
-
-            if (!char.IsWhiteSpace(lines[i][0]))
-                break;
-        }
-
-        return null;
+        return match.Groups[1].Value;
     }
 }

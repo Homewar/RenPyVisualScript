@@ -133,23 +133,9 @@ namespace RenPyVisualScriptMVVM.Modules.Shell.ViewModels
                 return false;
             }
 
-            var renpyDir = Path.Combine(path, "renpy");
-            var launcherDir = Path.Combine(path, "launcher");
-
-            if (!Directory.Exists(renpyDir) || !Directory.Exists(launcherDir))
+            if (!RenPySdkPathResolver.IsValidSdkPath(path))
             {
-                reason = "Это не похоже на Ren'Py SDK: не найдены папки 'renpy' и/или 'launcher'.";
-                return false;
-            }
-
-            // Windows / Linux / macOS признаки
-            var hasExe = File.Exists(Path.Combine(path, "renpy.exe"))
-                      || File.Exists(Path.Combine(path, "renpy.bat"))
-                      || File.Exists(Path.Combine(path, "renpy.sh"));
-
-            if (!hasExe)
-            {
-                reason = "Это не похоже на Ren'Py SDK: не найден renpy.exe/renpy.bat/renpy.sh в корне SDK.";
+                reason = "Это не похоже на Ren'Py SDK: не найдены обязательные папки или файлы запуска.";
                 return false;
             }
 

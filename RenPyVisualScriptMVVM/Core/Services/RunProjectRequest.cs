@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 
 namespace RenPyVisualScriptMVVM.Core.Services
 {
@@ -12,56 +11,43 @@ namespace RenPyVisualScriptMVVM.Core.Services
 
         public RunProjectRequest(string sdkPath, string projectPath)
         {
-            _sdkPath = sdkPath ?? throw new ArgumentNullException(nameof(sdkPath));
+            _sdkPath = sdkPath ?? string.Empty;
             _projectPath = projectPath ?? throw new ArgumentNullException(nameof(projectPath));
         }
 
         public void Run()
         {
-            if (!Directory.Exists(_sdkPath))
-                throw new DirectoryNotFoundException($"Ren'Py SDK path not found: {_sdkPath}");
+            if (!RenPySdkPathResolver.IsValidSdkPath(_sdkPath))
+                throw new InvalidOperationException("Ren'Py SDK path is not set or invalid.");
 
-            if (!Directory.Exists(_projectPath))
-                throw new DirectoryNotFoundException($"Project path not found: {_projectPath}");
+            var normalizedSdkPath = RenPySdkPathResolver.NormalizePath(_sdkPath);
+            var normalizedProjectPath = Path.GetFullPath(_projectPath.Trim().Trim('"'));
+
+            if (!Directory.Exists(normalizedProjectPath))
+                throw new DirectoryNotFoundException($"Project path not found: {normalizedProjectPath}");
 
             var scriptPath = Path.Combine(AppContext.BaseDirectory, "run_renpy_project.py");
             if (!File.Exists(scriptPath))
                 throw new FileNotFoundException($"Не найден скрипт запуска проекта: {scriptPath}. " +
                                                 $"Добавьте его в проект и включите Copy to Output Directory.");
 
-            var pythonExe = ResolvePythonExe(_sdkPath);
+            var pythonExe = RenPySdkPathResolver.ResolvePythonExecutable(normalizedSdkPath);
 
             var psi = new ProcessStartInfo
             {
                 FileName = pythonExe,
                 UseShellExecute = false,
                 CreateNoWindow = true,
-                // Запускаем промежуточный python-скрипт из папки проекта,
-                // чтобы все относительные пути и временные файлы создавались рядом с игрой.
-                WorkingDirectory = _projectPath,
+                WorkingDirectory = normalizedProjectPath,
             };
 
             psi.ArgumentList.Add(scriptPath);
-            psi.ArgumentList.Add("--sdk"); psi.ArgumentList.Add(_sdkPath);
-            psi.ArgumentList.Add("--project"); psi.ArgumentList.Add(_projectPath);
+            psi.ArgumentList.Add("--sdk"); psi.ArgumentList.Add(normalizedSdkPath);
+            psi.ArgumentList.Add("--project"); psi.ArgumentList.Add(normalizedProjectPath);
 
             var p = Process.Start(psi);
             if (p is null)
                 throw new InvalidOperationException("Не удалось запустить Ren'Py процесс.");
-        }
-
-        private static string ResolvePythonExe(string sdkPath)
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                var sdkPython = Path.Combine(sdkPath, "lib", "py3-windows-x86_64", "python.exe");
-                if (File.Exists(sdkPython))
-                    return sdkPython;
-
-                return "python";
-            }
-
-            return "python3";
         }
     }
 }

@@ -7,7 +7,13 @@
         x:Class="RenPyVisualScriptMVVM.Modules.GraphEditor.Views.GraphEditorWindow"
         Background="#1e1e1e"
         Title="Graph Editor">
-    <Grid>
+    <DockPanel>
+        <Border DockPanel.Dock="Top" Background="#252526" Padding="12,8">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="Синхронизировать граф в исходные .rpy" Click="ExportNewNodesToRpy_Click"/>
+                <TextBlock Text="Правый клик по пустому месту — новый узел. Сохранение идёт в исходные .rpy-файлы." VerticalAlignment="Center" Foreground="#C8C8C8"/>
+            </StackPanel>
+        </Border>
         <controls:GraphCanvas x:Name="GraphCanvas" Margin="0" />
-    </Grid>
+    </DockPanel>
 </Window>

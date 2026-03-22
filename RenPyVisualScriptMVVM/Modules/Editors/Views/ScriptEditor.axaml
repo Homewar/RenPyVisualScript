@@ -111,7 +111,7 @@
                                                     <Grid ColumnDefinitions="*,Auto" Margin="8,4">
                                                         <StackPanel>
                                                             <TextBlock Text="{Binding Name}"/>
-                                                            <TextBlock Text="{Binding FileName}" Foreground="#808080" FontSize="11"/>
+                                                            <TextBlock Text="{Binding FilePath}" Foreground="#808080" FontSize="11"/>
                                                         </StackPanel>
                                                         <StackPanel Grid.Column="1" HorizontalAlignment="Right">
                                                             <TextBlock Text="{Binding StatementCount, StringFormat='{}{0} stmts'}" HorizontalAlignment="Right"/>

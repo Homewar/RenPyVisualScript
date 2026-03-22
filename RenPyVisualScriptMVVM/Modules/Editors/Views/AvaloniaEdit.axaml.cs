@@ -102,6 +102,8 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
         {
             InitializeComponent();
             textEditor.FontSize = 20.0;
+            textEditor.Options.ConvertTabsToSpaces = true;
+            textEditor.Options.IndentationSize = 4;
             _registryOptions = new RegistryOptions(ThemeName.DarkPlus);
             _textMateInstallation = textEditor.InstallTextMate(_registryOptions);
 
@@ -161,6 +163,24 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
                 if (e.Key == Key.S && e.KeyModifiers.HasFlag(KeyModifiers.Control))
                 {
                     SaveToFile();
+                    e.Handled = true;
+                }
+            };
+
+            textEditor.TextArea.TextEntering += (_, e) =>
+            {
+                if (e.Text == "	" && _completionWindow is null)
+                {
+                    InsertSpacesInsteadOfTab();
+                    e.Handled = true;
+                }
+            };
+
+            textEditor.KeyDown += (sender, e) =>
+            {
+                if (e.Key == Key.Tab && e.KeyModifiers == KeyModifiers.None && _completionWindow is null)
+                {
+                    InsertSpacesInsteadOfTab();
                     e.Handled = true;
                 }
             };
@@ -328,6 +348,28 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
 
                 _completionWindow.Show();
                 _completionWindow.Closed += (o, args) => _completionWindow = null;
+        }
+
+        private void InsertSpacesInsteadOfTab()
+        {
+            const string indent = "    ";
+            var textArea = textEditor.TextArea;
+            var document = textEditor.Document;
+
+            if (document is null)
+                return;
+
+            var selection = textArea.Selection;
+            if (selection is not null && !selection.IsEmpty)
+            {
+                document.Replace(selection.SurroundingSegment, indent);
+                textArea.Caret.Offset = selection.SurroundingSegment.Offset + indent.Length;
+                return;
+            }
+
+            var offset = textArea.Caret.Offset;
+            document.Insert(offset, indent);
+            textArea.Caret.Offset = offset + indent.Length;
         }
 
         private void SaveToFile()

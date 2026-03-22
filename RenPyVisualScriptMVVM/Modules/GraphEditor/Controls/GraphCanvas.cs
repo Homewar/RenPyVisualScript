@@ -55,8 +55,21 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             KeyDown += OnKeyDown;
         }
 
+
+        private void EnsureEdgeConnectorMappings()
+        {
+            foreach (var edge in Edges)
+            {
+                if (!_edgeConnectorMap.ContainsKey(edge))
+                {
+                    _edgeConnectorMap[edge] = (ConnectorPosition.Right, ConnectorPosition.Left);
+                }
+            }
+        }
+
         public void RebuildChildren()
         {
+            EnsureEdgeConnectorMappings();
             Children.Clear();
 
             DrawEdges();
@@ -82,8 +95,10 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                     continue;
                 }
 
-                _edgeConnectorMap.TryGetValue(edge, out var connectorPair);
-                var points = GetManhattanPoints(edge, connectorPair.start, connectorPair.end);
+                var hasConnectorPair = _edgeConnectorMap.TryGetValue(edge, out var connectorPair);
+                var startConnector = hasConnectorPair ? connectorPair.start : ConnectorPosition.Right;
+                var endConnector = hasConnectorPair ? connectorPair.end : ConnectorPosition.Left;
+                var points = GetManhattanPoints(edge, startConnector, endConnector);
                 var path = CreateRoundedPath(points, 10, edgeBrush, 2);
                 path.DataContext = edge;
                 path.IsHitTestVisible = true;
@@ -108,6 +123,14 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             }
         }
 
+        private IBrush GetNodeFill(Node node)
+        {
+            if (node.ImageBackground is not null)
+                return node.ImageBackground;
+
+            return Node.CreatePlaceholderImageBrush();
+        }
+
         private void DrawNode(Node node)
         {
             var titleBarHeight = 24 * _viewportScale;
@@ -124,7 +147,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             {
                 Width = nodeWidth,
                 Height = nodeHeight,
-                Fill = node.ImageBackground ?? node.Background,
+                Fill = GetNodeFill(node),
                 RadiusX = cornerRadius,
                 RadiusY = cornerRadius,
                 Stroke = (node == _selectedNode) ? Brushes.Black : null,
@@ -695,7 +718,15 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void AddNewNode(Point point)
         {
-            Nodes.Add(new Node { X = point.X, Y = point.Y, Title = $"N{Nodes.Count + 1}" });
+            var title = $"N{Nodes.Count + 1}";
+            Nodes.Add(new Node
+            {
+                X = point.X,
+                Y = point.Y,
+                Title = title,
+                IsGeneratedManually = true,
+                BodyLines = new List<string> { $"    \"TODO: {title}\"" }
+            });
             RebuildChildren();
         }
 
@@ -930,10 +961,18 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         public void SetNodeImage(Node node, string imagePath)
         {
-            if (node == null || string.IsNullOrEmpty(imagePath))
+            if (node == null)
             {
                 return;
             }
+
+            if (string.IsNullOrWhiteSpace(imagePath))
+            {
+                node.ImageBackground = Node.CreatePlaceholderImageBrush();
+                RebuildChildren();
+                return;
+            }
+
             try
             {
                 node.ImageBackground = new ImageBrush
@@ -947,7 +986,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             catch (Exception ex)
             {
                 Console.WriteLine($"Ошибка загрузки изображения: {ex.Message}");
-                node.ImageBackground = null;
+                node.ImageBackground = Node.CreatePlaceholderImageBrush();
             }
             RebuildChildren();
         }
@@ -1007,9 +1046,9 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
         }
         public void AddEdge(Node start, Node end)
         {
-            // Оставляем совместимость — добавляем просто ребро (без явных коннекторов)
             var edge = new Edge(start, end);
             Edges.Add(edge);
+            _edgeConnectorMap[edge] = (ConnectorPosition.Right, ConnectorPosition.Left);
             RebuildChildren();
         }
         private List<Point> GetManhattanPoints(Edge edge, ConnectorPosition? forcedStart = null, ConnectorPosition? forcedEnd = null)
@@ -1189,27 +1228,16 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             Dictionary<ConnectorPosition, Point> endPoints,
             ConnectorPosition? forcedStart, ConnectorPosition? forcedEnd)
         {
-            // Если коннекторы форсированы - используем их
-            if (forcedStart.HasValue && forcedEnd.HasValue)
-            {
-                return (forcedStart.Value, forcedEnd.Value);
-            }
-
-            // Определяем относительное положение узлов
-            double dx = end.X - start.X;
-            double dy = end.Y - start.Y;
-
-            // Выбираем коннекторы на основе относительного положения
-            var startConnector = forcedStart ?? GetPreferredConnector(start, end, dx, dy, isStart: true);
-            var endConnector = forcedEnd ?? GetPreferredConnector(end, start, -dx, -dy, isStart: false);
-
+            // По умолчанию все связи строим строго: выход справа -> вход слева.
+            // Форсированные значения оставляем только для ручного соединения коннекторов.
+            var startConnector = forcedStart ?? ConnectorPosition.Right;
+            var endConnector = forcedEnd ?? ConnectorPosition.Left;
             return (startConnector, endConnector);
         }
 
         private ConnectorPosition GetPreferredConnector(Node currentNode, Node otherNode, double dx, double dy, bool isStart)
         {
-            bool isRight = dx > 0;
-            return isRight ? ConnectorPosition.Right : ConnectorPosition.Left;
+            return isStart ? ConnectorPosition.Right : ConnectorPosition.Left;
         }
 
         private List<Point> GetManhattanPointsToPoint(Node start, Point endPoint, ConnectorPosition? forcedStart = null)

@@ -1,28 +1,59 @@
 import argparse
-import os
+import platform
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
+
 def detect_renpy_runner(sdk: Path):
-    # Windows: prefer renpy.exe if present
-    renpy_exe = sdk / "renpy.exe"
-    if renpy_exe.exists():
-        return [str(renpy_exe)]
-
-    # Windows bundled python
     renpy_py = sdk / "renpy.py"
-    win_py = sdk / "lib" / "py3-windows-x86_64" / "python.exe"
-    if win_py.exists() and renpy_py.exists():
-        return [str(win_py), str(renpy_py)]
+    system = platform.system()
 
-    # Linux/macOS
-    renpy_sh = sdk / "renpy.sh"
-    if renpy_sh.exists():
-        return [str(renpy_sh)]
+    if system == "Windows":
+        renpy_exe = sdk / "renpy.exe"
+        if renpy_exe.exists():
+            return [str(renpy_exe)]
 
-    return ["renpy"]
+        win_py = sdk / "lib" / "py3-windows-x86_64" / "python.exe"
+        if win_py.exists() and renpy_py.exists():
+            return [str(win_py), str(renpy_py)]
+
+        return ["python", str(renpy_py)] if renpy_py.exists() else ["python"]
+
+    if system == "Linux":
+        renpy_sh = sdk / "renpy.sh"
+        if renpy_sh.exists():
+            return [str(renpy_sh)]
+
+        linux_pythons = [
+            sdk / "lib" / "py3-linux-x86_64" / "python",
+            sdk / "lib" / "py3-linux-aarch64" / "python",
+        ]
+        for py in linux_pythons:
+            if py.exists() and renpy_py.exists():
+                return [str(py), str(renpy_py)]
+
+        return ["python3", str(renpy_py)] if renpy_py.exists() else ["python3"]
+
+    if system == "Darwin":
+        renpy_app = sdk / "renpy.app" / "Contents" / "MacOS" / "renpy"
+        if renpy_app.exists():
+            return [str(renpy_app)]
+
+        mac_pythons = [
+            sdk / "lib" / "py3-mac-x86_64" / "python",
+            sdk / "lib" / "py3-mac-universal" / "python",
+            sdk / "lib" / "py3-mac-arm64" / "python",
+        ]
+        for py in mac_pythons:
+            if py.exists() and renpy_py.exists():
+                return [str(py), str(renpy_py)]
+
+        return ["python3", str(renpy_py)] if renpy_py.exists() else ["python3"]
+
+    return ["python3", str(renpy_py)] if renpy_py.exists() else ["python3"]
+
 
 def copy_template_project(sdk: Path, project_dir: Path):
     template_dir = sdk / "gui"
@@ -41,6 +72,7 @@ def copy_template_project(sdk: Path, project_dir: Path):
             shutil.copytree(item, dst)
         else:
             shutil.copy2(item, dst)
+
 
 def run_generate_gui(sdk: Path, project_dir: Path, width: int, height: int,
                      accent: str, boring: str, light: bool, language: str | None):
@@ -70,6 +102,7 @@ def run_generate_gui(sdk: Path, project_dir: Path, width: int, height: int,
         print(result.stderr, file=sys.stderr)
         raise RuntimeError(f"Ren'Py generate_gui завершился с кодом {result.returncode}")
 
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--sdk", required=True, help="Путь к папке Ren'Py SDK (там где renpy.sh/renpy.py)")
@@ -86,12 +119,7 @@ def main():
 
     sdk = Path(args.sdk).resolve()
     out_dir = Path(args.out).resolve()
-    # Если out уже указывает на папку проекта (например .../Project/MyGame),
-    # не создаём вложенную папку MyGame/MyGame.
-    if out_dir.name == args.name:
-        project_dir = out_dir
-    else:
-        project_dir = out_dir / args.name
+    project_dir = out_dir if out_dir.name == args.name else out_dir / args.name
 
     copy_template_project(sdk, project_dir)
     run_generate_gui(
@@ -106,6 +134,7 @@ def main():
     )
 
     print(f"OK: {project_dir}")
+
 
 if __name__ == "__main__":
     main()

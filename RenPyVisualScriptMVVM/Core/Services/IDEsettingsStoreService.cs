@@ -83,17 +83,7 @@ namespace RenPyVisualScriptMVVM.Core.Services
 
         public static bool IsValidSdkPath(string? sdkPath)
         {
-            if (string.IsNullOrWhiteSpace(sdkPath)) return false;
-            if (!Directory.Exists(sdkPath)) return false;
-            if (!Directory.Exists(Path.Combine(sdkPath, "renpy"))) return false;
-            if (!Directory.Exists(Path.Combine(sdkPath, "launcher"))) return false;
-
-            var hasExe =
-                File.Exists(Path.Combine(sdkPath, "renpy.exe")) ||
-                File.Exists(Path.Combine(sdkPath, "renpy.bat")) ||
-                File.Exists(Path.Combine(sdkPath, "renpy.sh"));
-
-            return hasExe;
+            return RenPySdkPathResolver.IsValidSdkPath(sdkPath);
         }
     }
 }

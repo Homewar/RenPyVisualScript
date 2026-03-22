@@ -15,14 +15,24 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Models
         public Size Size { get; set; } = new Size(192, 108);
         public IBrush? Background  { get; set; } = Brushes.LightBlue;
 
-        public ImageBrush? ImageBackground { get; set; } = new ImageBrush // Изменено: значение по умолчанию с заглушкой
+        public static ImageBrush CreatePlaceholderImageBrush()
         {
-            
-            Source = new Bitmap(Avalonia.Platform.AssetLoader.Open(new Uri("avares://RenPyVisualScriptMVVM/Assets/GraphEditor/placeholder.jpg"))),
-            Stretch = Stretch.UniformToFill, // Ресайз под узел с заполнением (может обрезать)
-            AlignmentX = AlignmentX.Center,
-            AlignmentY = AlignmentY.Center
-        };
+            return new ImageBrush
+            {
+                Source = new Bitmap(AssetLoader.Open(new Uri("avares://RenPyVisualScriptMVVM/Assets/GraphEditor/placeholder.jpg"))),
+                Stretch = Stretch.UniformToFill,
+                AlignmentX = AlignmentX.Center,
+                AlignmentY = AlignmentY.Center
+            };
+        }
+
+        public ImageBrush? ImageBackground { get; set; } = CreatePlaceholderImageBrush();
+
+        public bool IsGeneratedManually { get; set; }
+        public string? SourceFilePath { get; set; }
+        public int SourceStartLine { get; set; }
+        public int SourceEndLine { get; set; }
+        public List<string> BodyLines { get; set; } = new();
 
         public Avalonia.Point Position => new Point(X, Y);
 

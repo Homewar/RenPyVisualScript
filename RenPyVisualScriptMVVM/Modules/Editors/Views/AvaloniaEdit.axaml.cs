@@ -16,6 +16,10 @@ using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using Avalonia.Media;
 using System.Text;
+using AvaloniaEdit.Highlighting;
+using AvaloniaEdit.Highlighting.Xshd;
+using System.Xml;
+using Avalonia.Platform;
 
 namespace RenPyVisualScriptMVVM.Modules.Editors.Views
 {
@@ -31,7 +35,7 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
             AvaloniaProperty.Register<AvaloniaEdit, string>(nameof(LanguageExtension));
 
         private readonly RegistryOptions _registryOptions;
-        private readonly Installation _textMateInstallation;
+        private Installation? _textMateInstallation;
 
         private CompletionWindow _completionWindow;
 
@@ -105,7 +109,11 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
             textEditor.Options.ConvertTabsToSpaces = true;
             textEditor.Options.IndentationSize = 4;
             _registryOptions = new RegistryOptions(ThemeName.DarkPlus);
-            _textMateInstallation = textEditor.InstallTextMate(_registryOptions);
+            // NOTE: do NOT call InstallTextMate() here — it registers a LineTransformer
+            // that permanently overrides SyntaxHighlighting even when SetGrammar(null).
+            // We install it lazily only for non-.rpy files.
+
+            RegisterRenPyHighlighting();
 
             PropertyChanged += (_, e) =>
             {
@@ -115,6 +123,22 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
                     if (string.IsNullOrWhiteSpace(ext))
                         return;
 
+                    if (ext.Equals(".rpy", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Dispose TextMate if it was previously installed for another file,
+                        // then apply the xshd highlighter exclusively.
+                        _textMateInstallation?.Dispose();
+                        _textMateInstallation = null;
+                        textEditor.SyntaxHighlighting =
+                            HighlightingManager.Instance.GetDefinition("RenPy");
+                        return;
+                    }
+
+                    // For all other languages: ensure TextMate is installed, then set grammar.
+                    if (_textMateInstallation == null)
+                        _textMateInstallation = textEditor.InstallTextMate(_registryOptions);
+
+                    textEditor.SyntaxHighlighting = null;
                     try
                     {
                         var lang = _registryOptions.GetLanguageByExtension(ext);
@@ -241,6 +265,26 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
 
             textEditor.TextArea.TextEntering += TextArea_TextEntering;
             textEditor.TextArea.TextEntered += TextArea_TextEntered;
+        }
+
+        private static void RegisterRenPyHighlighting()
+        {
+            // Only register once per process lifetime
+            if (HighlightingManager.Instance.GetDefinition("RenPy") != null)
+                return;
+
+            try
+            {
+                var uri = new Uri("avares://RenPyVisualScriptMVVM/Assets/RenPy.xshd");
+                using var stream = AssetLoader.Open(uri);
+                using var reader = new XmlTextReader(stream);
+                var definition = HighlightingLoader.Load(reader, HighlightingManager.Instance);
+                HighlightingManager.Instance.RegisterHighlighting("RenPy", new[] { ".rpy" }, definition);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to load RenPy.xshd: {ex.Message}");
+            }
         }
 
         private static bool IsImageExtension(string? ext)

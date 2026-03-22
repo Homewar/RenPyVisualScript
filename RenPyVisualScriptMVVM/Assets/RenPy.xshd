@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SyntaxDefinition name="RenPy" extensions=".rpy" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+
+  <Color name="Comment"       foreground="#6A9955" fontStyle="italic"/>
+  <Color name="String"        foreground="#CE9178"/>
+  <Color name="MultiString"   foreground="#CE9178"/>
+  <Color name="Keyword"       foreground="#569CD6" fontWeight="bold"/>
+  <Color name="FlowKeyword"   foreground="#C586C0" fontWeight="bold"/>
+  <Color name="PythonKeyword" foreground="#4EC9B0"/>
+  <Color name="BuiltinFunc"   foreground="#DCDCAA"/>
+  <Color name="LabelDef"      foreground="#4FC1FF" fontWeight="bold"/>
+  <Color name="CharacterName" foreground="#9CDCFE"/>
+  <Color name="Number"        foreground="#B5CEA8"/>
+  <Color name="Operator"      foreground="#D4D4D4"/>
+  <Color name="AtRule"        foreground="#C586C0"/>
+  <Color name="Dollar"        foreground="#569CD6"/>
+
+  <RuleSet>
+
+    <!-- # single-line comment -->
+    <Span color="Comment" begin="\#" end="$"/>
+
+    <!-- Triple-quoted strings: """ ... """ and ''' ... ''' -->
+    <Span color="MultiString" multiline="true">
+      <Begin>&quot;&quot;&quot;</Begin>
+      <End>&quot;&quot;&quot;</End>
+    </Span>
+    <Span color="MultiString" multiline="true">
+      <Begin>'''</Begin>
+      <End>'''</End>
+    </Span>
+
+    <!-- Double-quoted string (single-line) -->
+    <Span color="String">
+      <Begin>&quot;</Begin>
+      <End>&quot;</End>
+      <RuleSet>
+        <Span begin="\\" end="."/>
+      </RuleSet>
+    </Span>
+
+    <!-- Single-quoted string (single-line) -->
+    <Span color="String">
+      <Begin>'</Begin>
+      <End>'</End>
+      <RuleSet>
+        <Span begin="\\" end="."/>
+      </RuleSet>
+    </Span>
+
+    <!-- label definition:  label   some_name: -->
+    <Rule color="LabelDef">
+      \blabel\s+[A-Za-z_][A-Za-z0-9_]*
+    </Rule>
+
+    <!-- Flow / branching keywords -->
+    <Keywords color="FlowKeyword">
+      <Word>jump</Word>
+      <Word>call</Word>
+      <Word>return</Word>
+      <Word>pass</Word>
+      <Word>menu</Word>
+    </Keywords>
+
+    <!-- Core Ren'Py statement keywords -->
+    <Keywords color="Keyword">
+      <Word>label</Word>
+      <Word>define</Word>
+      <Word>default</Word>
+      <Word>init</Word>
+      <Word>scene</Word>
+      <Word>show</Word>
+      <Word>hide</Word>
+      <Word>with</Word>
+      <Word>play</Word>
+      <Word>stop</Word>
+      <Word>queue</Word>
+      <Word>voice</Word>
+      <Word>window</Word>
+      <Word>pause</Word>
+      <Word>image</Word>
+      <Word>screen</Word>
+      <Word>transform</Word>
+      <Word>style</Word>
+      <Word>translate</Word>
+      <Word>layeredimage</Word>
+      <Word>renpy</Word>
+      <Word>nvl</Word>
+    </Keywords>
+
+    <!-- Python / logic keywords that also appear in Ren'Py blocks -->
+    <Keywords color="PythonKeyword">
+      <Word>python</Word>
+      <Word>if</Word>
+      <Word>elif</Word>
+      <Word>else</Word>
+      <Word>for</Word>
+      <Word>while</Word>
+      <Word>and</Word>
+      <Word>or</Word>
+      <Word>not</Word>
+      <Word>in</Word>
+      <Word>is</Word>
+      <Word>True</Word>
+      <Word>False</Word>
+      <Word>None</Word>
+      <Word>import</Word>
+      <Word>from</Word>
+      <Word>as</Word>
+      <Word>class</Word>
+      <Word>def</Word>
+      <Word>lambda</Word>
+      <Word>global</Word>
+      <Word>del</Word>
+    </Keywords>
+
+    <!-- Common Ren'Py built-in functions / objects -->
+    <Keywords color="BuiltinFunc">
+      <Word>renpy</Word>
+      <Word>store</Word>
+      <Word>dissolve</Word>
+      <Word>fade</Word>
+      <Word>move</Word>
+      <Word>wipeleft</Word>
+      <Word>wiperight</Word>
+      <Word>pushright</Word>
+      <Word>pushleft</Word>
+      <Word>ease</Word>
+      <Word>linear</Word>
+      <Word>Character</Word>
+      <Word>Condition</Word>
+      <Word>Transform</Word>
+      <Word>At</Word>
+      <Word>Solid</Word>
+      <Word>Frame</Word>
+      <Word>LiveComposite</Word>
+      <Word>Composite</Word>
+      <Word>DynamicCharacter</Word>
+      <Word>len</Word>
+      <Word>range</Word>
+      <Word>int</Word>
+      <Word>str</Word>
+      <Word>float</Word>
+      <Word>list</Word>
+      <Word>dict</Word>
+      <Word>set</Word>
+      <Word>print</Word>
+    </Keywords>
+
+    <!-- @ ATL / transition decorator -->
+    <Rule color="AtRule">
+      @[A-Za-z_][A-Za-z0-9_.]*
+    </Rule>
+
+    <!-- $ inline python -->
+    <Rule color="Dollar">
+      ^\s*\$
+    </Rule>
+
+    <!-- Numbers -->
+    <Rule color="Number">
+      \b[0-9]+(\.[0-9]+)?\b
+    </Rule>
+
+  </RuleSet>
+</SyntaxDefinition>

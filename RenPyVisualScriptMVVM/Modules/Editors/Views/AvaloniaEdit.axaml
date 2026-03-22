@@ -10,7 +10,6 @@
 		FontFamily="Consolas"
 		FontSize="14"
 		ShowLineNumbers="True"
-		SyntaxHighlighting="RenPy"
 		Background="#1e1e1e"
 		Foreground="#d4d4d4"/>
 </UserControl>

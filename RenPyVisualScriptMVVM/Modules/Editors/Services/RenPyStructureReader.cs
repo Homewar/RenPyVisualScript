@@ -34,6 +34,10 @@ public sealed class RenPyStructureReader
         "^\\s*\"([^\"]+)\"\\s*:\\s*$",
         RegexOptions.Compiled);
 
+    private static readonly Regex MenuHeaderRegex = new(
+        @"^\s*menu\b.*:\s*$",
+        RegexOptions.Compiled);
+
     private static readonly HashSet<string> ExcludedFileNames = new(StringComparer.OrdinalIgnoreCase)
     {
         "options.rpy",
@@ -182,10 +186,28 @@ public sealed class RenPyStructureReader
         IReadOnlyList<string> bodyLines,
         List<StructureLinkItem> links)
     {
+        int? currentMenuLine = null;
+        var currentMenuIndent = -1;
+
         for (var i = 0; i < bodyLines.Count; i++)
         {
             var line = bodyLines[i];
             var lineNumber = bodyStartLine + i;
+            var indent = GetIndentWidth(line);
+            var trimmed = line.Trim();
+
+            if (currentMenuLine.HasValue && trimmed.Length > 0 && !trimmed.StartsWith('#') && indent <= currentMenuIndent)
+            {
+                currentMenuLine = null;
+                currentMenuIndent = -1;
+            }
+
+            if (MenuHeaderRegex.IsMatch(line))
+            {
+                currentMenuLine = lineNumber;
+                currentMenuIndent = indent;
+                continue;
+            }
 
             var jumpMatch = JumpRegex.Match(line);
             if (jumpMatch.Success)
@@ -209,10 +231,10 @@ public sealed class RenPyStructureReader
             if (menuChoiceMatch.Success)
             {
                 var choiceText = menuChoiceMatch.Groups[1].Value;
-                var choiceIndent = GetIndentWidth(line);
+                var choiceIndent = indent;
                 var target = TryFindMenuTarget(bodyLines, i + 1, choiceIndent);
                 if (target is null || IsGameLabel(target))
-                    links.Add(new StructureLinkItem("menu", currentLabel, target ?? "(inline branch)", choiceText, relativePath, lineNumber));
+                    links.Add(new StructureLinkItem("menu", currentLabel, target ?? "(inline branch)", choiceText, relativePath, lineNumber, currentMenuLine ?? lineNumber));
             }
         }
     }

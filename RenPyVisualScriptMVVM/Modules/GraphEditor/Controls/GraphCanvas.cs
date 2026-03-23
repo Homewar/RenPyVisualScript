@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
@@ -10,6 +11,7 @@ using RenPyVisualScriptMVVM.Modules.GraphEditor.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 {
@@ -17,6 +19,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
     {
         public List<Node> Nodes { get; } = new();
         public List<Edge> Edges { get; } = new();
+        public event EventHandler? GraphChanged;
 
         private Node? _draggingNode;
         private Point _dragOffset;
@@ -27,12 +30,17 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
         private ConnectorPosition? _lineStartConnector;
         private Path? _tempLine;
         private Node? _selectedNode;
+        private Node? _renamingNode;
+        private TextBox? _renameTextBox;
+        private string _renameText = string.Empty;
+        private Edge? _selectedEdge;
         private readonly HashSet<Node> _loopNodesWithEndBranch = new();
         private ContextMenu? _activeContextMenu;
         private Point _viewportOffset = new(0, 0);
         private double _viewportScale = 1.0;
 
         private readonly Dictionary<Edge, (ConnectorPosition start, ConnectorPosition end)> _edgeConnectorMap = new();
+        private static readonly Regex ValidLabelRegex = new("^[A-Za-z_][A-Za-z0-9_]*$", RegexOptions.Compiled);
 
         public Node? SelectedNode
         {
@@ -40,6 +48,24 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             set
             {
                 _selectedNode = value;
+                if (value != null)
+                {
+                    _selectedEdge = null;
+                }
+                RebuildChildren();
+            }
+        }
+
+        public Edge? SelectedEdge
+        {
+            get => _selectedEdge;
+            set
+            {
+                _selectedEdge = value;
+                if (value != null)
+                {
+                    _selectedNode = null;
+                }
                 RebuildChildren();
             }
         }
@@ -81,17 +107,18 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
         {
             foreach (var edge in Edges)
             {
-                var edgeBrush = GetEdgeBrush(edge.Start);
+                var isSelected = edge == _selectedEdge;
+                var edgeBrush = isSelected
+                    ? new SolidColorBrush(Color.Parse("#FFD166"))
+                    : GetEdgeBrush(edge.Start);
+                var edgeThickness = isSelected ? 3 : 2;
+                var hitThickness = Math.Max(12, edgeThickness * 5);
 
                 if (edge.Start == edge.End)
                 {
                     var loopPoints = GetSelfLoopPoints(edge.Start);
-                    var loopPath = CreateRoundedPath(loopPoints, 10, edgeBrush, 2);
-                    loopPath.DataContext = edge;
-                    loopPath.IsHitTestVisible = true;
-                    loopPath.PointerPressed += OnEdgePointerPressed;
-                    Children.Add(loopPath);
-                    DrawArrow(loopPoints[^1], loopPoints[^2], edgeBrush, 2);
+                    AddEdgePath(loopPoints, edge, edgeBrush, edgeThickness, hitThickness);
+                    DrawArrow(loopPoints[^1], loopPoints[^2], edgeBrush, edgeThickness);
                     continue;
                 }
 
@@ -99,13 +126,23 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 var startConnector = hasConnectorPair ? connectorPair.start : ConnectorPosition.Right;
                 var endConnector = hasConnectorPair ? connectorPair.end : ConnectorPosition.Left;
                 var points = GetManhattanPoints(edge, startConnector, endConnector);
-                var path = CreateRoundedPath(points, 10, edgeBrush, 2);
-                path.DataContext = edge;
-                path.IsHitTestVisible = true;
-                path.PointerPressed += OnEdgePointerPressed;
-                Children.Add(path);
-                DrawArrow(points.Last(), points[points.Count - 2], edgeBrush, 2);
+                AddEdgePath(points, edge, edgeBrush, edgeThickness, hitThickness);
+                DrawArrow(points.Last(), points[points.Count - 2], edgeBrush, edgeThickness);
             }
+        }
+
+        private void AddEdgePath(List<Point> points, Edge edge, IBrush edgeBrush, double edgeThickness, double hitThickness)
+        {
+            var hitPath = CreateRoundedPath(points, 10, Brushes.Transparent, hitThickness);
+            hitPath.DataContext = edge;
+            hitPath.IsHitTestVisible = true;
+            hitPath.PointerPressed += OnEdgePointerPressed;
+            Children.Add(hitPath);
+
+            var visiblePath = CreateRoundedPath(points, 10, edgeBrush, edgeThickness);
+            visiblePath.DataContext = edge;
+            visiblePath.IsHitTestVisible = false;
+            Children.Add(visiblePath);
         }
 
         private void DrawTempLine()
@@ -177,7 +214,6 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
             Children.Add(rect);
             Children.Add(titleBar);
-            Children.Add(textBlock);
 
             rect.DataContext = node;
             titleBar.DataContext = node;
@@ -209,12 +245,23 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             SetTop(rect, nodeTop);
             SetLeft(titleBar, nodeLeft);
             SetTop(titleBar, nodeTop);
-            SetLeft(textBlock, nodeLeft);
-            SetTop(textBlock, nodeTop + 3 * _viewportScale);
             SetLeft(titleBarBottomLeft, nodeLeft);
             SetTop(titleBarBottomLeft, nodeTop + titleBarHeight - cornerRadius);
             SetLeft(titleBarBottomRight, nodeLeft + nodeWidth - cornerRadius);
             SetTop(titleBarBottomRight, nodeTop + titleBarHeight - cornerRadius);
+
+            if (_renamingNode == node)
+            {
+                var renameTextBox = CreateRenameTextBox(node, nodeWidth, nodeTop, nodeLeft);
+                Children.Add(renameTextBox);
+                _renameTextBox = renameTextBox;
+            }
+            else
+            {
+                Children.Add(textBlock);
+                SetLeft(textBlock, nodeLeft);
+                SetTop(textBlock, nodeTop + 3 * _viewportScale);
+            }
 
             if (warningMessage != null)
             {
@@ -599,19 +646,31 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void OnEdgePointerPressed(object? sender, PointerPressedEventArgs e)
         {
-            if (e.GetCurrentPoint(sender as Visual).Properties.IsRightButtonPressed)
+            if (sender is not Path path || path.DataContext is not Edge edge)
             {
-                if (sender is Path path && path.DataContext is Edge edge)
-                {
-                    RemoveEdge(edge);
-                    e.Handled = true;
-                }
+                return;
             }
+
+            var currentPoint = e.GetCurrentPoint(this);
+            SelectedEdge = edge;
+
+            if (currentPoint.Properties.IsRightButtonPressed)
+            {
+                ShowEdgeContextMenu(edge);
+            }
+
+            e.Handled = true;
         }
+
         private void RemoveEdge(Edge edge)
         {
             Edges.Remove(edge);
             _edgeConnectorMap.Remove(edge);
+            if (_selectedEdge == edge)
+            {
+                _selectedEdge = null;
+            }
+            NotifyGraphChanged();
             RebuildChildren();
         }
 
@@ -657,12 +716,22 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
             if (HitTestNode(point, out var hitNode) && hitNode != null)
             {
+                SelectedNode = hitNode;
                 ShowNodeContextMenu(hitNode);
+                return;
+            }
+
+            if (HitTestEdge(point, out var hitEdge) && hitEdge != null)
+            {
+                SelectedEdge = hitEdge;
+                ShowEdgeContextMenu(hitEdge);
                 return;
             }
 
             if (!HitTestNode(point, out _))
             {
+                SelectedNode = null;
+                SelectedEdge = null;
                 AddNewNode(point);
             }
         }
@@ -677,13 +746,23 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void ShowNodeContextMenu(Node node)
         {
-            var menuItem = new MenuItem
+            var renameMenuItem = new MenuItem
+            {
+                Header = "Переименовать label"
+            };
+            renameMenuItem.Click += (_, _) =>
+            {
+                CloseContextMenu();
+                BeginInlineRename(node);
+            };
+
+            var endBranchMenuItem = new MenuItem
             {
                 Header = _loopNodesWithEndBranch.Contains(node)
                     ? "Убрать ветвление в End"
                     : "Сделать ветвление в End"
             };
-            menuItem.Click += (_, _) =>
+            endBranchMenuItem.Click += (_, _) =>
             {
                 if (_loopNodesWithEndBranch.Contains(node))
                 {
@@ -696,6 +775,27 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
                 CloseContextMenu();
                 RebuildChildren();
+            };
+
+            _activeContextMenu = new ContextMenu
+            {
+                ItemsSource = new[] { renameMenuItem, endBranchMenuItem },
+                Placement = PlacementMode.Pointer
+            };
+            _activeContextMenu.Closed += (_, _) => _activeContextMenu = null;
+            _activeContextMenu.Open(this);
+        }
+
+        private void ShowEdgeContextMenu(Edge edge)
+        {
+            var menuItem = new MenuItem
+            {
+                Header = "Удалить связь"
+            };
+            menuItem.Click += (_, _) =>
+            {
+                CloseContextMenu();
+                RemoveEdge(edge);
             };
 
             _activeContextMenu = new ContextMenu
@@ -718,6 +818,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void AddNewNode(Point point)
         {
+            EndInlineRename(commitChanges: true);
             var title = $"N{Nodes.Count + 1}";
             Nodes.Add(new Node
             {
@@ -727,11 +828,13 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 IsGeneratedManually = true,
                 BodyLines = new List<string> { $"    \"TODO: {title}\"" }
             });
+            NotifyGraphChanged();
             RebuildChildren();
         }
 
         private void ClearGraph()
         {
+            CancelInlineRename();
             Nodes.Clear();
             Edges.Clear();
             _edgeConnectorMap.Clear();
@@ -739,6 +842,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             _lineStartNode = null;
             _lineStartConnector = null;
             _tempLine = null;
+            NotifyGraphChanged();
             RebuildChildren();
         }
 
@@ -762,6 +866,11 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void HandleLeftClick(Point point)
         {
+            if (_renamingNode != null)
+            {
+                EndInlineRename(commitChanges: true);
+            }
+
             foreach (var node in Nodes)
             {
                 var rect = GetNodeRect(node);
@@ -773,6 +882,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             }
 
             SelectedNode = null;
+            SelectedEdge = null;
         }
 
         private Rect GetNodeRect(Node node)
@@ -887,6 +997,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             var edge = new Edge(_lineStartNode!, endNode);
             Edges.Add(edge);
             _edgeConnectorMap[edge] = (_lineStartConnector!.Value, endConnector);
+            NotifyGraphChanged();
 
             CancelLineDrawing();
         }
@@ -936,7 +1047,24 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void OnKeyDown(object? sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Delete && SelectedNode != null)
+            if (_renamingNode != null)
+            {
+                return;
+            }
+
+            if (e.Key != Key.Delete)
+            {
+                return;
+            }
+
+            if (SelectedEdge != null)
+            {
+                RemoveEdge(SelectedEdge);
+                e.Handled = true;
+                return;
+            }
+
+            if (SelectedNode != null)
             {
                 RemoveSelectedNode();
                 e.Handled = true;
@@ -957,6 +1085,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             _loopNodesWithEndBranch.Remove(SelectedNode!);
             Nodes.Remove(SelectedNode!);
             SelectedNode = null;
+            NotifyGraphChanged();
         }
 
         public void SetNodeImage(Node node, string imagePath)
@@ -1031,6 +1160,70 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             return false;
         }
 
+        private bool HitTestEdge(Point worldPoint, out Edge? hitEdge)
+        {
+            var screenPoint = ToScreen(worldPoint);
+            var tolerance = Math.Max(10, 12 * _viewportScale);
+
+            foreach (var edge in Edges.AsEnumerable().Reverse())
+            {
+                var hasConnectorPair = _edgeConnectorMap.TryGetValue(edge, out var connectorPair);
+                var points = edge.Start == edge.End
+                    ? GetSelfLoopPoints(edge.Start)
+                    : GetManhattanPoints(
+                        edge,
+                        hasConnectorPair ? connectorPair.start : ConnectorPosition.Right,
+                        hasConnectorPair ? connectorPair.end : ConnectorPosition.Left);
+
+                if (IsPointNearPolyline(screenPoint, points, tolerance))
+                {
+                    hitEdge = edge;
+                    return true;
+                }
+            }
+
+            hitEdge = null;
+            return false;
+        }
+
+        private bool IsPointNearPolyline(Point point, List<Point> polyline, double tolerance)
+        {
+            if (polyline.Count < 2)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < polyline.Count - 1; i++)
+            {
+                if (DistanceToSegment(point, polyline[i], polyline[i + 1]) <= tolerance)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private double DistanceToSegment(Point point, Point segmentStart, Point segmentEnd)
+        {
+            var segment = segmentEnd - segmentStart;
+            var lengthSquared = segment.X * segment.X + segment.Y * segment.Y;
+
+            if (lengthSquared <= double.Epsilon)
+            {
+                return Distance(point, segmentStart);
+            }
+
+            var projection = ((point.X - segmentStart.X) * segment.X + (point.Y - segmentStart.Y) * segment.Y) / lengthSquared;
+            projection = Math.Clamp(projection, 0, 1);
+
+            var closestPoint = new Point(
+                segmentStart.X + projection * segment.X,
+                segmentStart.Y + projection * segment.Y);
+
+            return Distance(point, closestPoint);
+        }
+
         private Point ToScreen(Point worldPoint)
         {
             return new Point(
@@ -1046,10 +1239,127 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
         }
         public void AddEdge(Node start, Node end)
         {
+            EndInlineRename(commitChanges: true);
             var edge = new Edge(start, end);
             Edges.Add(edge);
             _edgeConnectorMap[edge] = (ConnectorPosition.Right, ConnectorPosition.Left);
+            NotifyGraphChanged();
             RebuildChildren();
+        }
+
+        private TextBox CreateRenameTextBox(Node node, double nodeWidth, double nodeTop, double nodeLeft)
+        {
+            var textBox = new TextBox
+            {
+                Text = _renameText,
+                Width = Math.Max(60, nodeWidth - 16 * _viewportScale),
+                Height = 22 * _viewportScale,
+                FontSize = 13 * _viewportScale,
+                HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                VerticalContentAlignment = Avalonia.Layout.VerticalAlignment.Center
+            };
+
+            textBox.TextChanged += (_, _) =>
+            {
+                _renameText = textBox.Text ?? string.Empty;
+            };
+            textBox.KeyDown += OnRenameTextBoxKeyDown;
+            textBox.LostFocus += OnRenameTextBoxLostFocus;
+
+            SetLeft(textBox, nodeLeft + 8 * _viewportScale);
+            SetTop(textBox, nodeTop + 1 * _viewportScale);
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (_renameTextBox == textBox)
+                {
+                    textBox.Focus();
+                    textBox.SelectAll();
+                }
+            }, DispatcherPriority.Input);
+
+            return textBox;
+        }
+
+        private void BeginInlineRename(Node node)
+        {
+            _renamingNode = node;
+            _renameText = node.Title;
+            SelectedNode = node;
+        }
+
+        private void OnRenameTextBoxKeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                EndInlineRename(commitChanges: true);
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.Escape)
+            {
+                CancelInlineRename();
+                e.Handled = true;
+            }
+        }
+
+        private void OnRenameTextBoxLostFocus(object? sender, RoutedEventArgs e)
+        {
+            if (_renamingNode != null)
+            {
+                EndInlineRename(commitChanges: true);
+            }
+        }
+
+        private void EndInlineRename(bool commitChanges)
+        {
+            if (_renamingNode == null)
+            {
+                return;
+            }
+
+            var node = _renamingNode;
+            var newTitle = (_renameText ?? string.Empty).Trim();
+            var shouldCommit = commitChanges && CanRenameNode(node, newTitle);
+
+            _renamingNode = null;
+            _renameTextBox = null;
+            _renameText = string.Empty;
+
+            if (shouldCommit && !string.Equals(node.Title, newTitle, StringComparison.Ordinal))
+            {
+                node.Title = newTitle;
+            }
+
+            RebuildChildren();
+        }
+
+        private void CancelInlineRename()
+        {
+            EndInlineRename(commitChanges: false);
+        }
+
+        private bool CanRenameNode(Node node, string candidate)
+        {
+            if (string.IsNullOrWhiteSpace(candidate))
+            {
+                return false;
+            }
+
+            if (!ValidLabelRegex.IsMatch(candidate))
+            {
+                return false;
+            }
+
+            return Nodes
+                .Where(existingNode => existingNode != node)
+                .All(existingNode => !string.Equals(existingNode.Title, candidate, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public void NotifyGraphChanged()
+        {
+            GraphChanged?.Invoke(this, EventArgs.Empty);
         }
         private List<Point> GetManhattanPoints(Edge edge, ConnectorPosition? forcedStart = null, ConnectorPosition? forcedEnd = null)
         {

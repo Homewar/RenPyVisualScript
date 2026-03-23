@@ -29,6 +29,17 @@ namespace RenPyVisualScriptMVVM.Modules.Projects.ViewModels
             _projectContext = ProjectContext ?? throw new ArgumentNullException(nameof(ProjectContext));
             Path = _projectContext.ProjectPath ?? string.Empty;
             Nodes = new ObservableCollection<FileNode>();
+            Refresh();
+        }
+
+        public void Refresh()
+        {
+            Path = _projectContext.ProjectPath ?? string.Empty;
+            Nodes.Clear();
+
+            if (string.IsNullOrWhiteSpace(Path) || !Directory.Exists(Path))
+                return;
+
             LoadDirectory(Path, Nodes);
         }
 

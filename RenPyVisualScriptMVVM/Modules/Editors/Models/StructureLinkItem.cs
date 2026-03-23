@@ -8,8 +8,9 @@ public sealed class StructureLinkItem
     public string Description { get; }
     public string FileName { get; }
     public int Line { get; }
+    public int GroupLine { get; }
 
-    public StructureLinkItem(string kind, string source, string target, string description, string fileName, int line)
+    public StructureLinkItem(string kind, string source, string target, string description, string fileName, int line, int? groupLine = null)
     {
         Kind = kind;
         Source = source;
@@ -17,5 +18,6 @@ public sealed class StructureLinkItem
         Description = description;
         FileName = fileName;
         Line = line;
+        GroupLine = groupLine ?? line;
     }
 }

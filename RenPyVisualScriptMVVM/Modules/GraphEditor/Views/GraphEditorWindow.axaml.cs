@@ -1,8 +1,10 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Avalonia.Controls;
-using RenPyVisualScriptMVVM.Modules.GraphEditor.ViewModels;
+using Avalonia.Input;
 using RenPyVisualScriptMVVM.Modules.GraphEditor.Services;
+using RenPyVisualScriptMVVM.Modules.GraphEditor.ViewModels;
 using RenPyVisualScriptMVVM.Modules.Shell.Services.Interfaces;
 using RenPyVisualScriptMVVM.Modules.Shell.ViewModels;
 using Splat;
@@ -16,6 +18,8 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Views
             InitializeComponent();
             Opened += (_, _) => ApplyGraph();
             DataContextChanged += (_, _) => ApplyGraph();
+            KeyDown += OnWindowKeyDown;
+            GraphCanvas.GraphChanged += (_, _) => UpdateStats();
         }
 
         private void ApplyGraph()
@@ -31,9 +35,19 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Views
             GraphCanvas.Nodes.AddRange(nodes);
             GraphCanvas.Edges.AddRange(edges);
             GraphCanvas.RebuildChildren();
+            GraphCanvas.NotifyGraphChanged();
         }
 
-        private async void ExportNewNodesToRpy_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void OnWindowKeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.S && e.KeyModifiers.HasFlag(KeyModifiers.Control))
+            {
+                await SaveGraphAsync();
+                e.Handled = true;
+            }
+        }
+
+        private async Task SaveGraphAsync()
         {
             if (DataContext is not GraphEditorWindowViewModel vm)
                 return;
@@ -41,6 +55,8 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Views
             try
             {
                 var result = GraphRpyExporter.SynchronizeGraph(vm.ProjectPath, vm.Snapshot, GraphCanvas.Nodes, GraphCanvas.Edges);
+                vm.RefreshSnapshotFromProject();
+                vm.NotifyGraphSaved();
                 var windows = Locator.Current.GetService<IWindowService>();
                 if (windows != null)
                 {
@@ -67,6 +83,11 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Views
                         ex.Message));
                 }
             }
+        }
+
+        private void UpdateStats()
+        {
+            StatsTextBlock.Text = $"Nodes: {GraphCanvas.Nodes.Count}   Edges: {GraphCanvas.Edges.Count}";
         }
     }
 }

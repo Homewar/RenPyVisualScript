@@ -21,6 +21,7 @@ using RenPyVisualScriptMVVM.Core.Models;
 using RenPyVisualScriptMVVM.Modules.Projects.Models;
 using RenPyVisualScriptMVVM.Modules.GraphEditor.ViewModels;
 using RenPyVisualScriptMVVM.Modules.Editors.Services;
+using System.Collections.Generic;
 
 namespace RenPyVisualScriptMVVM.Modules.Editors.ViewModels;
 
@@ -44,6 +45,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     public ObservableCollection<Character> CharacterList { get; } = new();
     public ObservableCollection<LabelOutlineItem> LabelList { get; } = new();
     public ObservableCollection<StructureLinkItem> StructureLinks { get; } = new();
+    public ObservableCollection<TransitionPanelItem> TransitionItems { get; } = new();
 
     private string _structureSummary = "Проект ещё не разобран";
     public string StructureSummary
@@ -119,9 +121,11 @@ public sealed class ScriptEditorViewModel : BaseViewModel
 
     private void RefreshStructure()
     {
+        FileTreeVm.Refresh();
         CharacterList.Clear();
         LabelList.Clear();
         StructureLinks.Clear();
+        TransitionItems.Clear();
 
         var snapshot = _structureReader.Read(_ctx.ProjectPath);
 
@@ -134,8 +138,42 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         foreach (var link in snapshot.Links)
             StructureLinks.Add(link);
 
+        foreach (var item in BuildTransitionItems(snapshot.Links))
+            TransitionItems.Add(item);
+
         var projectName = string.IsNullOrWhiteSpace(ProjectName) ? "Проект" : ProjectName;
         StructureSummary = $"{projectName}: {CharacterList.Count} персонажей, {LabelList.Count} label, {StructureLinks.Count} связей";
+    }
+
+    private static IEnumerable<TransitionPanelItem> BuildTransitionItems(IReadOnlyList<StructureLinkItem> links)
+    {
+        var orderedLinks = links
+            .OrderBy(link => link.FileName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(link => link.Line)
+            .ToList();
+
+        for (var i = 0; i < orderedLinks.Count; i++)
+        {
+            var current = orderedLinks[i];
+            if (!string.Equals(current.Kind, "menu", StringComparison.OrdinalIgnoreCase))
+            {
+                yield return new TransitionPanelItem(current);
+                continue;
+            }
+
+            var menuChoices = new List<StructureLinkItem> { current };
+            while (i + 1 < orderedLinks.Count
+                   && string.Equals(orderedLinks[i + 1].Kind, "menu", StringComparison.OrdinalIgnoreCase)
+                   && string.Equals(orderedLinks[i + 1].Source, current.Source, StringComparison.OrdinalIgnoreCase)
+                   && string.Equals(orderedLinks[i + 1].FileName, current.FileName, StringComparison.OrdinalIgnoreCase)
+                   && orderedLinks[i + 1].GroupLine == current.GroupLine)
+            {
+                i++;
+                menuChoices.Add(orderedLinks[i]);
+            }
+
+            yield return new TransitionPanelItem(current.Source, current.FileName, current.GroupLine, menuChoices);
+        }
     }
 
     private void OpenFileInTab(FileNode node)
@@ -213,9 +251,16 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     private void OpenGraphWindow()
     {
         var vm = _loc.GetService<GraphEditorWindowViewModel>()!;
+        vm.GraphSaved -= OnGraphSaved;
+        vm.GraphSaved += OnGraphSaved;
         var snapshot = _structureReader.Read(_ctx.ProjectPath);
         vm.LoadSnapshot(snapshot, ProjectName, _ctx.ProjectPath);
         _windows.ShowWindow(vm);
+    }
+
+    private void OnGraphSaved()
+    {
+        RefreshStructure();
     }
 
     private void RunProject()

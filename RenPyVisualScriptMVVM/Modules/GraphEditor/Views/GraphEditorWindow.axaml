@@ -9,10 +9,10 @@
         Title="Graph Editor">
     <DockPanel>
         <Border DockPanel.Dock="Top" Background="#252526" Padding="12,8">
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <Button Content="Синхронизировать граф в исходные .rpy" Click="ExportNewNodesToRpy_Click"/>
-                <TextBlock Text="Правый клик по пустому месту — новый узел. Сохранение идёт в исходные .rpy-файлы." VerticalAlignment="Center" Foreground="#C8C8C8"/>
-            </StackPanel>
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                <TextBlock Text="Правый клик по пустому месту — новый узел. Ctrl+S — сохранить граф в исходные .rpy-файлы." VerticalAlignment="Center" Foreground="#C8C8C8"/>
+                <TextBlock x:Name="StatsTextBlock" Grid.Column="1" VerticalAlignment="Center" Foreground="#E6E6E6" FontWeight="SemiBold"/>
+            </Grid>
         </Border>
         <controls:GraphCanvas x:Name="GraphCanvas" Margin="0" />
     </DockPanel>

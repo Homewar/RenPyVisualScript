@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Media;
 using RenPyVisualScriptMVVM.Modules.Editors.Models;
+using RenPyVisualScriptMVVM.Modules.Editors.Services;
 using RenPyVisualScriptMVVM.Modules.GraphEditor.Models;
 using RenPyVisualScriptMVVM.Modules.Shell.ViewModels;
 using System;
@@ -12,20 +13,38 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.ViewModels;
 public sealed class GraphEditorWindowViewModel : BaseViewModel
 {
     private ProjectStructureSnapshot? _snapshot;
+    private string? _projectName;
 
     public string Title { get; private set; } = "Graph Editor";
     public string? ProjectPath { get; private set; }
     public ProjectStructureSnapshot? Snapshot => _snapshot;
+    public event Action? GraphSaved;
 
     public void LoadSnapshot(ProjectStructureSnapshot snapshot, string? projectName = null, string? projectPath = null)
     {
         _snapshot = snapshot;
+        _projectName = projectName;
         ProjectPath = projectPath;
         Title = string.IsNullOrWhiteSpace(projectName)
             ? "Graph Editor"
             : $"Graph Editor — {projectName}";
 
         OnPropertyChanged(nameof(Title));
+    }
+
+    public void RefreshSnapshotFromProject()
+    {
+        if (string.IsNullOrWhiteSpace(ProjectPath))
+            return;
+
+        var structureReader = new RenPyStructureReader();
+        var snapshot = structureReader.Read(ProjectPath);
+        LoadSnapshot(snapshot, _projectName, ProjectPath);
+    }
+
+    public void NotifyGraphSaved()
+    {
+        GraphSaved?.Invoke();
     }
 
     public (List<Node> nodes, List<Edge> edges) BuildGraph()
@@ -43,7 +62,7 @@ public sealed class GraphEditorWindowViewModel : BaseViewModel
 
         const double nodeWidth  = 210;
         const double nodeHeight = 96;
-        const double columnGap  = 80;   // horizontal gap between node edges
+        const double columnGap  = 160;  // horizontal gap between aligned node columns
         const double startX     = 180;
         const double startY     = 120;
 

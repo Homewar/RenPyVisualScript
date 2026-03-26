@@ -9,10 +9,12 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Models
 {
     public class Node
     {
+        public static readonly Size DefaultSize = new(210, 96);
+
         public double X { get; set; }
         public double Y { get; set; }
         public string Title { get; set; } = "";
-        public Size Size { get; set; } = new Size(192, 108);
+        public Size Size { get; set; } = DefaultSize;
         public IBrush? Background  { get; set; } = Brushes.LightBlue;
 
         public static ImageBrush CreatePlaceholderImageBrush()

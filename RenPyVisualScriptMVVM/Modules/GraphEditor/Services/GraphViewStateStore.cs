@@ -1,13 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using RenPyVisualScriptMVVM.Modules.GraphEditor.Models;
 
 namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Services;
 
-internal static class GraphRouteStore
+internal static class GraphViewStateStore
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -15,40 +12,31 @@ internal static class GraphRouteStore
         PropertyNameCaseInsensitive = true
     };
 
-    public static List<StoryRoute> Load(string? projectPath)
+    public static GraphViewState Load(string? projectPath)
     {
         var filePath = GetFilePath(projectPath);
         if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
-            return new List<StoryRoute>();
+            return new GraphViewState();
 
         try
         {
             var json = File.ReadAllText(filePath);
-            return JsonSerializer.Deserialize<List<StoryRoute>>(json, JsonOptions) ?? new List<StoryRoute>();
+            return JsonSerializer.Deserialize<GraphViewState>(json, JsonOptions) ?? new GraphViewState();
         }
         catch
         {
-            return new List<StoryRoute>();
+            return new GraphViewState();
         }
     }
 
-    public static void Save(string? projectPath, IEnumerable<StoryRoute> routes)
+    public static void Save(string? projectPath, GraphViewState state)
     {
         var filePath = GetFilePath(projectPath);
         if (string.IsNullOrWhiteSpace(filePath))
             return;
 
         Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
-        var normalizedRoutes = routes
-            .Select(route => new StoryRoute
-            {
-                Name = route.Name,
-                NodeTitles = route.NodeTitles.ToList()
-            })
-            .OrderBy(route => route.Name, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        var json = JsonSerializer.Serialize(normalizedRoutes, JsonOptions);
+        var json = JsonSerializer.Serialize(state, JsonOptions);
         File.WriteAllText(filePath, json);
     }
 
@@ -57,6 +45,6 @@ internal static class GraphRouteStore
         if (string.IsNullOrWhiteSpace(projectPath))
             return null;
 
-        return Path.Combine(projectPath, ".projectSettings", "graph-routes.json");
+        return Path.Combine(projectPath, ".projectSettings", "graph-view-state.json");
     }
 }

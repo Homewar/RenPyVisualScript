@@ -14,7 +14,7 @@
 
     <Grid RowDefinitions="*,Auto" Margin="16">
         <StackPanel Spacing="16">
-            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="180,*" ColumnSpacing="12">
+            <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="180,*" ColumnSpacing="12">
                 <TextBlock Text="Ren'Py SDK Path" VerticalAlignment="Center"/>
                 <TextBox Grid.Column="1"
                          Text="{Binding Settings.RenPySDKPath, Mode=TwoWay}"
@@ -27,6 +27,14 @@
                               IsChecked="{Binding Settings.ShowSystemResources, Mode=TwoWay}"
                               OnContent="Visible"
                               OffContent="Hidden"/>
+
+                <TextBlock Grid.Row="2" Text="Auto Layout Labels" VerticalAlignment="Center"/>
+                <ToggleSwitch Grid.Row="2"
+                              Grid.Column="1"
+                              HorizontalAlignment="Left"
+                              IsChecked="{Binding Settings.AutoLayoutGraphLabels, Mode=TwoWay}"
+                              OnContent="Auto"
+                              OffContent="Manual"/>
             </Grid>
         </StackPanel>
 

@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using RenPyVisualScriptMVVM.Modules.GraphEditor.Models;
 using System;
@@ -20,10 +21,13 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
         public List<Node> Nodes { get; } = new();
         public List<Edge> Edges { get; } = new();
         public List<StoryRoute> Routes { get; } = new();
+        public List<GraphNote> Notes { get; } = new();
         public event EventHandler? GraphChanged;
 
         private Node? _draggingNode;
         private Point _dragOffset;
+        private GraphNote? _draggingNote;
+        private Point _noteDragOffset;
         private bool _isPanning;
         private Point _panStartPoint;
         private Point _panStartOffset;
@@ -31,15 +35,30 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
         private ConnectorPosition? _lineStartConnector;
         private Path? _tempLine;
         private Node? _selectedNode;
+        private GraphNote? _selectedNote;
         private Node? _renamingNode;
         private TextBox? _renameTextBox;
         private string _renameText = string.Empty;
+        private GraphNote? _editingNote;
+        private TextBox? _noteTextBox;
+        private string _noteEditText = string.Empty;
         private Edge? _selectedEdge;
         private readonly HashSet<Node> _selectedNodes = new();
         private readonly HashSet<Node> _loopNodesWithEndBranch = new();
         private ContextMenu? _activeContextMenu;
         private Point _viewportOffset = new(0, 0);
         private double _viewportScale = 1.0;
+        private Bitmap? _tipsBitmap;
+        private Rect _viewportScreenRect;
+        private Node? _primaryRootNode;
+        private HashSet<Node> _reachableNodes = new();
+        private HashSet<Node> _nodesWithSelfLoop = new();
+        private HashSet<Node> _nodesWithOutgoingEdges = new();
+        private Dictionary<Node, int> _nodeIndexMap = new();
+        private bool _isViewportNavigating;
+        private readonly DispatcherTimer _viewportNavigationTimer;
+        private readonly DispatcherTimer _viewportRenderTimer;
+        private bool _viewportRebuildPending;
 
         private readonly Dictionary<Edge, (ConnectorPosition start, ConnectorPosition end)> _edgeConnectorMap = new();
         private static readonly Regex ValidLabelRegex = new("^[A-Za-z_][A-Za-z0-9_]*$", RegexOptions.Compiled);
@@ -58,6 +77,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 }
                 if (value != null)
                 {
+                    _selectedNote = null;
                     _selectedEdge = null;
                 }
                 RebuildChildren();
@@ -73,6 +93,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 if (value != null)
                 {
                     _selectedNode = null;
+                    _selectedNote = null;
                 }
                 RebuildChildren();
             }
@@ -87,6 +108,38 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             PointerWheelChanged += OnPointerWheelChanged;
             Focusable = true;
             KeyDown += OnKeyDown;
+
+            _viewportNavigationTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(120)
+            };
+            _viewportNavigationTimer.Tick += (_, _) =>
+            {
+                _viewportNavigationTimer.Stop();
+                _isViewportNavigating = false;
+                _viewportRebuildPending = false;
+                RebuildChildren();
+            };
+
+            _viewportRenderTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(33)
+            };
+            _viewportRenderTimer.Tick += (_, _) =>
+            {
+                if (!_viewportRebuildPending)
+                {
+                    if (!_isViewportNavigating)
+                    {
+                        _viewportRenderTimer.Stop();
+                    }
+
+                    return;
+                }
+
+                _viewportRebuildPending = false;
+                RebuildChildren();
+            };
         }
 
 
@@ -104,11 +157,70 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
         public void RebuildChildren()
         {
             EnsureEdgeConnectorMappings();
+            RefreshRenderState();
             Children.Clear();
 
+            DrawBackgroundImage();
             DrawEdges();
             DrawTempLine();
+            DrawNotes();
             DrawNodes();
+        }
+
+        public void FocusWorldPoint(Point worldPoint)
+        {
+            var viewportWidth = Bounds.Width > 0 ? Bounds.Width : 1280;
+            var viewportHeight = Bounds.Height > 0 ? Bounds.Height : 720;
+
+            _viewportOffset = new Point(
+                viewportWidth / 2 - worldPoint.X * _viewportScale,
+                viewportHeight / 2 - worldPoint.Y * _viewportScale);
+
+            RebuildChildren();
+        }
+
+        private void DrawBackgroundImage()
+        {
+            if (_isViewportNavigating)
+            {
+                return;
+            }
+
+            try
+            {
+                _tipsBitmap ??= new Bitmap(AssetLoader.Open(new Uri("avares://RenPyVisualScriptMVVM/Assets/tips.png")));
+                var origin = ToScreen(new Point(0, 0));
+
+                var image = new Image
+                {
+                    Source = _tipsBitmap,
+                    Width = _tipsBitmap.Size.Width * _viewportScale / 2,
+                    Height = _tipsBitmap.Size.Height * _viewportScale / 2,
+                    Opacity = 1,
+                    IsHitTestVisible = false
+                };
+
+                Children.Add(image);
+                SetLeft(image, origin.X - 600 * _viewportScale);
+                SetTop(image, origin.Y);
+            }
+            catch
+            {
+                // Ignore missing or unreadable background hint image.
+            }
+        }
+
+        private void DrawNotes()
+        {
+            foreach (var note in Notes)
+            {
+                if (!IsNoteVisible(note))
+                {
+                    continue;
+                }
+
+                DrawNote(note);
+            }
         }
 
         private void DrawEdges()
@@ -134,6 +246,11 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 var startConnector = hasConnectorPair ? connectorPair.start : ConnectorPosition.Right;
                 var endConnector = hasConnectorPair ? connectorPair.end : ConnectorPosition.Left;
                 var points = GetManhattanPoints(edge, startConnector, endConnector);
+                if (!IsPolylineVisible(points))
+                {
+                    continue;
+                }
+
                 AddEdgePath(points, edge, edgeBrush, edgeThickness, hitThickness);
                 DrawArrow(points.Last(), points[points.Count - 2], edgeBrush, edgeThickness);
             }
@@ -141,11 +258,14 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void AddEdgePath(List<Point> points, Edge edge, IBrush edgeBrush, double edgeThickness, double hitThickness)
         {
-            var hitPath = CreateRoundedPath(points, 10, Brushes.Transparent, hitThickness);
-            hitPath.DataContext = edge;
-            hitPath.IsHitTestVisible = true;
-            hitPath.PointerPressed += OnEdgePointerPressed;
-            Children.Add(hitPath);
+            if (!_isViewportNavigating)
+            {
+                var hitPath = CreateRoundedPath(points, 10, Brushes.Transparent, hitThickness);
+                hitPath.DataContext = edge;
+                hitPath.IsHitTestVisible = true;
+                hitPath.PointerPressed += OnEdgePointerPressed;
+                Children.Add(hitPath);
+            }
 
             var visiblePath = CreateRoundedPath(points, 10, edgeBrush, edgeThickness);
             visiblePath.DataContext = edge;
@@ -163,9 +283,66 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
         {
             foreach (var node in Nodes)
             {
+                if (!IsNodeVisible(node))
+                {
+                    continue;
+                }
+
                 DrawNode(node);
                 DrawNodeConnectors(node);
             }
+        }
+
+        private void DrawNote(GraphNote note)
+        {
+            var screenCenter = ToScreen(new Point(note.X, note.Y));
+            var noteWidth = note.Width * _viewportScale;
+            var noteHeight = note.Height * _viewportScale;
+            var noteLeft = screenCenter.X - noteWidth / 2;
+            var noteTop = screenCenter.Y - noteHeight / 2;
+
+            var noteBody = new Rectangle
+            {
+                Width = noteWidth,
+                Height = noteHeight,
+                Fill = new SolidColorBrush(Color.Parse("#F3D36B")),
+                Stroke = note == _selectedNote ? Brushes.White : new SolidColorBrush(Color.Parse("#8F6A00")),
+                StrokeThickness = note == _selectedNote ? 2 : 1,
+                RadiusX = 8 * _viewportScale,
+                RadiusY = 8 * _viewportScale,
+                IsHitTestVisible = false
+            };
+
+            Children.Add(noteBody);
+            SetLeft(noteBody, noteLeft);
+            SetTop(noteBody, noteTop);
+
+            if (_isViewportNavigating)
+            {
+                return;
+            }
+
+            if (_editingNote == note)
+            {
+                var textBox = CreateNoteTextBox(note, noteLeft, noteTop, noteWidth, noteHeight);
+                Children.Add(textBox);
+                _noteTextBox = textBox;
+                return;
+            }
+
+            var textBlock = new TextBlock
+            {
+                Text = note.Text,
+                Width = Math.Max(60, noteWidth - 16 * _viewportScale),
+                FontSize = 13 * _viewportScale,
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = Brushes.Black,
+                IsHitTestVisible = false
+            };
+
+            Children.Add(textBlock);
+            SetLeft(textBlock, noteLeft + 8 * _viewportScale);
+            SetTop(textBlock, noteTop + 8 * _viewportScale);
         }
 
         private IBrush GetNodeFill(Node node)
@@ -226,37 +403,41 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             rect.DataContext = node;
             titleBar.DataContext = node;
             textBlock.DataContext = node;
-            
-            // Square off the lower corners of the overlay so it reads like a glass header.
-            var titleBarBottomLeft = new Rectangle
-            {
-                Width = cornerRadius,
-                Height = cornerRadius,
-                Fill = titleBarBrush,
-                IsHitTestVisible = false
-            };
-            var titleBarBottomRight = new Rectangle
-            {
-                Width = cornerRadius,
-                Height = cornerRadius,
-                Fill = titleBarBrush,
-                IsHitTestVisible = false
-            };
-
-            Children.Add(titleBarBottomLeft);
-            Children.Add(titleBarBottomRight);
-
-            titleBarBottomLeft.DataContext = node;
-            titleBarBottomRight.DataContext = node;
 
             SetLeft(rect, nodeLeft);
             SetTop(rect, nodeTop);
             SetLeft(titleBar, nodeLeft);
             SetTop(titleBar, nodeTop);
-            SetLeft(titleBarBottomLeft, nodeLeft);
-            SetTop(titleBarBottomLeft, nodeTop + titleBarHeight - cornerRadius);
-            SetLeft(titleBarBottomRight, nodeLeft + nodeWidth - cornerRadius);
-            SetTop(titleBarBottomRight, nodeTop + titleBarHeight - cornerRadius);
+
+            if (!_isViewportNavigating)
+            {
+                // Square off the lower corners of the overlay so it reads like a glass header.
+                var titleBarBottomLeft = new Rectangle
+                {
+                    Width = cornerRadius,
+                    Height = cornerRadius,
+                    Fill = titleBarBrush,
+                    IsHitTestVisible = false
+                };
+                var titleBarBottomRight = new Rectangle
+                {
+                    Width = cornerRadius,
+                    Height = cornerRadius,
+                    Fill = titleBarBrush,
+                    IsHitTestVisible = false
+                };
+
+                Children.Add(titleBarBottomLeft);
+                Children.Add(titleBarBottomRight);
+
+                titleBarBottomLeft.DataContext = node;
+                titleBarBottomRight.DataContext = node;
+
+                SetLeft(titleBarBottomLeft, nodeLeft);
+                SetTop(titleBarBottomLeft, nodeTop + titleBarHeight - cornerRadius);
+                SetLeft(titleBarBottomRight, nodeLeft + nodeWidth - cornerRadius);
+                SetTop(titleBarBottomRight, nodeTop + titleBarHeight - cornerRadius);
+            }
 
             if (_renamingNode == node)
             {
@@ -289,6 +470,11 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void DrawNodeConnectors(Node node)
         {
+            if (_isViewportNavigating)
+            {
+                return;
+            }
+
             foreach (ConnectorPosition position in Enum.GetValues(typeof(ConnectorPosition)))
             {
                 var connectorPoint = GetConnectorPoint(node, position);
@@ -328,7 +514,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private string? GetWarningMessage(Node node)
         {
-            var hasSelfLoop = Edges.Any(edge => edge.Start == node && edge.End == node);
+            var hasSelfLoop = _nodesWithSelfLoop.Contains(node);
             var hasChildren = HasOutgoingBranch(node);
 
             if (hasSelfLoop && !hasChildren)
@@ -367,31 +553,12 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private Node? GetPrimaryRootNode()
         {
-            if (Nodes.Count == 0)
-            {
-                return null;
-            }
-
-            var rootCandidates = Nodes
-                .Where(node => !Edges.Any(edge => edge.End == node && edge.Start != node))
-                .OrderBy(node => node.X)
-                .ThenBy(node => node.Y)
-                .ToList();
-
-            if (rootCandidates.Count > 0)
-            {
-                return rootCandidates[0];
-            }
-
-            return Nodes
-                .OrderBy(node => node.X)
-                .ThenBy(node => node.Y)
-                .FirstOrDefault();
+            return _primaryRootNode;
         }
 
         private bool IsConnectedToPrimaryRoot(Node node)
         {
-            var root = GetPrimaryRootNode();
+            var root = _primaryRootNode;
             if (root == null)
             {
                 return true;
@@ -402,33 +569,17 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 return true;
             }
 
-            var visited = new HashSet<Node> { root };
-            var queue = new Queue<Node>();
-            queue.Enqueue(root);
-
-            while (queue.Count > 0)
-            {
-                var current = queue.Dequeue();
-                foreach (var child in Edges.Where(edge => edge.Start == current && edge.End != current).Select(edge => edge.End))
-                {
-                    if (visited.Add(child))
-                    {
-                        queue.Enqueue(child);
-                    }
-                }
-            }
-
-            return visited.Contains(node);
+            return _reachableNodes.Contains(node);
         }
 
         private bool HasOutgoingBranch(Node node)
         {
-            return Edges.Any(edge => edge.Start == node && edge.End != node) || _loopNodesWithEndBranch.Contains(node);
+            return _nodesWithOutgoingEdges.Contains(node) || _loopNodesWithEndBranch.Contains(node);
         }
 
         private IBrush GetEdgeBrush(Node node)
         {
-            var nodeIndex = Math.Max(0, Nodes.IndexOf(node));
+            var nodeIndex = _nodeIndexMap.TryGetValue(node, out var index) ? index : 0;
             var hue = (nodeIndex * 137.508) % 360;
             return new SolidColorBrush(ColorFromHsv(hue, 0.78, 0.95));
         }
@@ -497,6 +648,11 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void DrawWarningIndicator(Node node, string message, double nodeLeft, double nodeTop, double nodeWidth)
         {
+            if (_isViewportNavigating)
+            {
+                return;
+            }
+
             const double foldScale = 1.5;
             var foldSize = 16 * _viewportScale * foldScale;
             var foldMain = new Polygon
@@ -541,6 +697,11 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void DrawEndNode(Node node)
         {
+            if (_isViewportNavigating)
+            {
+                return;
+            }
+
             var gap = 36 * _viewportScale;
             var width = 64 * _viewportScale;
             var height = 28 * _viewportScale;
@@ -603,6 +764,11 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void DrawStartNode(Node node)
         {
+            if (_isViewportNavigating)
+            {
+                return;
+            }
+
             var gap = 36 * _viewportScale;
             var width = 64 * _viewportScale;
             var height = 28 * _viewportScale;
@@ -708,6 +874,21 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
             if (pointerPoint.Properties.IsLeftButtonPressed)
             {
+                if (e.ClickCount >= 2)
+                {
+                    if (HitTestNote(point, out var existingNote) && existingNote != null)
+                    {
+                        BeginNoteEdit(existingNote);
+                        return;
+                    }
+
+                    if (!HitTestNode(point, out _) && !HitTestEdge(point, out _))
+                    {
+                        AddNewNote(point);
+                        return;
+                    }
+                }
+
                 HandleLeftClick(point, e.KeyModifiers);
             }
         }
@@ -726,6 +907,14 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             {
                 EnsureNodeSelectionForContextMenu(hitNode);
                 ShowNodeContextMenu(hitNode);
+                return;
+            }
+
+            if (HitTestNote(point, out var hitNote) && hitNote != null)
+            {
+                _selectedNote = hitNote;
+                ShowNoteContextMenu(hitNote);
+                RebuildChildren();
                 return;
             }
 
@@ -855,6 +1044,41 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             _activeContextMenu.Open(this);
         }
 
+        private void ShowNoteContextMenu(GraphNote note)
+        {
+            var editMenuItem = new MenuItem
+            {
+                Header = "Редактировать заметку"
+            };
+            editMenuItem.Click += (_, _) =>
+            {
+                CloseContextMenu();
+                BeginNoteEdit(note);
+            };
+
+            var deleteMenuItem = new MenuItem
+            {
+                Header = "Удалить заметку"
+            };
+            deleteMenuItem.Click += (_, _) =>
+            {
+                CloseContextMenu();
+                Notes.Remove(note);
+                if (_selectedNote == note)
+                    _selectedNote = null;
+                NotifyGraphChanged();
+                RebuildChildren();
+            };
+
+            _activeContextMenu = new ContextMenu
+            {
+                ItemsSource = new[] { editMenuItem, deleteMenuItem },
+                Placement = PlacementMode.Pointer
+            };
+            _activeContextMenu.Closed += (_, _) => _activeContextMenu = null;
+            _activeContextMenu.Open(this);
+        }
+
         private void CloseContextMenu()
         {
             if (_activeContextMenu != null)
@@ -883,8 +1107,10 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
         private void ClearGraph()
         {
             CancelInlineRename();
+            CancelNoteEdit();
             Nodes.Clear();
             Edges.Clear();
+            Notes.Clear();
             _edgeConnectorMap.Clear();
             Routes.Clear();
             ActiveRouteName = null;
@@ -898,6 +1124,17 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void StartMiddleButtonInteraction(Point worldPoint, Point screenPoint)
         {
+            foreach (var note in Notes)
+            {
+                var noteRect = GetNoteRect(note);
+                if (noteRect.Contains(worldPoint))
+                {
+                    _draggingNote = note;
+                    _noteDragOffset = new Point(worldPoint.X - note.X, worldPoint.Y - note.Y);
+                    return;
+                }
+            }
+
             foreach (var node in Nodes)
             {
                 var rect = GetNodeRect(node);
@@ -920,6 +1157,10 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             {
                 EndInlineRename(commitChanges: true);
             }
+            if (_editingNote != null)
+            {
+                EndNoteEdit(commitChanges: true);
+            }
 
             var isCtrlSelection = keyModifiers.HasFlag(KeyModifiers.Control);
 
@@ -940,11 +1181,22 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 }
             }
 
+            if (HitTestNote(point, out var hitNote) && hitNote != null)
+            {
+                _selectedNote = hitNote;
+                _selectedNode = null;
+                _selectedNodes.Clear();
+                _selectedEdge = null;
+                RebuildChildren();
+                return;
+            }
+
             if (!isCtrlSelection)
             {
                 ClearNodeSelection();
             }
 
+            _selectedNote = null;
             SelectedEdge = null;
         }
 
@@ -955,6 +1207,15 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 node.Y - node.Size.Height / 2,
                 node.Size.Width,
                 node.Size.Height);
+        }
+
+        private Rect GetNoteRect(GraphNote note)
+        {
+            return new Rect(
+                note.X - note.Width / 2,
+                note.Y - note.Height / 2,
+                note.Width,
+                note.Height);
         }
 
 
@@ -1074,6 +1335,10 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             {
                 DragNode(point);
             }
+            else if (_draggingNote != null)
+            {
+                DragNote(point);
+            }
             else if (_isPanning)
             {
                 PanViewport(screenPoint);
@@ -1092,12 +1357,20 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             RebuildChildren();
         }
 
+        private void DragNote(Point point)
+        {
+            _draggingNote!.X = point.X - _noteDragOffset.X;
+            _draggingNote.Y = point.Y - _noteDragOffset.Y;
+            RebuildChildren();
+        }
+
         private void PanViewport(Point screenPoint)
         {
+            BeginViewportNavigation();
             _viewportOffset = new Point(
                 _panStartOffset.X + screenPoint.X - _panStartPoint.X,
                 _panStartOffset.Y + screenPoint.Y - _panStartPoint.Y);
-            RebuildChildren();
+            RequestViewportRebuild();
         }
 
         private void UpdateTempLine(Point screenPoint)
@@ -1130,6 +1403,16 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             if (SelectedNode != null)
             {
                 RemoveSelectedNode();
+                e.Handled = true;
+                return;
+            }
+
+            if (_selectedNote != null)
+            {
+                Notes.Remove(_selectedNote);
+                _selectedNote = null;
+                NotifyGraphChanged();
+                RebuildChildren();
                 e.Handled = true;
             }
         }
@@ -1249,8 +1532,15 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
         }
         private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
         {
+            if (_draggingNode != null || _draggingNote != null)
+            {
+                NotifyGraphChanged();
+            }
+
             _draggingNode = null;
+            _draggingNote = null;
             _isPanning = false;
+            ScheduleViewportNavigationEnd();
         }
 
         private void OnPointerWheelChanged(object? sender, PointerWheelEventArgs e)
@@ -1265,12 +1555,14 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 return;
             }
 
+            BeginViewportNavigation();
             _viewportScale = newScale;
             _viewportOffset = new Point(
                 mouseScreen.X - worldBeforeZoom.X * _viewportScale,
                 mouseScreen.Y - worldBeforeZoom.Y * _viewportScale);
 
-            RebuildChildren();
+            RequestViewportRebuild();
+            ScheduleViewportNavigationEnd();
             e.Handled = true;
         }
         private bool HitTestNode(Point p, out Node? hitNode)
@@ -1365,6 +1657,160 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 (screenPoint.X - _viewportOffset.X) / _viewportScale,
                 (screenPoint.Y - _viewportOffset.Y) / _viewportScale);
         }
+
+        private void RefreshRenderState()
+        {
+            var viewportWidth = Bounds.Width > 0 ? Bounds.Width : 1280;
+            var viewportHeight = Bounds.Height > 0 ? Bounds.Height : 720;
+            _viewportScreenRect = new Rect(0, 0, viewportWidth, viewportHeight);
+
+            _nodeIndexMap = Nodes
+                .Select((node, index) => new { node, index })
+                .ToDictionary(item => item.node, item => item.index);
+
+            _nodesWithSelfLoop = Edges
+                .Where(edge => edge.Start == edge.End)
+                .Select(edge => edge.Start)
+                .ToHashSet();
+
+            _nodesWithOutgoingEdges = Edges
+                .Where(edge => edge.Start != edge.End)
+                .Select(edge => edge.Start)
+                .ToHashSet();
+
+            _primaryRootNode = FindPrimaryRootNode();
+            _reachableNodes = BuildReachableNodes(_primaryRootNode);
+        }
+
+        private Node? FindPrimaryRootNode()
+        {
+            if (Nodes.Count == 0)
+            {
+                return null;
+            }
+
+            var nodesWithIncomingEdges = Edges
+                .Where(edge => edge.Start != edge.End)
+                .Select(edge => edge.End)
+                .ToHashSet();
+
+            var rootCandidates = Nodes
+                .Where(node => !nodesWithIncomingEdges.Contains(node))
+                .OrderBy(node => node.X)
+                .ThenBy(node => node.Y)
+                .ToList();
+
+            if (rootCandidates.Count > 0)
+            {
+                return rootCandidates[0];
+            }
+
+            return Nodes
+                .OrderBy(node => node.X)
+                .ThenBy(node => node.Y)
+                .FirstOrDefault();
+        }
+
+        private HashSet<Node> BuildReachableNodes(Node? root)
+        {
+            if (root == null)
+            {
+                return new HashSet<Node>();
+            }
+
+            var visited = new HashSet<Node> { root };
+            var queue = new Queue<Node>();
+            queue.Enqueue(root);
+
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                foreach (var child in Edges.Where(edge => edge.Start == current && edge.End != current).Select(edge => edge.End))
+                {
+                    if (visited.Add(child))
+                    {
+                        queue.Enqueue(child);
+                    }
+                }
+            }
+
+            return visited;
+        }
+
+        private bool IsNodeVisible(Node node, double margin = 200)
+        {
+            var screenCenter = ToScreen(node.Position);
+            var nodeWidth = node.Size.Width * _viewportScale;
+            var nodeHeight = node.Size.Height * _viewportScale;
+            var nodeRect = new Rect(
+                screenCenter.X - nodeWidth / 2,
+                screenCenter.Y - nodeHeight / 2,
+                nodeWidth,
+                nodeHeight);
+
+            return ExpandRect(_viewportScreenRect, margin).Intersects(nodeRect);
+        }
+
+        private bool IsNoteVisible(GraphNote note, double margin = 160)
+        {
+            var screenCenter = ToScreen(new Point(note.X, note.Y));
+            var noteWidth = note.Width * _viewportScale;
+            var noteHeight = note.Height * _viewportScale;
+            var noteRect = new Rect(
+                screenCenter.X - noteWidth / 2,
+                screenCenter.Y - noteHeight / 2,
+                noteWidth,
+                noteHeight);
+
+            return ExpandRect(_viewportScreenRect, margin).Intersects(noteRect);
+        }
+
+        private bool IsPolylineVisible(IReadOnlyList<Point> points, double margin = 220)
+        {
+            if (points.Count == 0)
+            {
+                return false;
+            }
+
+            var minX = points.Min(point => point.X);
+            var minY = points.Min(point => point.Y);
+            var maxX = points.Max(point => point.X);
+            var maxY = points.Max(point => point.Y);
+            var bounds = new Rect(new Point(minX, minY), new Point(maxX, maxY));
+            return ExpandRect(_viewportScreenRect, margin).Intersects(bounds);
+        }
+
+        private static Rect ExpandRect(Rect rect, double margin)
+        {
+            return new Rect(
+                rect.X - margin,
+                rect.Y - margin,
+                rect.Width + margin * 2,
+                rect.Height + margin * 2);
+        }
+
+        private void BeginViewportNavigation()
+        {
+            _isViewportNavigating = true;
+            _viewportNavigationTimer.Stop();
+        }
+
+        private void ScheduleViewportNavigationEnd()
+        {
+            _viewportNavigationTimer.Stop();
+            _viewportNavigationTimer.Start();
+        }
+
+        private void RequestViewportRebuild()
+        {
+            _viewportRebuildPending = true;
+
+            if (!_viewportRenderTimer.IsEnabled)
+            {
+                _viewportRenderTimer.Start();
+            }
+        }
+
         public void AddEdge(Node start, Node end)
         {
             EndInlineRename(commitChanges: true);
@@ -1510,9 +1956,186 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             SyncRouteNodes();
         }
 
+        public void LoadNotes(IEnumerable<GraphNote> notes)
+        {
+            Notes.Clear();
+            foreach (var note in notes)
+            {
+                Notes.Add(new GraphNote
+                {
+                    X = note.X,
+                    Y = note.Y,
+                    Width = note.Width,
+                    Height = note.Height,
+                    Text = note.Text
+                });
+            }
+        }
+
+        public void ApplySavedNodePositions(IEnumerable<GraphNodePosition> positions)
+        {
+            var positionByTitle = positions.ToDictionary(position => position.NodeTitle, StringComparer.OrdinalIgnoreCase);
+            foreach (var node in Nodes)
+            {
+                if (positionByTitle.TryGetValue(node.Title, out var savedPosition))
+                {
+                    node.X = savedPosition.X;
+                    node.Y = savedPosition.Y;
+                }
+            }
+        }
+
+        public GraphViewState BuildViewState()
+        {
+            return new GraphViewState
+            {
+                Routes = Routes
+                    .Select(route => new StoryRoute
+                    {
+                        Name = route.Name,
+                        NodeTitles = route.NodeTitles.ToList()
+                    })
+                    .ToList(),
+                NodePositions = Nodes
+                    .Select(node => new GraphNodePosition
+                    {
+                        NodeTitle = node.Title,
+                        X = node.X,
+                        Y = node.Y
+                    })
+                    .ToList(),
+                Notes = Notes
+                    .Select(note => new GraphNote
+                    {
+                        X = note.X,
+                        Y = note.Y,
+                        Width = note.Width,
+                        Height = note.Height,
+                        Text = note.Text
+                    })
+                    .ToList()
+            };
+        }
+
         public void SyncRouteNodes()
         {
             RebuildRoutes();
+        }
+
+        private void AddNewNote(Point point)
+        {
+            EndInlineRename(commitChanges: true);
+            EndNoteEdit(commitChanges: true);
+
+            var note = new GraphNote
+            {
+                X = point.X,
+                Y = point.Y,
+                Text = "New note"
+            };
+
+            Notes.Add(note);
+            _selectedNote = note;
+            NotifyGraphChanged();
+            BeginNoteEdit(note);
+        }
+
+        private bool HitTestNote(Point point, out GraphNote? hitNote)
+        {
+            for (var i = Notes.Count - 1; i >= 0; i--)
+            {
+                if (GetNoteRect(Notes[i]).Contains(point))
+                {
+                    hitNote = Notes[i];
+                    return true;
+                }
+            }
+
+            hitNote = null;
+            return false;
+        }
+
+        private void BeginNoteEdit(GraphNote note)
+        {
+            _editingNote = note;
+            _noteEditText = note.Text;
+            _selectedNote = note;
+            RebuildChildren();
+        }
+
+        private TextBox CreateNoteTextBox(GraphNote note, double noteLeft, double noteTop, double noteWidth, double noteHeight)
+        {
+            var textBox = new TextBox
+            {
+                Text = _noteEditText,
+                Width = Math.Max(80, noteWidth - 16 * _viewportScale),
+                Height = Math.Max(48, noteHeight - 16 * _viewportScale),
+                FontSize = 13 * _viewportScale,
+                AcceptsReturn = true,
+                TextWrapping = TextWrapping.Wrap,
+                Background = new SolidColorBrush(Color.Parse("#F3D36B")),
+                Foreground = Brushes.Black,
+                BorderBrush = new SolidColorBrush(Color.Parse("#8F6A00"))
+            };
+
+            textBox.TextChanged += (_, _) => _noteEditText = textBox.Text ?? string.Empty;
+            textBox.KeyDown += OnNoteTextBoxKeyDown;
+            textBox.LostFocus += OnNoteTextBoxLostFocus;
+
+            SetLeft(textBox, noteLeft + 8 * _viewportScale);
+            SetTop(textBox, noteTop + 8 * _viewportScale);
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (_noteTextBox == textBox)
+                {
+                    textBox.Focus();
+                    textBox.CaretIndex = textBox.Text?.Length ?? 0;
+                }
+            }, DispatcherPriority.Input);
+
+            return textBox;
+        }
+
+        private void OnNoteTextBoxKeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                CancelNoteEdit();
+                e.Handled = true;
+            }
+        }
+
+        private void OnNoteTextBoxLostFocus(object? sender, RoutedEventArgs e)
+        {
+            if (_editingNote != null)
+            {
+                EndNoteEdit(commitChanges: true);
+            }
+        }
+
+        private void EndNoteEdit(bool commitChanges)
+        {
+            if (_editingNote == null)
+                return;
+
+            var note = _editingNote;
+            _editingNote = null;
+            _noteTextBox = null;
+
+            if (commitChanges)
+            {
+                note.Text = string.IsNullOrWhiteSpace(_noteEditText) ? "Note" : _noteEditText.Trim();
+                NotifyGraphChanged();
+            }
+
+            _noteEditText = string.Empty;
+            RebuildChildren();
+        }
+
+        private void CancelNoteEdit()
+        {
+            EndNoteEdit(commitChanges: false);
         }
 
         private void RebuildRoutes()

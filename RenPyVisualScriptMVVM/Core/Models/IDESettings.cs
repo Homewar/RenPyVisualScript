@@ -9,5 +9,8 @@ namespace RenPyVisualScriptMVVM.Core.Models
 
         [ObservableProperty]
         private bool showSystemResources = true;
+
+        [ObservableProperty]
+        private bool autoLayoutGraphLabels = true;
     }
 }

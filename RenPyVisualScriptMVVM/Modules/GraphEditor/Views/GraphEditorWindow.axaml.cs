@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
+using RenPyVisualScriptMVVM.Core.Models;
 using RenPyVisualScriptMVVM.Modules.GraphEditor.Models;
 using RenPyVisualScriptMVVM.Modules.GraphEditor.Services;
 using RenPyVisualScriptMVVM.Modules.GraphEditor.ViewModels;
@@ -19,6 +20,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Views
             InitializeComponent();
             Opened += (_, _) => ApplyGraph();
             DataContextChanged += (_, _) => ApplyGraph();
+            Closing += (_, _) => SaveViewState();
             KeyDown += OnWindowKeyDown;
             GraphCanvas.GraphChanged += (_, _) => UpdateStats();
             AddRouteButton.Click += OnAddRouteClick;
@@ -37,8 +39,16 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Views
             GraphCanvas.Edges.Clear();
             GraphCanvas.Nodes.AddRange(nodes);
             GraphCanvas.Edges.AddRange(edges);
-            GraphCanvas.LoadRoutes(GraphRouteStore.Load(vm.ProjectPath));
+            var viewState = GraphViewStateStore.Load(vm.ProjectPath);
+            GraphCanvas.LoadRoutes(viewState.Routes);
+            GraphCanvas.LoadNotes(viewState.Notes);
+            var ideSettings = Locator.Current.GetService<IDESettings>();
+            if (ideSettings?.AutoLayoutGraphLabels == false)
+            {
+                GraphCanvas.ApplySavedNodePositions(viewState.NodePositions);
+            }
             GraphCanvas.RebuildChildren();
+            GraphCanvas.FocusWorldPoint(new Avalonia.Point(-400, 200));
             GraphCanvas.NotifyGraphChanged();
             UpdateRoutesPanel();
         }
@@ -60,7 +70,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Views
             try
             {
                 GraphCanvas.SyncRouteNodes();
-                GraphRouteStore.Save(vm.ProjectPath, GraphCanvas.Routes);
+                SaveViewState();
                 var result = GraphRpyExporter.SynchronizeGraph(vm.ProjectPath, vm.Snapshot, GraphCanvas.Nodes, GraphCanvas.Edges);
                 vm.RefreshSnapshotFromProject();
                 vm.NotifyGraphSaved();
@@ -142,6 +152,15 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Views
             GraphCanvas.ActiveRouteName = selectedRoute?.Name;
             RouteNodesListBox.ItemsSource = selectedRoute?.NodeTitles?.OrderBy(title => title).ToList()
                 ?? Enumerable.Empty<string>();
+        }
+
+        private void SaveViewState()
+        {
+            if (DataContext is not GraphEditorWindowViewModel vm)
+                return;
+
+            GraphCanvas.SyncRouteNodes();
+            GraphViewStateStore.Save(vm.ProjectPath, GraphCanvas.BuildViewState());
         }
     }
 }

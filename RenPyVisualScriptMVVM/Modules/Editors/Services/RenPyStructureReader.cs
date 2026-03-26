@@ -11,11 +11,15 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Services;
 public sealed class RenPyStructureReader
 {
     private static readonly Regex CharacterRegex = new(
-        "^\\s*define\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*=\\s*Character\\(\\s*\"([^\"]+)\"(?<args>.*)\\)\\s*$",
+        @"^\s*define\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*Character\((?<args>.*)\)\s*$",
+        RegexOptions.Compiled);
+
+    private static readonly Regex FirstStringArgumentRegex = new(
+        @"^\s*(?:""(?<value_dq>[^""]*)""|'(?<value_sq>[^']*)')",
         RegexOptions.Compiled);
 
     private static readonly Regex ColorRegex = new(
-        "color\\s*=\\s*\"([^\"]+)\"",
+        @"color\s*=\s*(?:""(?<value_dq>[^""]*)""|'(?<value_sq>[^']*)')",
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     private static readonly Regex LabelRegex = new(
@@ -137,8 +141,11 @@ public sealed class RenPyStructureReader
                 continue;
 
             var codeName = characterMatch.Groups[1].Value;
-            var inGameName = characterMatch.Groups[2].Value;
             var args = characterMatch.Groups["args"].Value;
+            var inGameName = ExtractFirstStringArgument(args);
+            if (string.IsNullOrWhiteSpace(inGameName))
+                continue;
+
             var color = ExtractColor(args);
             characters.Add(new Character(codeName, color, inGameName));
         }
@@ -292,12 +299,33 @@ public sealed class RenPyStructureReader
         return !labelName.StartsWith("_", StringComparison.Ordinal);
     }
 
+    private static string ExtractFirstStringArgument(string args)
+    {
+        var match = FirstStringArgumentRegex.Match(args);
+        if (!match.Success)
+            return "";
+
+        if (match.Groups["value_dq"].Success)
+            return match.Groups["value_dq"].Value;
+
+        if (match.Groups["value_sq"].Success)
+            return match.Groups["value_sq"].Value;
+
+        return "";
+    }
+
     private static string ExtractColor(string args)
     {
         var match = ColorRegex.Match(args);
         if (!match.Success)
             return "";
 
-        return match.Groups[1].Value;
+        if (match.Groups["value_dq"].Success)
+            return match.Groups["value_dq"].Value;
+
+        if (match.Groups["value_sq"].Success)
+            return match.Groups["value_sq"].Value;
+
+        return "";
     }
 }

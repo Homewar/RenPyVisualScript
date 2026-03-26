@@ -60,8 +60,8 @@ public sealed class GraphEditorWindowViewModel : BaseViewModel
             .ThenBy(l => l.Line)
             .ToList();
 
-        const double nodeWidth  = 210;
-        const double nodeHeight = 96;
+        var nodeWidth = Node.DefaultSize.Width;
+        var nodeHeight = Node.DefaultSize.Height;
         const double columnGap  = 160;  // horizontal gap between aligned node columns
         const double startX     = 180;
         const double startY     = 120;

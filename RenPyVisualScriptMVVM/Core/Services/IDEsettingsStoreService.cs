@@ -69,7 +69,8 @@ namespace RenPyVisualScriptMVVM.Core.Services
             return new IDESettings
             {
                 RenPySDKPath = string.Empty,
-                ShowSystemResources = true
+                ShowSystemResources = true,
+                AutoLayoutGraphLabels = true
             };
         }
 

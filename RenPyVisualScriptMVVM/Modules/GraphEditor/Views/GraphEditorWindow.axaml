@@ -9,29 +9,29 @@
         Background="#1e1e1e"
         Title="Graph Editor">
     <Window.Styles>
-        <Style Selector="TextBox">
+        <Style Selector="TextBox.route-input">
             <Setter Property="Background" Value="#1E1E1E"/>
             <Setter Property="Foreground" Value="#F3F3F3"/>
             <Setter Property="CaretBrush" Value="#F3F3F3"/>
             <Setter Property="BorderBrush" Value="#3C3C3C"/>
         </Style>
-        <Style Selector="TextBox /template/ Border#borderElement">
+        <Style Selector="TextBox.route-input /template/ Border#borderElement">
             <Setter Property="Background" Value="#1E1E1E"/>
             <Setter Property="BorderBrush" Value="#3C3C3C"/>
         </Style>
-        <Style Selector="TextBox:pointerover">
+        <Style Selector="TextBox.route-input:pointerover">
             <Setter Property="Background" Value="#1E1E1E"/>
             <Setter Property="BorderBrush" Value="#4A4A4A"/>
         </Style>
-        <Style Selector="TextBox:pointerover /template/ Border#borderElement">
+        <Style Selector="TextBox.route-input:pointerover /template/ Border#borderElement">
             <Setter Property="Background" Value="#1E1E1E"/>
             <Setter Property="BorderBrush" Value="#4A4A4A"/>
         </Style>
-        <Style Selector="TextBox:focus">
+        <Style Selector="TextBox.route-input:focus">
             <Setter Property="Background" Value="#1E1E1E"/>
             <Setter Property="BorderBrush" Value="#EA592A"/>
         </Style>
-        <Style Selector="TextBox:focus /template/ Border#borderElement">
+        <Style Selector="TextBox.route-input:focus /template/ Border#borderElement">
             <Setter Property="Background" Value="#1E1E1E"/>
             <Setter Property="BorderBrush" Value="#EA592A"/>
         </Style>
@@ -46,9 +46,40 @@
         <Style Selector="ListBoxItem:pointerover">
             <Setter Property="Background" Value="#252526"/>
         </Style>
-        <Style Selector="TextBox:focus-within /template/ Border#PART_BorderElement">
+        <Style Selector="TextBox.route-input:focus-within /template/ Border#PART_BorderElement">
 			<Setter Property="Background">
                 <SolidColorBrush Color="#1e1e1e"/>
+            </Setter>
+        </Style>
+        <Style Selector="TextBox.note-editor">
+            <Setter Property="Background" Value="#F3D36B"/>
+            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="CaretBrush" Value="Black"/>
+            <Setter Property="BorderBrush" Value="#8F6A00"/>
+        </Style>
+        <Style Selector="TextBox.note-editor /template/ Border#borderElement">
+            <Setter Property="Background" Value="#F3D36B"/>
+            <Setter Property="BorderBrush" Value="#8F6A00"/>
+        </Style>
+        <Style Selector="TextBox.note-editor:pointerover">
+            <Setter Property="Background" Value="#F3D36B"/>
+            <Setter Property="BorderBrush" Value="#8F6A00"/>
+        </Style>
+        <Style Selector="TextBox.note-editor:pointerover /template/ Border#borderElement">
+            <Setter Property="Background" Value="#F3D36B"/>
+            <Setter Property="BorderBrush" Value="#8F6A00"/>
+        </Style>
+        <Style Selector="TextBox.note-editor:focus">
+            <Setter Property="Background" Value="#F3D36B"/>
+            <Setter Property="BorderBrush" Value="#6F5200"/>
+        </Style>
+        <Style Selector="TextBox.note-editor:focus /template/ Border#borderElement">
+            <Setter Property="Background" Value="#F3D36B"/>
+            <Setter Property="BorderBrush" Value="#6F5200"/>
+        </Style>
+        <Style Selector="TextBox.note-editor:focus-within /template/ Border#PART_BorderElement">
+			<Setter Property="Background">
+                <SolidColorBrush Color="#F3D36B"/>
             </Setter>
         </Style>
     </Window.Styles>
@@ -81,6 +112,7 @@
 
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                         <TextBox x:Name="RouteNameTextBox"
+                                 Classes="route-input"
                                  Watermark="Новая ветка сюжета"
                                  Foreground="#ffffff"
                                  CaretBrush="#0f0f0f"

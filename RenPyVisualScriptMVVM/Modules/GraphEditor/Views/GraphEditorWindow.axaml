@@ -46,11 +46,15 @@
         <Style Selector="ListBoxItem:pointerover">
             <Setter Property="Background" Value="#252526"/>
         </Style>
+        <Style Selector="TextBox:focus-within /template/ Border#PART_BorderElement">
+			<Setter Property="Background">
+                <SolidColorBrush Color="#1e1e1e"/>
+            </Setter>
+        </Style>
     </Window.Styles>
     <DockPanel>
         <Border DockPanel.Dock="Top" Background="#252526" Padding="12,8">
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
-                <TextBlock Text="Правый клик по пустому месту — новый узел. Ctrl+S — сохранить граф в исходные .rpy-файлы." VerticalAlignment="Center" Foreground="#C8C8C8"/>
                 <TextBlock x:Name="StatsTextBlock" Grid.Column="1" VerticalAlignment="Center" Foreground="#E6E6E6" FontWeight="SemiBold"/>
             </Grid>
         </Border>
@@ -74,15 +78,12 @@
                                FontSize="16"
                                FontWeight="SemiBold"
                                Foreground="#E6E6E6"/>
-                    <TextBlock Text="Создавайте ветки сюжета и добавляйте в них label-узлы через контекстное меню."
-                               TextWrapping="Wrap"
-                               Foreground="#AFAFAF"/>
 
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                         <TextBox x:Name="RouteNameTextBox"
                                  Watermark="Новая ветка сюжета"
-                                 Foreground="#F3F3F3"
-                                 CaretBrush="#F3F3F3"
+                                 Foreground="#ffffff"
+                                 CaretBrush="#0f0f0f"
                                  Background="#1E1E1E"/>
                         <Button Grid.Column="1"
                                 x:Name="AddRouteButton"

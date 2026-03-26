@@ -29,6 +29,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Models
         public ImageBrush? ImageBackground { get; set; } = CreatePlaceholderImageBrush();
 
         public bool IsGeneratedManually { get; set; }
+        public string? RouteName { get; set; }
         public string? SourceFilePath { get; set; }
         public int SourceStartLine { get; set; }
         public int SourceEndLine { get; set; }

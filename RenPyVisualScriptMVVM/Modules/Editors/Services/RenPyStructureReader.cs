@@ -212,18 +212,26 @@ public sealed class RenPyStructureReader
             var jumpMatch = JumpRegex.Match(line);
             if (jumpMatch.Success)
             {
-                var target = jumpMatch.Groups[1].Value;
-                if (IsGameLabel(target))
-                    links.Add(new StructureLinkItem("jump", currentLabel, target, $"jump → {target}", relativePath, lineNumber));
+                // Jumps inside a menu branch are already captured as the menu choice's target — skip them here.
+                if (!currentMenuLine.HasValue)
+                {
+                    var target = jumpMatch.Groups[1].Value;
+                    if (IsGameLabel(target))
+                        links.Add(new StructureLinkItem("jump", currentLabel, target, $"jump → {target}", relativePath, lineNumber));
+                }
                 continue;
             }
 
             var callMatch = CallRegex.Match(line);
             if (callMatch.Success)
             {
-                var target = callMatch.Groups[1].Value;
-                if (IsGameLabel(target))
-                    links.Add(new StructureLinkItem("call", currentLabel, target, $"call → {target}", relativePath, lineNumber));
+                // Calls inside a menu branch are already captured as the menu choice's target — skip them here.
+                if (!currentMenuLine.HasValue)
+                {
+                    var target = callMatch.Groups[1].Value;
+                    if (IsGameLabel(target))
+                        links.Add(new StructureLinkItem("call", currentLabel, target, $"call → {target}", relativePath, lineNumber));
+                }
                 continue;
             }
 

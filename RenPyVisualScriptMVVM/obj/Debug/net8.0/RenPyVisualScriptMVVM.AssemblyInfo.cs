@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RenPyVisualScriptMVVM")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c7a251d3e7a11d05461cf34f10c20a4b7ca557fc")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9608d305af208bf6a85324f42e9eb1bba6efc29b")]
 [assembly: System.Reflection.AssemblyProductAttribute("RenPyVisualScriptMVVM")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RenPyVisualScriptMVVM")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

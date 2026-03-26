@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="using:RenPyVisualScriptMVVM.Modules.GraphEditor.Controls"
+        xmlns:models="using:RenPyVisualScriptMVVM.Modules.GraphEditor.Models"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="RenPyVisualScriptMVVM.Modules.GraphEditor.Views.GraphEditorWindow"
         Background="#1e1e1e"
@@ -14,6 +15,81 @@
                 <TextBlock x:Name="StatsTextBlock" Grid.Column="1" VerticalAlignment="Center" Foreground="#E6E6E6" FontWeight="SemiBold"/>
             </Grid>
         </Border>
-        <controls:GraphCanvas x:Name="GraphCanvas" Margin="0" />
+
+        <Grid ColumnDefinitions="*,Auto,280">
+            <controls:GraphCanvas x:Name="GraphCanvas" Grid.Column="0" Margin="0" />
+
+            <GridSplitter Grid.Column="1"
+                          Width="4"
+                          ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext"
+                          Background="#EA592A"/>
+
+            <Border Grid.Column="2"
+                    Background="#252526"
+                    BorderBrush="#3C3C3C"
+                    BorderThickness="1,0,0,0"
+                    Padding="12">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="Routes"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="#E6E6E6"/>
+                    <TextBlock Text="Создавайте ветки сюжета и добавляйте в них label-узлы через контекстное меню."
+                               TextWrapping="Wrap"
+                               Foreground="#AFAFAF"/>
+
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <TextBox x:Name="RouteNameTextBox"
+                                 Watermark="Новая ветка сюжета"
+                                 Foreground="#F3F3F3"
+                                 CaretBrush="#F3F3F3"
+                                 Background="#1E1E1E"/>
+                        <Button Grid.Column="1"
+                                x:Name="AddRouteButton"
+                                Content="Add"
+                                Background="#EA592A"/>
+                    </Grid>
+
+                    <ListBox x:Name="RoutesListBox"
+                             Background="#1E1E1E"
+                             Foreground="#F3F3F3"
+                             BorderBrush="#3C3C3C"
+                             BorderThickness="1"
+                             MinHeight="120">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="models:StoryRoute">
+                                <Grid ColumnDefinitions="*,Auto" Margin="6,4">
+                                    <TextBlock Text="{Binding Name}"
+                                               Foreground="#F3F3F3"/>
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding NodeTitles.Count, StringFormat='{}{0} labels'}"
+                                               Foreground="#AFAFAF"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <TextBlock Text="Labels In Selected Route"
+                               Margin="0,6,0,0"
+                               Foreground="#E6E6E6"
+                               FontWeight="SemiBold"/>
+                    <ListBox x:Name="RouteNodesListBox"
+                             Background="#1E1E1E"
+                             Foreground="#F3F3F3"
+                             BorderBrush="#3C3C3C"
+                             BorderThickness="1"
+                             MinHeight="120">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}"
+                                           Margin="6,4"
+                                           Foreground="#F3F3F3"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </Border>
+        </Grid>
     </DockPanel>
 </Window>

@@ -49,6 +49,9 @@ build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 [C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/Projects/Views/ProjectSelector.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
+[C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/Settings/Views/IDESettings.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
 [C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/Settings/Views/ProjectSettings.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 

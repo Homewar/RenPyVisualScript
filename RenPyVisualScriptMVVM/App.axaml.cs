@@ -98,6 +98,11 @@ namespace RenPyVisualScriptMVVM
             loc.Register<ProjectSettingsViewModel>(() =>
                 new ProjectSettingsViewModel(Locator.Current.GetService<IProjectContext>()!));
 
+            loc.Register<IDESettingsViewModel>(() =>
+                new IDESettingsViewModel(
+                    Locator.Current.GetService<ISettingsIDE>()!,
+                    Locator.Current.GetService<RenPyVisualScriptMVVM.Core.Models.IDESettings>()!));
+
             loc.Register<GraphEditorWindowViewModel>(() => new GraphEditorWindowViewModel());
 
             /* ---------- запуск UI ---------- */

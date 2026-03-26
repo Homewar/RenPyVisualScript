@@ -40,6 +40,7 @@
                         <MenuItem Header="Project">
                             <MenuItem Header="Project Settings" Command="{Binding ShowProjectSetCmd}"/>
                             <MenuItem Header="GUI Settings" Command="{Binding ShowAppSettingsCmd}"/>
+                            <MenuItem Header="IDE Settings" Command="{Binding ShowIdeSettingsCmd}"/>
                         </MenuItem>
                         <MenuItem Header="Addon">
                             <MenuItem Header="Open Graph Editor" Command="{Binding OpenGraphCmd}"/>
@@ -78,95 +79,95 @@
                             </DockPanel>
                         </Border>
 
-                        <ScrollViewer Grid.Row="1">
-                            <StackPanel Spacing="8" Margin="0,8,0,0">
-                                <Border Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1">
-                                    <Grid RowDefinitions="Auto,*">
-                                        <TextBlock Text="Characters" FontSize="14" Foreground="#d6d6d6" Background="#2d2d30" Padding="8,6"/>
-                                        <ListBox Grid.Row="1" ItemsSource="{Binding CharacterList}" Background="Transparent" BorderThickness="0" MaxHeight="260">
-                                            <ListBox.ItemTemplate>
-                                                <DataTemplate x:DataType="core:Character">
-                                                    <Grid ColumnDefinitions="16,*,Auto" Margin="8,4">
-                                                        <Border Width="12" Height="12" CornerRadius="6"
-                                                                Background="{Binding Color, Converter={StaticResource StrToBrush}}"
-                                                                VerticalAlignment="Center"/>
-                                                        <StackPanel Grid.Column="1" Margin="8,0,0,0">
-                                                            <TextBlock Text="{Binding Name}"/>
-                                                            <TextBlock Text="{Binding InGameName}" Foreground="#9cdcfe" FontSize="11"/>
-                                                        </StackPanel>
-                                                        <TextBlock Grid.Column="2" Text="{Binding Color}" Foreground="#808080" VerticalAlignment="Center"/>
-                                                    </Grid>
-                                                </DataTemplate>
-                                            </ListBox.ItemTemplate>
-                                        </ListBox>
-                                    </Grid>
-                                </Border>
+                        <ScrollViewer Grid.Row="1" Margin="0,8,0,0">
+                            <StackPanel Spacing="8" HorizontalAlignment="Stretch">
+                                <Expander IsExpanded="True" Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1" HorizontalAlignment="Stretch">
+                                <Expander.Header>
+                                    <TextBlock Text="Characters" FontSize="14" Foreground="#d6d6d6" Margin="8,6"/>
+                                </Expander.Header>
+                                <ListBox ItemsSource="{Binding CharacterList}" Background="Transparent" BorderThickness="0">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate x:DataType="core:Character">
+                                            <Grid ColumnDefinitions="16,*,Auto" Margin="8,4">
+                                                <Border Width="12" Height="12" CornerRadius="6"
+                                                        Background="{Binding Color, Converter={StaticResource StrToBrush}}"
+                                                        VerticalAlignment="Center"/>
+                                                <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                                    <TextBlock Text="{Binding Name}"/>
+                                                    <TextBlock Text="{Binding InGameName}" Foreground="#9cdcfe" FontSize="11"/>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="2" Text="{Binding Color}" Foreground="#808080" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                </Expander>
 
-                                <Border Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1">
-                                    <Grid RowDefinitions="Auto,*">
-                                        <TextBlock Text="Labels" FontSize="14" Foreground="#d6d6d6" Background="#2d2d30" Padding="8,6"/>
-                                        <ListBox Grid.Row="1" ItemsSource="{Binding LabelList}" Background="Transparent" BorderThickness="0" MaxHeight="260">
-                                            <ListBox.ItemTemplate>
-                                                <DataTemplate x:DataType="models:LabelOutlineItem">
-                                                    <Grid ColumnDefinitions="*,Auto" Margin="8,4">
-                                                        <StackPanel>
-                                                            <TextBlock Text="{Binding Name}"/>
-                                                            <TextBlock Text="{Binding FilePath}" Foreground="#808080" FontSize="11"/>
-                                                        </StackPanel>
-                                                        <StackPanel Grid.Column="1" HorizontalAlignment="Right">
-                                                            <TextBlock Text="{Binding StatementCount, StringFormat='{}{0} stmts'}" HorizontalAlignment="Right"/>
-                                                            <TextBlock Text="{Binding Line, StringFormat='{}line {0}'}" Foreground="#808080" FontSize="11" HorizontalAlignment="Right"/>
-                                                        </StackPanel>
-                                                    </Grid>
-                                                </DataTemplate>
-                                            </ListBox.ItemTemplate>
-                                        </ListBox>
-                                    </Grid>
-                                </Border>
+                                <Expander IsExpanded="True" Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1" HorizontalAlignment="Stretch">
+                                <Expander.Header>
+                                    <TextBlock Text="Labels" FontSize="14" Foreground="#d6d6d6" Margin="8,6"/>
+                                </Expander.Header>
+                                <ListBox ItemsSource="{Binding LabelList}" Background="Transparent" BorderThickness="0">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate x:DataType="models:LabelOutlineItem">
+                                            <Grid ColumnDefinitions="*,Auto" Margin="8,4">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Name}"/>
+                                                    <TextBlock Text="{Binding FilePath}" Foreground="#808080" FontSize="11"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                                    <TextBlock Text="{Binding StatementCount, StringFormat='{}{0} stmts'}" HorizontalAlignment="Right"/>
+                                                    <TextBlock Text="{Binding Line, StringFormat='{}line {0}'}" Foreground="#808080" FontSize="11" HorizontalAlignment="Right"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                </Expander>
 
-                                <Border Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1">
-                                    <Grid RowDefinitions="Auto,*">
-                                        <TextBlock Text="Links and choices" FontSize="14" Foreground="#d6d6d6" Background="#2d2d30" Padding="8,6"/>
-                                        <ListBox Grid.Row="1" ItemsSource="{Binding TransitionItems}" Background="Transparent" BorderThickness="0" MaxHeight="260">
-                                            <ListBox.ItemTemplate>
-                                                <DataTemplate x:DataType="models:TransitionPanelItem">
-                                                    <Border Margin="8,4" Padding="8" Background="#2d2d30" BorderBrush="#3c3c3c" BorderThickness="1" CornerRadius="6">
-                                                        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
-                                                            <Border Background="#3c3c3c" Padding="6,2" CornerRadius="4" VerticalAlignment="Top">
-                                                                <TextBlock Text="{Binding Kind}" FontSize="11"/>
-                                                            </Border>
-                                                            <StackPanel Grid.Column="1" Margin="8,0,0,0">
-                                                                <TextBlock Text="{Binding Description}"/>
-                                                                <TextBlock Text="{Binding Source, StringFormat='{}from {0}'}" Foreground="#9cdcfe" FontSize="11"/>
-                                                                <TextBlock Text="{Binding Target, StringFormat='{}target {0}'}" Foreground="#808080" FontSize="11" IsVisible="{Binding ShowTarget}"/>
-                                                            </StackPanel>
-                                                            <StackPanel Grid.Column="2" HorizontalAlignment="Right">
-                                                                <TextBlock Text="{Binding FileName}" Foreground="#808080" FontSize="11" HorizontalAlignment="Right"/>
-                                                                <TextBlock Text="{Binding Line, StringFormat='{}line {0}'}" Foreground="#808080" FontSize="11" HorizontalAlignment="Right"/>
-                                                            </StackPanel>
-
-                                                            <ItemsControl Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,8,0,0" ItemsSource="{Binding Choices}" IsVisible="{Binding IsMenuGroup}">
-                                                                <ItemsControl.ItemTemplate>
-                                                                    <DataTemplate x:DataType="models:StructureLinkItem">
-                                                                        <Border Margin="0,4,0,0" Padding="8,6" Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1" CornerRadius="4">
-                                                                            <Grid ColumnDefinitions="*,Auto">
-                                                                                <StackPanel>
-                                                                                    <TextBlock Text="{Binding Description}" />
-                                                                                    <TextBlock Text="{Binding Target, StringFormat='{}target {0}'}" Foreground="#808080" FontSize="11"/>
-                                                                                </StackPanel>
-                                                                                <TextBlock Grid.Column="1" Text="{Binding Line, StringFormat='{}line {0}'}" Foreground="#808080" FontSize="11" VerticalAlignment="Center"/>
-                                                                            </Grid>
-                                                                        </Border>
-                                                                    </DataTemplate>
-                                                                </ItemsControl.ItemTemplate>
-                                                            </ItemsControl>
-                                                        </Grid>
+                                <Expander IsExpanded="True" Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1" HorizontalAlignment="Stretch">
+                                <Expander.Header>
+                                    <TextBlock Text="Links and choices" FontSize="14" Foreground="#d6d6d6" Margin="8,6"/>
+                                </Expander.Header>
+                                <ListBox ItemsSource="{Binding TransitionItems}" Background="Transparent" BorderThickness="0">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate x:DataType="models:TransitionPanelItem">
+                                            <Border Margin="8,4" Padding="8" Background="#2d2d30" BorderBrush="#3c3c3c" BorderThickness="1" CornerRadius="6">
+                                                <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+                                                    <Border Background="#3c3c3c" Padding="6,2" CornerRadius="4" VerticalAlignment="Top">
+                                                        <TextBlock Text="{Binding Kind}" FontSize="11"/>
                                                     </Border>
-                                                </DataTemplate>
-                                            </ListBox.ItemTemplate>
-                                        </ListBox>
-                                    </Grid>
-                                </Border>
+                                                    <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                                        <TextBlock Text="{Binding Description}"/>
+                                                        <TextBlock Text="{Binding Source, StringFormat='{}from {0}'}" Foreground="#9cdcfe" FontSize="11"/>
+                                                        <TextBlock Text="{Binding Target, StringFormat='{}target {0}'}" Foreground="#808080" FontSize="11" IsVisible="{Binding ShowTarget}"/>
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="2" HorizontalAlignment="Right">
+                                                        <TextBlock Text="{Binding FileName}" Foreground="#808080" FontSize="11" HorizontalAlignment="Right"/>
+                                                        <TextBlock Text="{Binding Line, StringFormat='{}line {0}'}" Foreground="#808080" FontSize="11" HorizontalAlignment="Right"/>
+                                                    </StackPanel>
+
+                                                    <ItemsControl Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,8,0,0" ItemsSource="{Binding Choices}" IsVisible="{Binding IsMenuGroup}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate x:DataType="models:StructureLinkItem">
+                                                                <Border Margin="0,4,0,0" Padding="8,6" Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1" CornerRadius="4">
+                                                                    <Grid ColumnDefinitions="*,Auto">
+                                                                        <StackPanel>
+                                                                            <TextBlock Text="{Binding Description}" />
+                                                                            <TextBlock Text="{Binding Target, StringFormat='{}target {0}'}" Foreground="#808080" FontSize="11"/>
+                                                                        </StackPanel>
+                                                                        <TextBlock Grid.Column="1" Text="{Binding Line, StringFormat='{}line {0}'}" Foreground="#808080" FontSize="11" VerticalAlignment="Center"/>
+                                                                    </Grid>
+                                                                </Border>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                </Expander>
                             </StackPanel>
                         </ScrollViewer>
                     </Grid>
@@ -181,6 +182,68 @@
                             </TreeView.ItemTemplate>
                         </TreeView>
                     </Grid>
+                </TabItem>
+                <TabItem Header="resources">
+                    <ScrollViewer Margin="0,8,0,0">
+                        <StackPanel Spacing="8" HorizontalAlignment="Stretch">
+                            <Expander IsExpanded="True" Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1" HorizontalAlignment="Stretch">
+                            <Expander.Header>
+                                <TextBlock Text="Images" FontSize="14" Foreground="#d6d6d6" Margin="8,6"/>
+                            </Expander.Header>
+                            <ListBox ItemsSource="{Binding ImageResources}" Background="Transparent" BorderThickness="0">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="models:ResourceFileItem">
+                                        <Grid ColumnDefinitions="*,Auto" Margin="8,4">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}"/>
+                                                <TextBlock Text="{Binding RelativePath}" Foreground="#808080" FontSize="11"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="{Binding Extension}" Foreground="#9cdcfe" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            </Expander>
+
+                            <Expander IsExpanded="True" Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1" HorizontalAlignment="Stretch">
+                            <Expander.Header>
+                                <TextBlock Text="Music and audio" FontSize="14" Foreground="#d6d6d6" Margin="8,6"/>
+                            </Expander.Header>
+                            <ListBox ItemsSource="{Binding AudioResources}" Background="Transparent" BorderThickness="0">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="models:ResourceFileItem">
+                                        <Grid ColumnDefinitions="*,Auto" Margin="8,4">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}"/>
+                                                <TextBlock Text="{Binding RelativePath}" Foreground="#808080" FontSize="11"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="{Binding Extension}" Foreground="#9cdcfe" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            </Expander>
+
+                            <Expander IsExpanded="True" Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1" HorizontalAlignment="Stretch">
+                            <Expander.Header>
+                                <TextBlock Text="Video" FontSize="14" Foreground="#d6d6d6" Margin="8,6"/>
+                            </Expander.Header>
+                            <ListBox ItemsSource="{Binding VideoResources}" Background="Transparent" BorderThickness="0">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="models:ResourceFileItem">
+                                        <Grid ColumnDefinitions="*,Auto" Margin="8,4">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}"/>
+                                                <TextBlock Text="{Binding RelativePath}" Foreground="#808080" FontSize="11"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="{Binding Extension}" Foreground="#9cdcfe" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            </Expander>
+                        </StackPanel>
+                    </ScrollViewer>
                 </TabItem>
             </TabControl>
         </Grid>

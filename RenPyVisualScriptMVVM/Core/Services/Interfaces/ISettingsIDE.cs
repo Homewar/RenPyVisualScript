@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RenPyVisualScriptMVVM.Core.Services.Interfaces
 {
-    internal interface ISettingsIDE
+    public interface ISettingsIDE
     {
         Task<IDESettings> LoadAsync();
         Task SaveAsync(IDESettings s);

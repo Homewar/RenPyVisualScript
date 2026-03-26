@@ -19,6 +19,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
     {
         public List<Node> Nodes { get; } = new();
         public List<Edge> Edges { get; } = new();
+        public List<StoryRoute> Routes { get; } = new();
         public event EventHandler? GraphChanged;
 
         private Node? _draggingNode;
@@ -34,6 +35,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
         private TextBox? _renameTextBox;
         private string _renameText = string.Empty;
         private Edge? _selectedEdge;
+        private readonly HashSet<Node> _selectedNodes = new();
         private readonly HashSet<Node> _loopNodesWithEndBranch = new();
         private ContextMenu? _activeContextMenu;
         private Point _viewportOffset = new(0, 0);
@@ -41,6 +43,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private readonly Dictionary<Edge, (ConnectorPosition start, ConnectorPosition end)> _edgeConnectorMap = new();
         private static readonly Regex ValidLabelRegex = new("^[A-Za-z_][A-Za-z0-9_]*$", RegexOptions.Compiled);
+        public string? ActiveRouteName { get; set; }
 
         public Node? SelectedNode
         {
@@ -48,6 +51,11 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             set
             {
                 _selectedNode = value;
+                _selectedNodes.Clear();
+                if (value != null)
+                {
+                    _selectedNodes.Add(value);
+                }
                 if (value != null)
                 {
                     _selectedEdge = null;
@@ -187,8 +195,8 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 Fill = GetNodeFill(node),
                 RadiusX = cornerRadius,
                 RadiusY = cornerRadius,
-                Stroke = (node == _selectedNode) ? Brushes.Black : null,
-                StrokeThickness = (node == _selectedNode) ? 2 : 0
+                Stroke = _selectedNodes.Contains(node) ? Brushes.Black : null,
+                StrokeThickness = _selectedNodes.Contains(node) ? 2 : 0
             };
 
             var titleBar = new Rectangle
@@ -700,7 +708,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
             if (pointerPoint.Properties.IsLeftButtonPressed)
             {
-                HandleLeftClick(point);
+                HandleLeftClick(point, e.KeyModifiers);
             }
         }
 
@@ -716,7 +724,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
             if (HitTestNode(point, out var hitNode) && hitNode != null)
             {
-                SelectedNode = hitNode;
+                EnsureNodeSelectionForContextMenu(hitNode);
                 ShowNodeContextMenu(hitNode);
                 return;
             }
@@ -746,6 +754,8 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void ShowNodeContextMenu(Node node)
         {
+            var targetNodes = GetContextMenuTargetNodes(node);
+
             var renameMenuItem = new MenuItem
             {
                 Header = "Переименовать label"
@@ -777,9 +787,47 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 RebuildChildren();
             };
 
+            var assignRouteMenuItem = new MenuItem
+            {
+                Header = string.IsNullOrWhiteSpace(ActiveRouteName)
+                    ? "Добавить в route"
+                    : $"Добавить в route '{ActiveRouteName}'",
+                IsEnabled = !string.IsNullOrWhiteSpace(ActiveRouteName)
+            };
+            assignRouteMenuItem.Click += (_, _) =>
+            {
+                foreach (var targetNode in targetNodes)
+                {
+                    targetNode.RouteName = ActiveRouteName;
+                }
+
+                CloseContextMenu();
+                RebuildRoutes();
+                NotifyGraphChanged();
+                RebuildChildren();
+            };
+
+            var removeFromRouteMenuItem = new MenuItem
+            {
+                Header = "Убрать из route",
+                IsEnabled = targetNodes.Any(target => !string.IsNullOrWhiteSpace(target.RouteName))
+            };
+            removeFromRouteMenuItem.Click += (_, _) =>
+            {
+                foreach (var targetNode in targetNodes)
+                {
+                    targetNode.RouteName = null;
+                }
+
+                CloseContextMenu();
+                RebuildRoutes();
+                NotifyGraphChanged();
+                RebuildChildren();
+            };
+
             _activeContextMenu = new ContextMenu
             {
-                ItemsSource = new[] { renameMenuItem, endBranchMenuItem },
+                ItemsSource = new[] { renameMenuItem, endBranchMenuItem, assignRouteMenuItem, removeFromRouteMenuItem },
                 Placement = PlacementMode.Pointer
             };
             _activeContextMenu.Closed += (_, _) => _activeContextMenu = null;
@@ -838,6 +886,8 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             Nodes.Clear();
             Edges.Clear();
             _edgeConnectorMap.Clear();
+            Routes.Clear();
+            ActiveRouteName = null;
             _loopNodesWithEndBranch.Clear();
             _lineStartNode = null;
             _lineStartConnector = null;
@@ -864,24 +914,37 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             _panStartOffset = _viewportOffset;
         }
 
-        private void HandleLeftClick(Point point)
+        private void HandleLeftClick(Point point, KeyModifiers keyModifiers)
         {
             if (_renamingNode != null)
             {
                 EndInlineRename(commitChanges: true);
             }
 
+            var isCtrlSelection = keyModifiers.HasFlag(KeyModifiers.Control);
+
             foreach (var node in Nodes)
             {
                 var rect = GetNodeRect(node);
                 if (rect.Contains(point))
                 {
-                    SelectedNode = node;
+                    if (isCtrlSelection)
+                    {
+                        ToggleNodeSelection(node);
+                    }
+                    else
+                    {
+                        SelectSingleNode(node);
+                    }
                     return;
                 }
             }
 
-            SelectedNode = null;
+            if (!isCtrlSelection)
+            {
+                ClearNodeSelection();
+            }
+
             SelectedEdge = null;
         }
 
@@ -1073,8 +1136,17 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void RemoveSelectedNode()
         {
+            var nodesToRemove = _selectedNodes.Count > 0
+                ? _selectedNodes.ToList()
+                : SelectedNode is not null ? new List<Node> { SelectedNode } : new List<Node>();
+
+            if (nodesToRemove.Count == 0)
+            {
+                return;
+            }
+
             var edgesToRemove = Edges
-                .Where(edge => edge.Start == SelectedNode || edge.End == SelectedNode)
+                .Where(edge => nodesToRemove.Contains(edge.Start) || nodesToRemove.Contains(edge.End))
                 .ToList();
 
             foreach (var edge in edgesToRemove)
@@ -1082,10 +1154,66 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 RemoveEdge(edge);
             }
 
-            _loopNodesWithEndBranch.Remove(SelectedNode!);
-            Nodes.Remove(SelectedNode!);
-            SelectedNode = null;
+            foreach (var node in nodesToRemove)
+            {
+                _loopNodesWithEndBranch.Remove(node);
+                Nodes.Remove(node);
+            }
+
+            RebuildRoutes();
+            ClearNodeSelection();
             NotifyGraphChanged();
+        }
+
+        private void SelectSingleNode(Node node)
+        {
+            _selectedNode = node;
+            _selectedNodes.Clear();
+            _selectedNodes.Add(node);
+            _selectedEdge = null;
+            RebuildChildren();
+        }
+
+        private void ToggleNodeSelection(Node node)
+        {
+            if (!_selectedNodes.Add(node))
+            {
+                _selectedNodes.Remove(node);
+            }
+
+            _selectedNode = _selectedNodes.LastOrDefault();
+            _selectedEdge = null;
+            RebuildChildren();
+        }
+
+        private void ClearNodeSelection()
+        {
+            _selectedNode = null;
+            _selectedNodes.Clear();
+            RebuildChildren();
+        }
+
+        private void EnsureNodeSelectionForContextMenu(Node node)
+        {
+            if (_selectedNodes.Contains(node))
+            {
+                _selectedNode = node;
+                _selectedEdge = null;
+                RebuildChildren();
+                return;
+            }
+
+            SelectSingleNode(node);
+        }
+
+        private List<Node> GetContextMenuTargetNodes(Node node)
+        {
+            if (_selectedNodes.Contains(node) && _selectedNodes.Count > 1)
+            {
+                return _selectedNodes.ToList();
+            }
+
+            return new List<Node> { node };
         }
 
         public void SetNodeImage(Node node, string imagePath)
@@ -1330,9 +1458,61 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             if (shouldCommit && !string.Equals(node.Title, newTitle, StringComparison.Ordinal))
             {
                 node.Title = newTitle;
+                RebuildRoutes();
+                NotifyGraphChanged();
             }
 
             RebuildChildren();
+        }
+
+        public bool CreateRoute(string? routeName)
+        {
+            var normalizedName = (routeName ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(normalizedName))
+            {
+                return false;
+            }
+
+            if (Routes.Any(route => string.Equals(route.Name, normalizedName, StringComparison.OrdinalIgnoreCase)))
+            {
+                ActiveRouteName = Routes.First(route => string.Equals(route.Name, normalizedName, StringComparison.OrdinalIgnoreCase)).Name;
+                NotifyGraphChanged();
+                return false;
+            }
+
+            Routes.Add(new StoryRoute { Name = normalizedName });
+            ActiveRouteName = normalizedName;
+            RebuildRoutes();
+            NotifyGraphChanged();
+            return true;
+        }
+
+        private void RebuildRoutes()
+        {
+            var existingRouteNames = new HashSet<string>(
+                Routes.Select(route => route.Name),
+                StringComparer.OrdinalIgnoreCase);
+
+            foreach (var routeName in Nodes
+                         .Select(node => node.RouteName)
+                         .Where(routeName => !string.IsNullOrWhiteSpace(routeName))
+                         .Cast<string>())
+            {
+                if (!existingRouteNames.Contains(routeName))
+                {
+                    Routes.Add(new StoryRoute { Name = routeName });
+                    existingRouteNames.Add(routeName);
+                }
+            }
+
+            foreach (var route in Routes)
+            {
+                route.NodeTitles = Nodes
+                    .Where(node => string.Equals(node.RouteName, route.Name, StringComparison.OrdinalIgnoreCase))
+                    .Select(node => node.Title)
+                    .OrderBy(title => title, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+            }
         }
 
         private void CancelInlineRename()

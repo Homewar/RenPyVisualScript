@@ -1,18 +1,13 @@
-﻿using RenPyVisualScriptMVVM.Core.Services.Interfaces;
-using RenPyVisualScriptMVVM.Modules.Projects.Models;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Drawing;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace RenPyVisualScriptMVVM.Core.Models
 {
-    public class IDESettings
+    public partial class IDESettings : ObservableObject
     {
-        public string? RenPySDKPath { get; set; }
+        [ObservableProperty]
+        private string? renPySDKPath = string.Empty;
+
+        [ObservableProperty]
+        private bool showSystemResources = true;
     }
 }

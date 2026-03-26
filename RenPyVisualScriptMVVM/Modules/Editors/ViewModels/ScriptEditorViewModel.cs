@@ -37,6 +37,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     public IRelayCommand SaveCmd { get; }
     public IRelayCommand ShowProjectSetCmd { get; }
     public IRelayCommand ShowAppSettingsCmd { get; }
+    public IRelayCommand ShowIdeSettingsCmd { get; }
     public IRelayCommand RunProjectCmd { get; }
     public IRelayCommand OpenGraphCmd { get; }
     public IRelayCommand RefreshStructureCmd { get; }
@@ -46,6 +47,9 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     public ObservableCollection<LabelOutlineItem> LabelList { get; } = new();
     public ObservableCollection<StructureLinkItem> StructureLinks { get; } = new();
     public ObservableCollection<TransitionPanelItem> TransitionItems { get; } = new();
+    public ObservableCollection<ResourceFileItem> ImageResources { get; } = new();
+    public ObservableCollection<ResourceFileItem> AudioResources { get; } = new();
+    public ObservableCollection<ResourceFileItem> VideoResources { get; } = new();
 
     private string _structureSummary = "Проект ещё не разобран";
     public string StructureSummary
@@ -101,11 +105,13 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         SaveCmd = new RelayCommand(SaveProject);
         ShowProjectSetCmd = new RelayCommand(OpenProjectSettings);
         ShowAppSettingsCmd = new RelayCommand(OpenAppSettings);
+        ShowIdeSettingsCmd = new RelayCommand(OpenIdeSettings);
         RunProjectCmd = new RelayCommand(RunProject);
         OpenGraphCmd = new RelayCommand(OpenGraphWindow);
         RefreshStructureCmd = new RelayCommand(RefreshStructure);
 
         _ctx.PropertyChanged += OnProjectContextChanged;
+        _ide.PropertyChanged += OnIdeSettingsChanged;
         RefreshStructure();
 
         Debug.WriteLine("ScriptEditorViewModel initialized");
@@ -119,6 +125,14 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         }
     }
 
+    private void OnIdeSettingsChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(IDESettings.ShowSystemResources))
+        {
+            RefreshStructure();
+        }
+    }
+
     private void RefreshStructure()
     {
         FileTreeVm.Refresh();
@@ -126,6 +140,9 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         LabelList.Clear();
         StructureLinks.Clear();
         TransitionItems.Clear();
+        ImageResources.Clear();
+        AudioResources.Clear();
+        VideoResources.Clear();
 
         var snapshot = _structureReader.Read(_ctx.ProjectPath);
 
@@ -141,8 +158,79 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         foreach (var item in BuildTransitionItems(snapshot.Links))
             TransitionItems.Add(item);
 
+        LoadResourceFiles(_ctx.ProjectPath);
+
         var projectName = string.IsNullOrWhiteSpace(ProjectName) ? "Проект" : ProjectName;
-        StructureSummary = $"{projectName}: {CharacterList.Count} персонажей, {LabelList.Count} label, {StructureLinks.Count} связей";
+        StructureSummary = $"{projectName}: {CharacterList.Count} персонажей, {LabelList.Count} label, {StructureLinks.Count} связей, {ImageResources.Count} изображений, {AudioResources.Count} аудио, {VideoResources.Count} видео";
+    }
+
+    private void LoadResourceFiles(string? projectPath)
+    {
+        if (string.IsNullOrWhiteSpace(projectPath) || !Directory.Exists(projectPath))
+            return;
+
+        try
+        {
+            foreach (var file in Directory.EnumerateFiles(projectPath, "*", SearchOption.AllDirectories)
+                         .OrderBy(path => path, StringComparer.OrdinalIgnoreCase))
+            {
+                if (!_ide.ShowSystemResources && IsSystemResourcePath(file, projectPath))
+                    continue;
+
+                var ext = Path.GetExtension(file);
+                if (IsImageExtension(ext))
+                {
+                    ImageResources.Add(new ResourceFileItem(file, projectPath));
+                    continue;
+                }
+
+                if (IsAudioExtension(ext))
+                {
+                    AudioResources.Add(new ResourceFileItem(file, projectPath));
+                    continue;
+                }
+
+                if (IsVideoExtension(ext))
+                    VideoResources.Add(new ResourceFileItem(file, projectPath));
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"LoadResourceFiles error: {ex}");
+        }
+    }
+
+    private static bool IsSystemResourcePath(string filePath, string projectPath)
+    {
+        var relativePath = Path.GetRelativePath(projectPath, filePath);
+        var segments = relativePath
+            .Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
+        var normalizedPath = relativePath.Replace('\\', '/');
+        var fileName = Path.GetFileName(filePath);
+
+        if (segments.Any(segment =>
+            segment.Equals("renpy", StringComparison.OrdinalIgnoreCase)
+            || segment.Equals("lib", StringComparison.OrdinalIgnoreCase)
+            || segment.Equals("python-packages", StringComparison.OrdinalIgnoreCase)
+            || segment.Equals(".git", StringComparison.OrdinalIgnoreCase)
+            || segment.Equals(".vs", StringComparison.OrdinalIgnoreCase)
+            || segment.Equals("obj", StringComparison.OrdinalIgnoreCase)
+            || segment.Equals("bin", StringComparison.OrdinalIgnoreCase)))
+        {
+            return true;
+        }
+
+        if (normalizedPath.Contains("/game/gui/", StringComparison.OrdinalIgnoreCase)
+            || normalizedPath.Contains("/gui/", StringComparison.OrdinalIgnoreCase)
+            || normalizedPath.Contains("/game/images/gui/", StringComparison.OrdinalIgnoreCase)
+            || normalizedPath.Contains("/images/gui/", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return fileName.Equals("gui.rpy", StringComparison.OrdinalIgnoreCase)
+            || fileName.Equals("screens.rpy", StringComparison.OrdinalIgnoreCase)
+            || fileName.Equals("options.rpy", StringComparison.OrdinalIgnoreCase);
     }
 
     private static IEnumerable<TransitionPanelItem> BuildTransitionItems(IReadOnlyList<StructureLinkItem> links)
@@ -225,6 +313,34 @@ public sealed class ScriptEditorViewModel : BaseViewModel
             || ext.Equals(".svg", StringComparison.OrdinalIgnoreCase);
     }
 
+    private static bool IsAudioExtension(string? ext)
+    {
+        if (string.IsNullOrWhiteSpace(ext))
+            return false;
+
+        return ext.Equals(".mp3", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".ogg", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".wav", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".opus", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".flac", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".m4a", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".aac", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsVideoExtension(string? ext)
+    {
+        if (string.IsNullOrWhiteSpace(ext))
+            return false;
+
+        return ext.Equals(".mp4", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".webm", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".avi", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".mov", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".mkv", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".mpeg", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".mpg", StringComparison.OrdinalIgnoreCase);
+    }
+
     private void SaveProject()
     {
         _settings.Settings.ProjectName = _ctx.ProjectName;
@@ -245,6 +361,12 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     private void OpenAppSettings()
     {
         var vm = _loc.GetService<SettingsGUIViewModel>()!;
+        _windows.ShowWindow(vm);
+    }
+
+    private void OpenIdeSettings()
+    {
+        var vm = _loc.GetService<IDESettingsViewModel>()!;
         _windows.ShowWindow(vm);
     }
 

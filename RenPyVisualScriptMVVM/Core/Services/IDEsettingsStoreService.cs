@@ -68,7 +68,8 @@ namespace RenPyVisualScriptMVVM.Core.Services
         {
             return new IDESettings
             {
-                RenPySDKPath = string.Empty
+                RenPySDKPath = string.Empty,
+                ShowSystemResources = true
             };
         }
 

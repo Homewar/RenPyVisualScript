@@ -8,6 +8,45 @@
         x:Class="RenPyVisualScriptMVVM.Modules.GraphEditor.Views.GraphEditorWindow"
         Background="#1e1e1e"
         Title="Graph Editor">
+    <Window.Styles>
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="#1E1E1E"/>
+            <Setter Property="Foreground" Value="#F3F3F3"/>
+            <Setter Property="CaretBrush" Value="#F3F3F3"/>
+            <Setter Property="BorderBrush" Value="#3C3C3C"/>
+        </Style>
+        <Style Selector="TextBox /template/ Border#borderElement">
+            <Setter Property="Background" Value="#1E1E1E"/>
+            <Setter Property="BorderBrush" Value="#3C3C3C"/>
+        </Style>
+        <Style Selector="TextBox:pointerover">
+            <Setter Property="Background" Value="#1E1E1E"/>
+            <Setter Property="BorderBrush" Value="#4A4A4A"/>
+        </Style>
+        <Style Selector="TextBox:pointerover /template/ Border#borderElement">
+            <Setter Property="Background" Value="#1E1E1E"/>
+            <Setter Property="BorderBrush" Value="#4A4A4A"/>
+        </Style>
+        <Style Selector="TextBox:focus">
+            <Setter Property="Background" Value="#1E1E1E"/>
+            <Setter Property="BorderBrush" Value="#EA592A"/>
+        </Style>
+        <Style Selector="TextBox:focus /template/ Border#borderElement">
+            <Setter Property="Background" Value="#1E1E1E"/>
+            <Setter Property="BorderBrush" Value="#EA592A"/>
+        </Style>
+        <Style Selector="ListBoxItem">
+            <Setter Property="Background" Value="#1E1E1E"/>
+            <Setter Property="Foreground" Value="#F3F3F3"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected">
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="Foreground" Value="#F3F3F3"/>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover">
+            <Setter Property="Background" Value="#252526"/>
+        </Style>
+    </Window.Styles>
     <DockPanel>
         <Border DockPanel.Dock="Top" Background="#252526" Padding="12,8">
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">

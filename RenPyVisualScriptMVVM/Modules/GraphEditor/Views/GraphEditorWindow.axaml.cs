@@ -37,6 +37,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Views
             GraphCanvas.Edges.Clear();
             GraphCanvas.Nodes.AddRange(nodes);
             GraphCanvas.Edges.AddRange(edges);
+            GraphCanvas.LoadRoutes(GraphRouteStore.Load(vm.ProjectPath));
             GraphCanvas.RebuildChildren();
             GraphCanvas.NotifyGraphChanged();
             UpdateRoutesPanel();
@@ -58,6 +59,8 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Views
 
             try
             {
+                GraphCanvas.SyncRouteNodes();
+                GraphRouteStore.Save(vm.ProjectPath, GraphCanvas.Routes);
                 var result = GraphRpyExporter.SynchronizeGraph(vm.ProjectPath, vm.Snapshot, GraphCanvas.Nodes, GraphCanvas.Edges);
                 vm.RefreshSnapshotFromProject();
                 vm.NotifyGraphSaved();

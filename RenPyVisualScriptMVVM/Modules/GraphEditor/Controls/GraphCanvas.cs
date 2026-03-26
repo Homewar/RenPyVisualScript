@@ -1487,6 +1487,34 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             return true;
         }
 
+        public void LoadRoutes(IEnumerable<StoryRoute> routes)
+        {
+            Routes.Clear();
+            foreach (var route in routes)
+            {
+                Routes.Add(new StoryRoute
+                {
+                    Name = route.Name,
+                    NodeTitles = route.NodeTitles.ToList()
+                });
+            }
+
+            foreach (var node in Nodes)
+            {
+                node.RouteName = Routes
+                    .FirstOrDefault(route => route.NodeTitles.Any(title =>
+                        string.Equals(title, node.Title, StringComparison.OrdinalIgnoreCase)))
+                    ?.Name;
+            }
+
+            SyncRouteNodes();
+        }
+
+        public void SyncRouteNodes()
+        {
+            RebuildRoutes();
+        }
+
         private void RebuildRoutes()
         {
             var existingRouteNames = new HashSet<string>(

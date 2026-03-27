@@ -30,8 +30,8 @@
       <End>'''</End>
     </Span>
 
-    <!-- Double-quoted string (single-line) -->
-    <Span color="String">
+    <!-- Double-quoted string -->
+    <Span color="String" multiline="true">
       <Begin>&quot;</Begin>
       <End>&quot;</End>
       <RuleSet>
@@ -39,8 +39,8 @@
       </RuleSet>
     </Span>
 
-    <!-- Single-quoted string (single-line) -->
-    <Span color="String">
+    <!-- Single-quoted string -->
+    <Span color="String" multiline="true">
       <Begin>'</Begin>
       <End>'</End>
       <RuleSet>

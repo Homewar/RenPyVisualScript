@@ -88,17 +88,133 @@ public sealed class GraphEditorWindowViewModel : BaseViewModel
         }
 
         // ── 2. Build edge list ───────────────────────────────────────────────
+        var screenLinks = _snapshot.Links
+            .Where(link => !string.IsNullOrWhiteSpace(link.ScreenName))
+            .ToList();
+        var menuLinks = _snapshot.Links
+            .Where(link => !string.IsNullOrWhiteSpace(link.MenuName))
+            .ToList();
+        var connectorByMenuName = new Dictionary<string, Node>(StringComparer.OrdinalIgnoreCase);
+
         foreach (var link in _snapshot.Links)
         {
+            if (!string.IsNullOrWhiteSpace(link.ScreenName) || !string.IsNullOrWhiteSpace(link.MenuName))
+                continue;
+
             if (!nodeByLabel.TryGetValue(link.Source, out var sourceNode))
                 continue;
             if (string.IsNullOrWhiteSpace(link.Target) || link.Target == "(inline branch)")
                 continue;
-            if (!nodeByLabel.TryGetValue(link.Target, out var targetNode))
+            if (!nodeByLabel.TryGetValue(link.Target, out var targetNode)
+                && !connectorByMenuName.TryGetValue(link.Target, out targetNode))
                 continue;
             if (edges.Any(e => e.Start == sourceNode && e.End == targetNode))
                 continue;
             edges.Add(new Edge(sourceNode, targetNode));
+        }
+
+        var connectorByScreenName = new Dictionary<string, Node>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var group in screenLinks
+                     .Where(link => !string.IsNullOrWhiteSpace(link.Target) && link.Target != "(inline branch)")
+                     .GroupBy(link => link.ScreenName!, StringComparer.OrdinalIgnoreCase))
+        {
+            var targetNodes = group
+                .Select(link => nodeByLabel.TryGetValue(link.Target, out var targetNode) ? targetNode : null)
+                .Where(static node => node is not null)
+                .Cast<Node>()
+                .Distinct()
+                .ToList();
+
+            if (targetNodes.Count == 0)
+                continue;
+
+            var connectorNode = new Node
+            {
+                Title = group.Key,
+                ScreenName = group.Key,
+                IsScreenConnector = true,
+                Background = Brush.Parse("#2C3E50"),
+                ImageBackground = null,
+                Size = Node.ScreenConnectorSize,
+                IsGeneratedManually = false
+            };
+
+            nodes.Add(connectorNode);
+            connectorByScreenName[group.Key] = connectorNode;
+
+            foreach (var sourceNode in group
+                         .Select(link => nodeByLabel.TryGetValue(link.Source, out var sourceNode) ? sourceNode : null)
+                         .Where(static node => node is not null)
+                         .Cast<Node>()
+                         .Distinct())
+            {
+                if (!edges.Any(edge => edge.Start == sourceNode && edge.End == connectorNode))
+                    edges.Add(new Edge(sourceNode, connectorNode));
+            }
+
+            foreach (var targetNode in targetNodes)
+            {
+                if (!edges.Any(edge => edge.Start == connectorNode && edge.End == targetNode))
+                    edges.Add(new Edge(connectorNode, targetNode));
+            }
+        }
+
+        foreach (var group in menuLinks
+                     .Where(link => !string.IsNullOrWhiteSpace(link.MenuName))
+                     .GroupBy(link => new { link.Source, MenuName = link.MenuName! }))
+        {
+            if (!nodeByLabel.TryGetValue(group.Key.Source, out var sourceNode))
+                continue;
+
+            var targetNodes = group
+                .Where(link => !string.IsNullOrWhiteSpace(link.Target) && link.Target != "(inline branch)")
+                .Select(link => nodeByLabel.TryGetValue(link.Target, out var targetNode) ? targetNode : null)
+                .Where(static node => node is not null)
+                .Cast<Node>()
+                .Distinct()
+                .ToList();
+
+            var connectorNode = new Node
+            {
+                Title = group.Key.MenuName,
+                MenuName = group.Key.MenuName,
+                IsMenuConnector = true,
+                Background = Brush.Parse("#5B3A29"),
+                ImageBackground = null,
+                Size = Node.ScreenConnectorSize,
+                IsGeneratedManually = false
+            };
+
+            nodes.Add(connectorNode);
+            connectorByMenuName[group.Key.MenuName] = connectorNode;
+
+            if (!edges.Any(edge => edge.Start == sourceNode && edge.End == connectorNode))
+                edges.Add(new Edge(sourceNode, connectorNode));
+
+            foreach (var targetNode in targetNodes)
+            {
+                if (!edges.Any(edge => edge.Start == connectorNode && edge.End == targetNode))
+                    edges.Add(new Edge(connectorNode, targetNode));
+            }
+        }
+
+        foreach (var link in _snapshot.Links)
+        {
+            if (!string.IsNullOrWhiteSpace(link.ScreenName) || !string.IsNullOrWhiteSpace(link.MenuName))
+                continue;
+
+            if (!nodeByLabel.TryGetValue(link.Source, out var sourceNode))
+                continue;
+
+            if (string.IsNullOrWhiteSpace(link.Target) || nodeByLabel.ContainsKey(link.Target))
+                continue;
+
+            if (!connectorByMenuName.TryGetValue(link.Target, out var menuConnectorNode))
+                continue;
+
+            if (!edges.Any(edge => edge.Start == sourceNode && edge.End == menuConnectorNode))
+                edges.Add(new Edge(sourceNode, menuConnectorNode));
         }
 
         // ── 3. Tree layout ───────────────────────────────────────────────────

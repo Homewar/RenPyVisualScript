@@ -243,7 +243,10 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         for (var i = 0; i < orderedLinks.Count; i++)
         {
             var current = orderedLinks[i];
-            if (!string.Equals(current.Kind, "menu", StringComparison.OrdinalIgnoreCase))
+            var isGroupedKind = string.Equals(current.Kind, "menu", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(current.Kind, "branch", StringComparison.OrdinalIgnoreCase);
+
+            if (!isGroupedKind)
             {
                 yield return new TransitionPanelItem(current);
                 continue;
@@ -251,7 +254,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
 
             var menuChoices = new List<StructureLinkItem> { current };
             while (i + 1 < orderedLinks.Count
-                   && string.Equals(orderedLinks[i + 1].Kind, "menu", StringComparison.OrdinalIgnoreCase)
+                   && string.Equals(orderedLinks[i + 1].Kind, current.Kind, StringComparison.OrdinalIgnoreCase)
                    && string.Equals(orderedLinks[i + 1].Source, current.Source, StringComparison.OrdinalIgnoreCase)
                    && string.Equals(orderedLinks[i + 1].FileName, current.FileName, StringComparison.OrdinalIgnoreCase)
                    && orderedLinks[i + 1].GroupLine == current.GroupLine)

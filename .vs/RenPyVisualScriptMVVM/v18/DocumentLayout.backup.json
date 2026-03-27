@@ -3,12 +3,16 @@
   "WorkspaceRootPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{61265E8E-1381-4723-9D62-B0C93AD3EEDE}|RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj|c:\\users\\homewarriors\\desktop\\renpyvisualscriptmvvmrebuild\\renpyvisualscriptmvvm\\modules\\grapheditor\\views\\grapheditorwindow.axaml||{6D5344A2-2FCD-49DE-A09D-6A14FD1B1224}",
-      "RelativeMoniker": "D:0:0:{61265E8E-1381-4723-9D62-B0C93AD3EEDE}|RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj|solutionrelative:renpyvisualscriptmvvm\\modules\\grapheditor\\views\\grapheditorwindow.axaml||{6D5344A2-2FCD-49DE-A09D-6A14FD1B1224}"
+      "AbsoluteMoniker": "D:0:0:{61265E8E-1381-4723-9D62-B0C93AD3EEDE}|RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj|c:\\users\\homewarriors\\desktop\\renpyvisualscriptmvvmrebuild\\renpyvisualscriptmvvm\\modules\\grapheditor\\models\\node.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{61265E8E-1381-4723-9D62-B0C93AD3EEDE}|RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj|solutionrelative:renpyvisualscriptmvvm\\modules\\grapheditor\\models\\node.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{61265E8E-1381-4723-9D62-B0C93AD3EEDE}|RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj|c:\\users\\homewarriors\\desktop\\renpyvisualscriptmvvmrebuild\\renpyvisualscriptmvvm\\modules\\grapheditor\\views\\grapheditorwindow.axaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{61265E8E-1381-4723-9D62-B0C93AD3EEDE}|RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj|solutionrelative:renpyvisualscriptmvvm\\modules\\grapheditor\\views\\grapheditorwindow.axaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{61265E8E-1381-4723-9D62-B0C93AD3EEDE}|RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj|c:\\users\\homewarriors\\desktop\\renpyvisualscriptmvvmrebuild\\renpyvisualscriptmvvm\\modules\\grapheditor\\views\\grapheditorwindow.axaml||{6D5344A2-2FCD-49DE-A09D-6A14FD1B1224}",
+      "RelativeMoniker": "D:0:0:{61265E8E-1381-4723-9D62-B0C93AD3EEDE}|RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj|solutionrelative:renpyvisualscriptmvvm\\modules\\grapheditor\\views\\grapheditorwindow.axaml||{6D5344A2-2FCD-49DE-A09D-6A14FD1B1224}"
     }
   ],
   "DocumentGroupContainers": [
@@ -18,8 +22,21 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 0,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Node.cs",
+              "DocumentMoniker": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\Modules\\GraphEditor\\Models\\Node.cs",
+              "RelativeDocumentMoniker": "RenPyVisualScriptMVVM\\Modules\\GraphEditor\\Models\\Node.cs",
+              "ToolTip": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\Modules\\GraphEditor\\Models\\Node.cs",
+              "RelativeToolTip": "RenPyVisualScriptMVVM\\Modules\\GraphEditor\\Models\\Node.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAqwBkAAAAvAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-27T07:30:04.84Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Bookmark",
               "Name": "ST:129:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
@@ -36,14 +53,14 @@
               "RelativeDocumentMoniker": "RenPyVisualScriptMVVM\\Modules\\GraphEditor\\Views\\GraphEditorWindow.axaml.cs",
               "ToolTip": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\Modules\\GraphEditor\\Views\\GraphEditorWindow.axaml.cs",
               "RelativeToolTip": "RenPyVisualScriptMVVM\\Modules\\GraphEditor\\Views\\GraphEditorWindow.axaml.cs",
-              "ViewState": "AgIAAEAAAAAAAAAAAAAUwGAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAEAAAAAAAAAAAAAywGAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-03-26T18:58:17.882Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "GraphEditorWindow.axaml",
               "DocumentMoniker": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\Modules\\GraphEditor\\Views\\GraphEditorWindow.axaml",
               "RelativeDocumentMoniker": "RenPyVisualScriptMVVM\\Modules\\GraphEditor\\Views\\GraphEditorWindow.axaml",

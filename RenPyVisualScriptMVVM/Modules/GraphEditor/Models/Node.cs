@@ -10,6 +10,15 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Models
     public class Node
     {
         public static readonly Size DefaultSize = new(210, 96);
+        public static readonly Size ScreenConnectorSize = new(110, 44);
+        private static readonly Lazy<Bitmap> PlaceholderBitmap = new(() => new Bitmap(AssetLoader.Open(new Uri("avares://RenPyVisualScriptMVVM/Assets/GraphEditor/placeholder.jpg"))));
+        private static readonly Lazy<ImageBrush> PlaceholderImageBrush = new(() => new ImageBrush
+        {
+            Source = PlaceholderBitmap.Value,
+            Stretch = Stretch.UniformToFill,
+            AlignmentX = AlignmentX.Center,
+            AlignmentY = AlignmentY.Center
+        });
 
         public double X { get; set; }
         public double Y { get; set; }
@@ -19,18 +28,16 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Models
 
         public static ImageBrush CreatePlaceholderImageBrush()
         {
-            return new ImageBrush
-            {
-                Source = new Bitmap(AssetLoader.Open(new Uri("avares://RenPyVisualScriptMVVM/Assets/GraphEditor/placeholder.jpg"))),
-                Stretch = Stretch.UniformToFill,
-                AlignmentX = AlignmentX.Center,
-                AlignmentY = AlignmentY.Center
-            };
+            return PlaceholderImageBrush.Value;
         }
 
         public ImageBrush? ImageBackground { get; set; } = CreatePlaceholderImageBrush();
 
         public bool IsGeneratedManually { get; set; }
+        public bool IsScreenConnector { get; set; }
+        public string? ScreenName { get; set; }
+        public bool IsMenuConnector { get; set; }
+        public string? MenuName { get; set; }
         public string? RouteName { get; set; }
         public string? SourceFilePath { get; set; }
         public int SourceStartLine { get; set; }

@@ -18,8 +18,10 @@ using Avalonia.Media;
 using System.Text;
 using AvaloniaEdit.Highlighting;
 using AvaloniaEdit.Highlighting.Xshd;
+using AvaloniaEdit.Rendering;
 using System.Xml;
 using Avalonia.Platform;
+using System.Text.RegularExpressions;
 
 namespace RenPyVisualScriptMVVM.Modules.Editors.Views
 {
@@ -36,6 +38,7 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
 
         private readonly RegistryOptions _registryOptions;
         private Installation? _textMateInstallation;
+        private readonly RenPyCharacterColorizer _characterColorizer;
 
         private CompletionWindow _completionWindow;
 
@@ -105,6 +108,8 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
         public AvaloniaEdit()
         {
             InitializeComponent();
+            _characterColorizer = new RenPyCharacterColorizer();
+            textEditor.TextArea.TextView.LineTransformers.Add(_characterColorizer);
             textEditor.FontSize = 20.0;
             textEditor.Options.ConvertTabsToSpaces = true;
             textEditor.Options.IndentationSize = 4;
@@ -131,6 +136,9 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
                         _textMateInstallation = null;
                         textEditor.SyntaxHighlighting =
                             HighlightingManager.Instance.GetDefinition("RenPy");
+                        _characterColorizer.IsEnabled = true;
+                        _characterColorizer.UpdateText(textEditor.Text);
+                        textEditor.TextArea.TextView.Redraw();
                         return;
                     }
 
@@ -149,6 +157,9 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
                     {
                         _textMateInstallation.SetGrammar(null);
                     }
+
+                    _characterColorizer.IsEnabled = false;
+                    textEditor.TextArea.TextView.Redraw();
                 }
 
                 if (e.Property == FilePathProperty)
@@ -179,6 +190,8 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
             textEditor.TextChanged += (sender, e) =>
             {
                 ScriptText = textEditor.Text;
+                _characterColorizer.UpdateText(textEditor.Text);
+                textEditor.TextArea.TextView.Redraw();
             };
 
             // сохранение файла ctrl + s
@@ -460,6 +473,123 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
             // Заменяем текущее слово полностью
             int length = offset - start;
             textArea.Document.Replace(start, length, Text);
+        }
+    }
+
+    public sealed class RenPyCharacterColorizer : DocumentColorizingTransformer
+    {
+        private static readonly Regex CharacterDefineRegex = new(
+            @"^\s*define\s+(?<code>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*Character\((?<args>.*)\)\s*$",
+            RegexOptions.Compiled);
+
+        private static readonly Regex CharacterDefineNameRegex = new(
+            @"^\s*define\s+(?<code>[A-Za-z_][A-Za-z0-9_]*)\b",
+            RegexOptions.Compiled);
+
+        private static readonly Regex ColorRegex = new(
+            @"color\s*=\s*(?:""(?<value_dq>[^""]*)""|'(?<value_sq>[^']*)')",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        private static readonly Regex DialogueSpeakerRegex = new(
+            @"^\s*(?<speaker>[A-Za-z_][A-Za-z0-9_]*)(?=\b(?:\s+[A-Za-z_][A-Za-z0-9_]*)*\s*(?:""|'))",
+            RegexOptions.Compiled);
+
+        private static readonly HashSet<string> ReservedWords = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "label", "define", "scene", "show", "hide", "menu", "jump", "call", "return",
+            "python", "if", "else", "elif", "window", "with", "voice", "stop", "queue",
+            "screen", "image", "default", "init", "transform", "style", "camera"
+        };
+
+        private static readonly IBrush DefaultCharacterBrush = Brush.Parse("#C586C0");
+        private Dictionary<string, IBrush> _characterBrushes = new(StringComparer.OrdinalIgnoreCase);
+
+        public bool IsEnabled { get; set; } = true;
+
+        public void UpdateText(string? text)
+        {
+            var brushes = new Dictionary<string, IBrush>(StringComparer.OrdinalIgnoreCase);
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                foreach (var line in text.Split(["\r\n", "\n"], StringSplitOptions.None))
+                {
+                    var match = CharacterDefineRegex.Match(line);
+                    if (!match.Success)
+                        continue;
+
+                    var code = match.Groups["code"].Value;
+                    var brush = TryExtractCharacterBrush(match.Groups["args"].Value);
+                    brushes[code] = brush;
+                }
+            }
+
+            _characterBrushes = brushes;
+        }
+
+        protected override void ColorizeLine(DocumentLine line)
+        {
+            if (!IsEnabled || CurrentContext?.Document is null)
+                return;
+
+            var lineText = CurrentContext.Document.GetText(line);
+            if (string.IsNullOrWhiteSpace(lineText))
+                return;
+
+            var defineMatch = CharacterDefineNameRegex.Match(lineText);
+            if (defineMatch.Success)
+            {
+                ApplyBrush(line, defineMatch.Groups["code"], GetCharacterBrush(defineMatch.Groups["code"].Value));
+            }
+
+            var speakerMatch = DialogueSpeakerRegex.Match(lineText);
+            if (!speakerMatch.Success)
+                return;
+
+            var speaker = speakerMatch.Groups["speaker"].Value;
+            if (ReservedWords.Contains(speaker))
+                return;
+
+            ApplyBrush(line, speakerMatch.Groups["speaker"], GetCharacterBrush(speaker));
+        }
+
+        private static IBrush TryExtractCharacterBrush(string args)
+        {
+            var match = ColorRegex.Match(args);
+            if (!match.Success)
+                return DefaultCharacterBrush;
+
+            var colorValue = match.Groups["value_dq"].Success
+                ? match.Groups["value_dq"].Value
+                : match.Groups["value_sq"].Value;
+
+            try
+            {
+                return Brush.Parse(colorValue);
+            }
+            catch
+            {
+                return DefaultCharacterBrush;
+            }
+        }
+
+        private IBrush GetCharacterBrush(string speakerCode)
+        {
+            return _characterBrushes.TryGetValue(speakerCode, out var brush)
+                ? brush
+                : DefaultCharacterBrush;
+        }
+
+        private void ApplyBrush(DocumentLine line, Group group, IBrush brush)
+        {
+            if (!group.Success)
+                return;
+
+            var startOffset = line.Offset + group.Index;
+            var endOffset = startOffset + group.Length;
+            ChangeLinePart(startOffset, endOffset, element =>
+            {
+                element.TextRunProperties.SetForegroundBrush(brush);
+            });
         }
     }
 

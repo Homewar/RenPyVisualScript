@@ -12,8 +12,9 @@ public sealed class TransitionPanelItem
     public string Description { get; }
     public string Target { get; }
     public IReadOnlyList<StructureLinkItem> Choices { get; }
-    public bool IsMenuGroup => Choices.Count > 0;
-    public bool ShowTarget => !IsMenuGroup;
+    public bool IsMenuGroup => Choices.Count > 0 && string.Equals(Kind, "menu", System.StringComparison.OrdinalIgnoreCase);
+    public bool IsBranchGroup => Choices.Count > 0 && string.Equals(Kind, "branch", System.StringComparison.OrdinalIgnoreCase);
+    public bool ShowTarget => Choices.Count == 0;
 
     public TransitionPanelItem(StructureLinkItem link)
     {
@@ -28,11 +29,13 @@ public sealed class TransitionPanelItem
 
     public TransitionPanelItem(string source, string fileName, int line, IReadOnlyList<StructureLinkItem> choices)
     {
-        Kind = "menu";
+        Kind = choices.FirstOrDefault()?.Kind ?? "menu";
         Source = source;
         FileName = fileName;
         Line = line;
-        Description = $"{choices.Count} choices";
+        Description = string.Equals(Kind, "branch", System.StringComparison.OrdinalIgnoreCase)
+            ? $"{choices.Count} branches"
+            : $"{choices.Count} choices";
         Target = string.Empty;
         Choices = choices.OrderBy(choice => choice.Line).ToList();
     }

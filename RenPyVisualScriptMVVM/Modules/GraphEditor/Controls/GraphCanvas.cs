@@ -181,11 +181,6 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void DrawBackgroundImage()
         {
-            if (_isViewportNavigating)
-            {
-                return;
-            }
-
             try
             {
                 _tipsBitmap ??= new Bitmap(AssetLoader.Open(new Uri("avares://RenPyVisualScriptMVVM/Assets/tips.png")));
@@ -317,11 +312,6 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             SetLeft(noteBody, noteLeft);
             SetTop(noteBody, noteTop);
 
-            if (_isViewportNavigating)
-            {
-                return;
-            }
-
             if (_editingNote == note)
             {
                 var textBox = CreateNoteTextBox(note, noteLeft, noteTop, noteWidth, noteHeight);
@@ -347,6 +337,9 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private IBrush GetNodeFill(Node node)
         {
+            if (node.IsScreenConnector || node.IsMenuConnector)
+                return node.Background ?? new SolidColorBrush(Color.Parse("#2C3E50"));
+
             if (node.ImageBackground is not null)
                 return node.ImageBackground;
 
@@ -355,6 +348,12 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void DrawNode(Node node)
         {
+            if (node.IsScreenConnector || node.IsMenuConnector)
+            {
+                DrawConnectorNode(node);
+                return;
+            }
+
             var titleBarHeight = 24 * _viewportScale;
             var cornerRadius = 6 * _viewportScale;
             var screenCenter = ToScreen(node.Position);
@@ -512,8 +511,87 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             return ellipse;
         }
 
+        private void DrawConnectorNode(Node node)
+        {
+            var screenCenter = ToScreen(node.Position);
+            var nodeWidth = node.Size.Width * _viewportScale;
+            var nodeHeight = node.Size.Height * _viewportScale;
+            var nodeLeft = screenCenter.X - nodeWidth / 2;
+            var nodeTop = screenCenter.Y - nodeHeight / 2;
+            var isMenuConnector = node.IsMenuConnector;
+            var borderBrush = isMenuConnector
+                ? new SolidColorBrush(Color.Parse("#F2B36D"))
+                : new SolidColorBrush(Color.Parse("#8EC5FF"));
+            var readOnlyMessage = isMenuConnector
+                ? "Сложная логика menu. Этот коннектор вычислен автоматически и не редактируется."
+                : "Сложная логика screen. Этот коннектор вычислен автоматически и не редактируется.";
+
+            var rect = new Rectangle
+            {
+                Width = nodeWidth,
+                Height = nodeHeight,
+                Fill = GetNodeFill(node),
+                RadiusX = 16 * _viewportScale,
+                RadiusY = 16 * _viewportScale,
+                Stroke = _selectedNodes.Contains(node) ? Brushes.White : borderBrush,
+                StrokeThickness = _selectedNodes.Contains(node) ? 2 : 1.5
+            };
+
+            var textBlock = new TextBlock
+            {
+                Text = isMenuConnector
+                    ? node.MenuName ?? node.Title
+                    : node.ScreenName ?? node.Title,
+                Width = Math.Max(40, nodeWidth - 12 * _viewportScale),
+                FontSize = 11 * _viewportScale,
+                FontWeight = FontWeight.SemiBold,
+                TextAlignment = TextAlignment.Center,
+                TextWrapping = TextWrapping.NoWrap,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                Foreground = Brushes.White,
+                IsHitTestVisible = false
+            };
+
+            var badge = new Border
+            {
+                Background = new SolidColorBrush(Color.FromArgb(220, 20, 20, 20)),
+                BorderBrush = borderBrush,
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(8 * _viewportScale),
+                Padding = new Thickness(6 * _viewportScale, 2 * _viewportScale),
+                IsHitTestVisible = false,
+                Child = new TextBlock
+                {
+                    Text = "READ ONLY",
+                    FontSize = 8 * _viewportScale,
+                    FontWeight = FontWeight.Bold,
+                    Foreground = borderBrush,
+                    IsHitTestVisible = false
+                }
+            };
+
+            Children.Add(rect);
+            Children.Add(textBlock);
+            Children.Add(badge);
+
+            rect.DataContext = node;
+            textBlock.DataContext = node;
+            badge.DataContext = node;
+            ToolTip.SetTip(rect, readOnlyMessage);
+
+            SetLeft(rect, nodeLeft);
+            SetTop(rect, nodeTop);
+            SetLeft(textBlock, nodeLeft + 6 * _viewportScale);
+            SetTop(textBlock, nodeTop + 14 * _viewportScale);
+            SetLeft(badge, nodeLeft + (nodeWidth - 64 * _viewportScale) / 2);
+            SetTop(badge, nodeTop + nodeHeight - 16 * _viewportScale);
+        }
+
         private string? GetWarningMessage(Node node)
         {
+            if (node.IsScreenConnector || node.IsMenuConnector)
+                return null;
+
             var hasSelfLoop = _nodesWithSelfLoop.Contains(node);
             var hasChildren = HasOutgoingBranch(node);
 
@@ -532,6 +610,11 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private bool ShouldShowEndNode(Node node)
         {
+            if (node.IsScreenConnector || node.IsMenuConnector)
+            {
+                return false;
+            }
+
             if (_loopNodesWithEndBranch.Contains(node))
             {
                 return true;
@@ -548,6 +631,11 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private bool ShouldShowStartNode(Node node)
         {
+            if (node.IsScreenConnector || node.IsMenuConnector)
+            {
+                return false;
+            }
+
             return GetPrimaryRootNode() == node;
         }
 
@@ -648,11 +736,6 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void DrawWarningIndicator(Node node, string message, double nodeLeft, double nodeTop, double nodeWidth)
         {
-            if (_isViewportNavigating)
-            {
-                return;
-            }
-
             const double foldScale = 1.5;
             var foldSize = 16 * _viewportScale * foldScale;
             var foldMain = new Polygon
@@ -697,11 +780,6 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void DrawEndNode(Node node)
         {
-            if (_isViewportNavigating)
-            {
-                return;
-            }
-
             var gap = 36 * _viewportScale;
             var width = 64 * _viewportScale;
             var height = 28 * _viewportScale;
@@ -764,11 +842,6 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void DrawStartNode(Node node)
         {
-            if (_isViewportNavigating)
-            {
-                return;
-            }
-
             var gap = 36 * _viewportScale;
             var width = 64 * _viewportScale;
             var height = 28 * _viewportScale;
@@ -836,8 +909,23 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             e.Handled = true;
         }
 
+        private static bool IsDerivedNode(Node? node)
+        {
+            return node is not null && (node.IsScreenConnector || node.IsMenuConnector);
+        }
+
+        private static bool IsReadOnlyEdge(Edge? edge)
+        {
+            return edge is not null && (IsDerivedNode(edge.Start) || IsDerivedNode(edge.End));
+        }
+
         private void RemoveEdge(Edge edge)
         {
+            if (IsReadOnlyEdge(edge))
+            {
+                return;
+            }
+
             Edges.Remove(edge);
             _edgeConnectorMap.Remove(edge);
             if (_selectedEdge == edge)
@@ -943,6 +1031,11 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void ShowNodeContextMenu(Node node)
         {
+            if (IsDerivedNode(node))
+            {
+                return;
+            }
+
             var targetNodes = GetContextMenuTargetNodes(node);
 
             var renameMenuItem = new MenuItem
@@ -1025,6 +1118,11 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void ShowEdgeContextMenu(Edge edge)
         {
+            if (IsReadOnlyEdge(edge))
+            {
+                return;
+            }
+
             var menuItem = new MenuItem
             {
                 Header = "Удалить связь"
@@ -1232,6 +1330,12 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 return;
 
             var (node, position) = tuple;
+            if (IsDerivedNode(node))
+            {
+                e.Handled = true;
+                return;
+            }
+
             HandleConnectorClick(node, position);
             e.Handled = true;
         }
@@ -1395,15 +1499,21 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
             if (SelectedEdge != null)
             {
-                RemoveEdge(SelectedEdge);
-                e.Handled = true;
+                if (!IsReadOnlyEdge(SelectedEdge))
+                {
+                    RemoveEdge(SelectedEdge);
+                    e.Handled = true;
+                }
                 return;
             }
 
             if (SelectedNode != null)
             {
-                RemoveSelectedNode();
-                e.Handled = true;
+                if (!IsDerivedNode(SelectedNode))
+                {
+                    RemoveSelectedNode();
+                    e.Handled = true;
+                }
                 return;
             }
 
@@ -1422,6 +1532,10 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             var nodesToRemove = _selectedNodes.Count > 0
                 ? _selectedNodes.ToList()
                 : SelectedNode is not null ? new List<Node> { SelectedNode } : new List<Node>();
+
+            nodesToRemove = nodesToRemove
+                .Where(node => !IsDerivedNode(node))
+                .ToList();
 
             if (nodesToRemove.Count == 0)
             {
@@ -1687,6 +1801,20 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             if (Nodes.Count == 0)
             {
                 return null;
+            }
+
+            var scriptRoot = Nodes
+                .Where(node => !node.IsScreenConnector
+                    && !node.IsMenuConnector
+                    && !string.IsNullOrWhiteSpace(node.SourceFilePath)
+                    && node.SourceFilePath!.Replace('\\', '/').EndsWith("script.rpy", StringComparison.OrdinalIgnoreCase))
+                .OrderBy(node => node.SourceStartLine)
+                .ThenBy(node => node.Title, StringComparer.OrdinalIgnoreCase)
+                .FirstOrDefault();
+
+            if (scriptRoot != null)
+            {
+                return scriptRoot;
             }
 
             var nodesWithIncomingEdges = Edges

@@ -40,7 +40,7 @@
               "RelativeDocumentMoniker": "RenPyVisualScriptMVVM\\Modules\\GraphEditor\\Models\\Node.cs",
               "ToolTip": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\Modules\\GraphEditor\\Models\\Node.cs",
               "RelativeToolTip": "RenPyVisualScriptMVVM\\Modules\\GraphEditor\\Models\\Node.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAqwBkAAAAvAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAvAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-03-27T07:30:04.84Z",
               "EditorCaption": ""
@@ -55,8 +55,7 @@
               "RelativeToolTip": "RenPyVisualScriptMVVM\\Modules\\GraphEditor\\Views\\GraphEditorWindow.axaml.cs",
               "ViewState": "AgIAAEAAAAAAAAAAAAAywGAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-26T18:58:17.882Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-26T18:58:17.882Z"
             },
             {
               "$type": "Document",
@@ -67,8 +66,7 @@
               "ToolTip": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\Modules\\GraphEditor\\Views\\GraphEditorWindow.axaml",
               "RelativeToolTip": "RenPyVisualScriptMVVM\\Modules\\GraphEditor\\Views\\GraphEditorWindow.axaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-03-26T18:46:59.812Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-26T18:46:59.812Z"
             }
           ]
         }

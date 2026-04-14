@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace RenPyVisualScriptMVVM.Modules.Editors.Models
 {
@@ -16,6 +18,36 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Models
             set => SetProperty(ref _scriptText, value);
         }
 
+        private int? _targetLine;
+        public int? TargetLine
+        {
+            get => _targetLine;
+            set => SetProperty(ref _targetLine, value);
+        }
+
+        private int _navigationRequestId;
+        public int NavigationRequestId
+        {
+            get => _navigationRequestId;
+            private set => SetProperty(ref _navigationRequestId, value);
+        }
+
+        private readonly HashSet<int> _breakpoints = new();
+
+        private int _breakpointsVersion;
+        public int BreakpointsVersion
+        {
+            get => _breakpointsVersion;
+            private set => SetProperty(ref _breakpointsVersion, value);
+        }
+
+        private int? _activeBreakpointLine;
+        public int? ActiveBreakpointLine
+        {
+            get => _activeBreakpointLine;
+            private set => SetProperty(ref _activeBreakpointLine, value);
+        }
+
         public IRelayCommand CloseCommand { get; }
 
         public TabItemModel(string header, string filePath, Action<TabItemModel> closeAction)
@@ -23,6 +55,38 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Models
             Header = header;
             FilePath = filePath;
             CloseCommand = new RelayCommand(() => closeAction(this));
+        }
+
+        public void RequestNavigation(int? line)
+        {
+            TargetLine = line;
+            NavigationRequestId++;
+        }
+
+        public bool HasBreakpoint(int line) => _breakpoints.Contains(line);
+
+        public IReadOnlyCollection<int> GetBreakpoints() => _breakpoints.OrderBy(line => line).ToArray();
+
+        public void ToggleBreakpoint(int line)
+        {
+            if (line <= 0)
+                return;
+
+            if (!_breakpoints.Add(line))
+            {
+                _breakpoints.Remove(line);
+
+                if (ActiveBreakpointLine == line)
+                    ActiveBreakpointLine = _breakpoints.Count > 0
+                        ? _breakpoints.Max()
+                        : null;
+            }
+            else
+            {
+                ActiveBreakpointLine = line;
+            }
+
+            BreakpointsVersion++;
         }
     }
 }

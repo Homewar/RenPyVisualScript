@@ -185,7 +185,7 @@ public sealed class RenPyStructureReader
                 continue;
 
             var color = ExtractColor(args);
-            characters.Add(new Character(codeName, color, inGameName));
+            characters.Add(new Character(codeName, color, inGameName, relativePath, i + 1));
         }
 
         var labelHeaders = new List<(string name, int startIndex)>();

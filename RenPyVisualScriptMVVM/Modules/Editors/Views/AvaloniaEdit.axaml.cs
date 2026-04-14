@@ -21,7 +21,9 @@ using AvaloniaEdit.Highlighting.Xshd;
 using AvaloniaEdit.Rendering;
 using System.Xml;
 using Avalonia.Platform;
+using Avalonia.Threading;
 using System.Text.RegularExpressions;
+using RenPyVisualScriptMVVM.Modules.Editors.Models;
 
 namespace RenPyVisualScriptMVVM.Modules.Editors.Views
 {
@@ -36,9 +38,16 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
         public static readonly StyledProperty<string> LanguageExtensionProperty =
             AvaloniaProperty.Register<AvaloniaEdit, string>(nameof(LanguageExtension));
 
+        public static readonly StyledProperty<int?> TargetLineProperty =
+            AvaloniaProperty.Register<AvaloniaEdit, int?>(nameof(TargetLine));
+
+        public static readonly StyledProperty<int> NavigationRequestIdProperty =
+            AvaloniaProperty.Register<AvaloniaEdit, int>(nameof(NavigationRequestId));
+
         private readonly RegistryOptions _registryOptions;
         private Installation? _textMateInstallation;
         private readonly RenPyCharacterColorizer _characterColorizer;
+        private readonly BreakpointLineColorizer _breakpointColorizer;
 
         private CompletionWindow _completionWindow;
 
@@ -105,11 +114,25 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
             set => SetValue(LanguageExtensionProperty, value);
         }
 
+        public int? TargetLine
+        {
+            get => GetValue(TargetLineProperty);
+            set => SetValue(TargetLineProperty, value);
+        }
+
+        public int NavigationRequestId
+        {
+            get => GetValue(NavigationRequestIdProperty);
+            set => SetValue(NavigationRequestIdProperty, value);
+        }
+
         public AvaloniaEdit()
         {
             InitializeComponent();
             _characterColorizer = new RenPyCharacterColorizer();
+            _breakpointColorizer = new BreakpointLineColorizer();
             textEditor.TextArea.TextView.LineTransformers.Add(_characterColorizer);
+            textEditor.TextArea.TextView.LineTransformers.Add(_breakpointColorizer);
             textEditor.FontSize = 20.0;
             textEditor.Options.ConvertTabsToSpaces = true;
             textEditor.Options.IndentationSize = 4;
@@ -178,13 +201,21 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
                         textEditor.Text = content;
                         ScriptText = content;
                         LanguageExtension = Path.GetExtension(path);
+                        NavigateToTargetLine();
                     }
                     catch (Exception ex)
                     {
                         textEditor.Text = $"Error reading file: {ex.Message}";
                     }
                 }
+
+                if (e.Property == NavigationRequestIdProperty || e.Property == TargetLineProperty)
+                {
+                    NavigateToTargetLine();
+                }
             };
+
+            DataContextChanged += OnDataContextChanged;
             
             
             textEditor.TextChanged += (sender, e) =>
@@ -197,6 +228,14 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
             // сохранение файла ctrl + s
             textEditor.KeyDown += (sender, e) =>
             {
+                if (e.Key == Key.F9 && DataContext is TabItemModel tab)
+                {
+                    tab.ToggleBreakpoint(textEditor.TextArea.Caret.Line);
+                    RefreshBreakpointVisuals();
+                    e.Handled = true;
+                    return;
+                }
+
                 if (e.Key == Key.S && e.KeyModifiers.HasFlag(KeyModifiers.Control))
                 {
                     SaveToFile();
@@ -278,6 +317,12 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
 
             textEditor.TextArea.TextEntering += TextArea_TextEntering;
             textEditor.TextArea.TextEntered += TextArea_TextEntered;
+            textEditor.PointerPressed += TextEditor_PointerPressed;
+        }
+
+        private void OnDataContextChanged(object? sender, EventArgs e)
+        {
+            RefreshBreakpointVisuals();
         }
 
         private static void RegisterRenPyHighlighting()
@@ -356,6 +401,56 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
                     _completionWindow.CompletionList.RequestInsertion(e);
                 }
             }
+        }
+
+        private void NavigateToTargetLine()
+        {
+            var targetLine = TargetLine.GetValueOrDefault();
+            if (targetLine <= 0 || textEditor.Document is null || textEditor.Document.LineCount == 0)
+                return;
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (textEditor.Document is null || textEditor.Document.LineCount == 0)
+                    return;
+
+                var safeLine = Math.Clamp(targetLine, 1, textEditor.Document.LineCount);
+                var line = textEditor.Document.GetLineByNumber(safeLine);
+                textEditor.Focus();
+                textEditor.TextArea.Focus();
+                textEditor.SelectionStart = line.Offset;
+                textEditor.SelectionLength = 0;
+                textEditor.TextArea.Caret.Offset = line.Offset;
+                textEditor.TextArea.Caret.BringCaretToView();
+                textEditor.ScrollTo(safeLine, 1);
+            }, DispatcherPriority.Background);
+        }
+
+        private void TextEditor_PointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            if (!e.GetCurrentPoint(textEditor).Properties.IsLeftButtonPressed)
+                return;
+
+            var point = e.GetPosition(textEditor);
+            if (point.X > 48)
+                return;
+
+            var position = textEditor.GetPositionFromPoint(point);
+            if (!position.HasValue || DataContext is not TabItemModel tab)
+                return;
+
+            tab.ToggleBreakpoint(position.Value.Line);
+            RefreshBreakpointVisuals();
+            e.Handled = true;
+        }
+
+        private void RefreshBreakpointVisuals()
+        {
+            if (DataContext is not TabItemModel tab)
+                return;
+
+            _breakpointColorizer.SetBreakpoints(tab.GetBreakpoints(), tab.ActiveBreakpointLine);
+            textEditor.TextArea.TextView.Redraw();
         }
 
         private void ShowCompletion()
@@ -589,6 +684,33 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
             ChangeLinePart(startOffset, endOffset, element =>
             {
                 element.TextRunProperties.SetForegroundBrush(brush);
+            });
+        }
+    }
+
+    public sealed class BreakpointLineColorizer : DocumentColorizingTransformer
+    {
+        private HashSet<int> _breakpoints = new();
+        private int? _activeBreakpointLine;
+
+        public void SetBreakpoints(IReadOnlyCollection<int> lines, int? activeBreakpointLine)
+        {
+            _breakpoints = lines.Count == 0 ? new HashSet<int>() : new HashSet<int>(lines);
+            _activeBreakpointLine = activeBreakpointLine;
+        }
+
+        protected override void ColorizeLine(DocumentLine line)
+        {
+            if (!_breakpoints.Contains(line.LineNumber))
+                return;
+
+            var brush = line.LineNumber == _activeBreakpointLine
+                ? Brush.Parse("#663333")
+                : Brush.Parse("#402222");
+
+            ChangeLinePart(line.Offset, line.EndOffset, element =>
+            {
+                element.TextRunProperties.SetBackgroundBrush(brush);
             });
         }
     }

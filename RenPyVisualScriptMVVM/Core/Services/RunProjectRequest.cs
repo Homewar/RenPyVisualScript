@@ -15,7 +15,7 @@ namespace RenPyVisualScriptMVVM.Core.Services
             _projectPath = projectPath ?? throw new ArgumentNullException(nameof(projectPath));
         }
 
-        public void Run()
+        public void Run(string? startLabel = null)
         {
             if (!RenPySdkPathResolver.IsValidSdkPath(_sdkPath))
                 throw new InvalidOperationException("Ren'Py SDK path is not set or invalid.");
@@ -25,6 +25,10 @@ namespace RenPyVisualScriptMVVM.Core.Services
 
             if (!Directory.Exists(normalizedProjectPath))
                 throw new DirectoryNotFoundException($"Project path not found: {normalizedProjectPath}");
+
+            DebugRunBootstrap.Cleanup(normalizedProjectPath);
+            if (!string.IsNullOrWhiteSpace(startLabel))
+                DebugRunBootstrap.Prepare(normalizedProjectPath, startLabel);
 
             var scriptPath = Path.Combine(AppContext.BaseDirectory, "run_renpy_project.py");
             if (!File.Exists(scriptPath))

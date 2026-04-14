@@ -21,6 +21,7 @@ using RenPyVisualScriptMVVM.Core.Models;
 using RenPyVisualScriptMVVM.Modules.Projects.Models;
 using RenPyVisualScriptMVVM.Modules.GraphEditor.ViewModels;
 using RenPyVisualScriptMVVM.Modules.Editors.Services;
+using RenPyVisualScriptMVVM.Modules.Editors.Services.Interfaces;
 using System.Collections.Generic;
 
 namespace RenPyVisualScriptMVVM.Modules.Editors.ViewModels;
@@ -31,6 +32,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     private readonly ISettingsService _settings;
     private readonly IDESettings _ide;
     private readonly IWindowService _windows;
+    private readonly IEditorNavigationService _editorNavigation;
     private readonly IReadonlyDependencyResolver _loc;
     private readonly RenPyStructureReader _structureReader = new();
 
@@ -39,6 +41,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     public IRelayCommand ShowAppSettingsCmd { get; }
     public IRelayCommand ShowIdeSettingsCmd { get; }
     public IRelayCommand RunProjectCmd { get; }
+    public IRelayCommand RunFromHereCmd { get; }
     public IRelayCommand OpenGraphCmd { get; }
     public IRelayCommand RefreshStructureCmd { get; }
 
@@ -92,12 +95,14 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         ISettingsService settings,
         IDESettings ide,
         IWindowService windows,
+        IEditorNavigationService editorNavigation,
         IReadonlyDependencyResolver? loc = null)
     {
         _ctx = ctx;
         _settings = settings;
         _ide = ide;
         _windows = windows;
+        _editorNavigation = editorNavigation;
         _loc = loc ?? Locator.Current;
 
         FileTreeVm = new FileTreeViewModel(_ctx);
@@ -107,11 +112,13 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         ShowAppSettingsCmd = new RelayCommand(OpenAppSettings);
         ShowIdeSettingsCmd = new RelayCommand(OpenIdeSettings);
         RunProjectCmd = new RelayCommand(RunProject);
+        RunFromHereCmd = new RelayCommand(RunFromHere);
         OpenGraphCmd = new RelayCommand(OpenGraphWindow);
         RefreshStructureCmd = new RelayCommand(RefreshStructure);
 
         _ctx.PropertyChanged += OnProjectContextChanged;
         _ide.PropertyChanged += OnIdeSettingsChanged;
+        _editorNavigation.RegisterHandler(NavigateToFile);
         RefreshStructure();
 
         Debug.WriteLine("ScriptEditorViewModel initialized");
@@ -269,31 +276,49 @@ public sealed class ScriptEditorViewModel : BaseViewModel
 
     private void OpenFileInTab(FileNode node)
     {
+        OpenFileInTab(node.FullPath, node.Name);
+    }
+
+    public void NavigateToFile(string filePath, int? line = null)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+            return;
+
+        if (!Path.IsPathRooted(filePath) && !string.IsNullOrWhiteSpace(ProjectPath))
+            filePath = Path.GetFullPath(Path.Combine(ProjectPath, filePath));
+
+        OpenFileInTab(filePath, Path.GetFileName(filePath), line);
+    }
+
+    private void OpenFileInTab(string filePath, string header, int? line = null)
+    {
         try
         {
-            if (!File.Exists(node.FullPath))
+            if (!File.Exists(filePath))
                 return;
 
-            var ext = Path.GetExtension(node.FullPath);
+            var ext = Path.GetExtension(filePath);
             if (IsImageExtension(ext))
                 return;
 
-            var existing = Tabs.FirstOrDefault(t => t.FilePath == node.FullPath);
+            var existing = Tabs.FirstOrDefault(t => t.FilePath == filePath);
             if (existing != null)
             {
+                existing.RequestNavigation(line);
                 SelectedTab = existing;
                 Debug.WriteLine($"Activated existing tab: {existing.FilePath}");
                 return;
             }
 
             var tab = new TabItemModel(
-                node.Name,
-                node.FullPath,
+                header,
+                filePath,
                 closeAction: t => Tabs.Remove(t));
 
+            tab.RequestNavigation(line);
             Tabs.Add(tab);
             SelectedTab = tab;
-            Debug.WriteLine($"Opened new tab for: {node.FullPath}");
+            Debug.WriteLine($"Opened new tab for: {filePath}");
         }
         catch (Exception ex)
         {
@@ -390,6 +415,65 @@ public sealed class ScriptEditorViewModel : BaseViewModel
 
     private void RunProject()
     {
+        RunProjectInternal(startLabel: null);
+    }
+
+    public void RunProjectFromLabel(string labelName)
+    {
+        if (string.IsNullOrWhiteSpace(labelName))
+            return;
+
+        RunProjectInternal(labelName);
+    }
+
+    public void RunProjectFromLocation(string filePath, int line)
+    {
+        if (string.IsNullOrWhiteSpace(ProjectPath) || string.IsNullOrWhiteSpace(filePath) || line <= 0)
+            return;
+
+        var label = FindLaunchLabel(filePath, line);
+        if (label is null)
+            return;
+
+        RunProjectInternal(label.Name);
+    }
+
+    private LabelOutlineItem? FindLaunchLabel(string filePath, int line)
+    {
+        if (string.IsNullOrWhiteSpace(ProjectPath))
+            return null;
+
+        var normalizedFilePath = Path.IsPathRooted(filePath)
+            ? Path.GetFullPath(filePath)
+            : Path.GetFullPath(Path.Combine(ProjectPath, filePath));
+
+        var relativePath = Path.GetRelativePath(ProjectPath, normalizedFilePath).Replace('\\', '/');
+        var snapshot = _structureReader.Read(ProjectPath);
+
+        return snapshot.Labels
+            .Where(label => string.Equals(label.FilePath, relativePath, StringComparison.OrdinalIgnoreCase))
+            .Where(label => line >= label.Line && line <= label.EndLine)
+            .OrderByDescending(label => label.Line)
+            .FirstOrDefault()
+            ?? snapshot.Labels
+                .Where(label => string.Equals(label.FilePath, relativePath, StringComparison.OrdinalIgnoreCase))
+                .Where(label => label.Line <= line)
+                .OrderByDescending(label => label.Line)
+                .FirstOrDefault();
+    }
+
+    private void RunFromHere()
+    {
+        var tab = SelectedTab;
+        var breakpointLine = tab?.ActiveBreakpointLine;
+        if (tab is null || breakpointLine is null || breakpointLine.Value <= 0)
+            return;
+
+        RunProjectFromLocation(tab.FilePath, breakpointLine.Value);
+    }
+
+    private void RunProjectInternal(string? startLabel)
+    {
         if (string.IsNullOrWhiteSpace(_ctx.ProjectPath))
             return;
 
@@ -399,7 +483,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         try
         {
             var req = new RenPyVisualScriptMVVM.Core.Services.RunProjectRequest(_ide.RenPySDKPath!, _ctx.ProjectPath!);
-            req.Run();
+            req.Run(startLabel);
         }
         catch (Exception ex)
         {

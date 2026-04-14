@@ -11,8 +11,10 @@ namespace RenPyVisualScriptMVVM.Core.Models
         public string Name { get; }
         public string Color { get; }
         public string InGameName { get; }
+        public string FilePath { get; }
+        public int Line { get; }
 
-        public Character(string name, string color, string inGameName) =>
-            (Name, Color, InGameName) = (name, color, inGameName);
+        public Character(string name, string color, string inGameName, string filePath, int line) =>
+            (Name, Color, InGameName, FilePath, Line) = (name, color, inGameName, filePath, line);
     }
 }

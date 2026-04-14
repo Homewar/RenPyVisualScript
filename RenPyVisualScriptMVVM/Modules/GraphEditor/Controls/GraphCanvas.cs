@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
@@ -8,7 +9,11 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using RenPyVisualScriptMVVM.Modules.Editors.Services.Interfaces;
+using RenPyVisualScriptMVVM.Modules.Editors.ViewModels;
+using RenPyVisualScriptMVVM.Modules.Editors.Views;
 using RenPyVisualScriptMVVM.Modules.GraphEditor.Models;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -964,6 +969,12 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             {
                 if (e.ClickCount >= 2)
                 {
+                    if (HitTestNode(point, out var existingNode) && existingNode != null)
+                    {
+                        NavigateToNodeDeclaration(existingNode);
+                        return;
+                    }
+
                     if (HitTestNote(point, out var existingNote) && existingNote != null)
                     {
                         BeginNoteEdit(existingNote);
@@ -979,6 +990,47 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
                 HandleLeftClick(point, e.KeyModifiers);
             }
+        }
+
+        private void NavigateToNodeDeclaration(Node node)
+        {
+            if (node.IsScreenConnector || node.IsMenuConnector)
+                return;
+
+            if (string.IsNullOrWhiteSpace(node.SourceFilePath) || node.SourceStartLine <= 0)
+                return;
+
+            var editorNavigation = Locator.Current.GetService<IEditorNavigationService>();
+            editorNavigation?.NavigateTo(node.SourceFilePath, node.SourceStartLine);
+            ActivateScriptEditorWindow();
+        }
+
+        private static void ActivateScriptEditorWindow()
+        {
+            if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+                return;
+
+            var editorWindow = desktop.Windows
+                .OfType<ScriptEditor>()
+                .FirstOrDefault(window => window.IsVisible);
+
+            editorWindow?.Activate();
+        }
+
+        private static void RunNodeFromHere(Node node)
+        {
+            if (node.IsScreenConnector || node.IsMenuConnector || string.IsNullOrWhiteSpace(node.Title))
+                return;
+
+            if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+                return;
+
+            var editorWindow = desktop.Windows
+                .OfType<ScriptEditor>()
+                .FirstOrDefault(window => window.IsVisible);
+
+            if (editorWindow?.DataContext is ScriptEditorViewModel scriptEditorViewModel)
+                scriptEditorViewModel.RunProjectFromLabel(node.Title);
         }
 
         private void HandleRightClick(Point point)
@@ -1048,6 +1100,16 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 BeginInlineRename(node);
             };
 
+            var runFromHereMenuItem = new MenuItem
+            {
+                Header = "Run from here"
+            };
+            runFromHereMenuItem.Click += (_, _) =>
+            {
+                CloseContextMenu();
+                RunNodeFromHere(node);
+            };
+
             var endBranchMenuItem = new MenuItem
             {
                 Header = _loopNodesWithEndBranch.Contains(node)
@@ -1109,7 +1171,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
             _activeContextMenu = new ContextMenu
             {
-                ItemsSource = new[] { renameMenuItem, endBranchMenuItem, assignRouteMenuItem, removeFromRouteMenuItem },
+                ItemsSource = new[] { runFromHereMenuItem, renameMenuItem, endBranchMenuItem, assignRouteMenuItem, removeFromRouteMenuItem },
                 Placement = PlacementMode.Pointer
             };
             _activeContextMenu.Closed += (_, _) => _activeContextMenu = null;

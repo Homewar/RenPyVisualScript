@@ -12,6 +12,8 @@ using RenPyVisualScriptMVVM.Modules.Settings.ViewModels;
 using RenPyVisualScriptMVVM.Modules.Shell.ViewModels;
 using RenPyVisualScriptMVVM.Modules.Shell.Views;
 using RenPyVisualScriptMVVM.Modules.GraphEditor.ViewModels;
+using RenPyVisualScriptMVVM.Modules.Editors.Services;
+using RenPyVisualScriptMVVM.Modules.Editors.Services.Interfaces;
 using Splat;
 using System.IO.Abstractions;
 
@@ -43,6 +45,7 @@ namespace RenPyVisualScriptMVVM
 
             loc.RegisterConstant<IWindowService>(new WindowService(desktop));
             loc.RegisterConstant<IFileSystem>(new FileSystem());
+            loc.RegisterConstant<IEditorNavigationService>(new EditorNavigationService());
 
             loc.RegisterLazySingleton<IProjectStorage>(() =>
                 new FileSystemProjectStorage(Locator.Current.GetService<IFileSystem>()!));
@@ -87,6 +90,7 @@ namespace RenPyVisualScriptMVVM
                     Locator.Current.GetService<ISettingsService>()!,
                     Locator.Current.GetService<RenPyVisualScriptMVVM.Core.Models.IDESettings>()!,
                     Locator.Current.GetService<IWindowService>()!,
+                    Locator.Current.GetService<IEditorNavigationService>()!,
                     Locator.Current));
 
             loc.Register<FileTreeViewModel>(() =>

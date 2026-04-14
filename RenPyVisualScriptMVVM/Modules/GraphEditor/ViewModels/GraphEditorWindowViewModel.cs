@@ -6,6 +6,7 @@ using RenPyVisualScriptMVVM.Modules.GraphEditor.Models;
 using RenPyVisualScriptMVVM.Modules.Shell.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace RenPyVisualScriptMVVM.Modules.GraphEditor.ViewModels;
@@ -71,6 +72,10 @@ public sealed class GraphEditorWindowViewModel : BaseViewModel
         // ── 1. Create all nodes (position TBD) ──────────────────────────────
         foreach (var label in orderedLabels)
         {
+            var sourceFilePath = string.IsNullOrWhiteSpace(ProjectPath) || Path.IsPathRooted(label.FilePath)
+                ? label.FilePath
+                : Path.GetFullPath(Path.Combine(ProjectPath, label.FilePath));
+
             var node = new Node
             {
                 Title             = label.Name,
@@ -78,7 +83,7 @@ public sealed class GraphEditorWindowViewModel : BaseViewModel
                 ImageBackground   = null,
                 Size              = new Size(nodeWidth, nodeHeight),
                 IsGeneratedManually = false,
-                SourceFilePath    = label.FilePath,
+                SourceFilePath    = sourceFilePath,
                 SourceStartLine   = label.Line,
                 SourceEndLine     = label.EndLine,
                 BodyLines         = label.BodyLines.ToList()

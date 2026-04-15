@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "yLCKv1I1hV0=",
+  "dgSpecHash": "gSK7UhpeTHI=",
   "success": true,
   "projectFilePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
   "expectedPackageFiles": [
@@ -43,6 +43,8 @@
     "C:\\Users\\Homewarriors\\.nuget\\packages\\harfbuzzsharp.nativeassets.webassembly\\7.3.0.3\\harfbuzzsharp.nativeassets.webassembly.7.3.0.3.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\harfbuzzsharp.nativeassets.win32\\7.3.0.3\\harfbuzzsharp.nativeassets.win32.7.3.0.3.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\htmlagilitypack\\1.11.42\\htmlagilitypack.1.11.42.nupkg.sha512",
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\magick.net-q8-anycpu\\14.10.4\\magick.net-q8-anycpu.14.10.4.nupkg.sha512",
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\magick.net.core\\14.10.4\\magick.net.core.14.10.4.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\markdown.avalonia\\11.0.2\\markdown.avalonia.11.0.2.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\markdown.avalonia.html\\11.0.2\\markdown.avalonia.html.11.0.2.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\markdown.avalonia.svg\\11.0.2\\markdown.avalonia.svg.11.0.2.nupkg.sha512",
@@ -51,8 +53,18 @@
     "C:\\Users\\Homewarriors\\.nuget\\packages\\microcom.runtime\\0.11.0\\microcom.runtime.0.11.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\9.0.6\\microsoft.extensions.dependencyinjection.9.0.6.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\9.0.6\\microsoft.extensions.dependencyinjection.abstractions.9.0.6.nupkg.sha512",
-    "C:\\Users\\Homewarriors\\.nuget\\packages\\microsoft.netcore.platforms\\1.1.0\\microsoft.netcore.platforms.1.1.0.nupkg.sha512",
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\microsoft.netcore.platforms\\3.1.0\\microsoft.netcore.platforms.3.1.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\microsoft.netcore.targets\\1.1.0\\microsoft.netcore.targets.1.1.0.nupkg.sha512",
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\microsoft.win32.registry\\4.7.0\\microsoft.win32.registry.4.7.0.nupkg.sha512",
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\microsoft.win32.systemevents\\9.0.4\\microsoft.win32.systemevents.9.0.4.nupkg.sha512",
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\naudio\\2.2.1\\naudio.2.2.1.nupkg.sha512",
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\naudio.asio\\2.2.1\\naudio.asio.2.2.1.nupkg.sha512",
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\naudio.core\\2.2.1\\naudio.core.2.2.1.nupkg.sha512",
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\naudio.midi\\2.2.1\\naudio.midi.2.2.1.nupkg.sha512",
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\naudio.vorbis\\1.5.0\\naudio.vorbis.1.5.0.nupkg.sha512",
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\naudio.wasapi\\2.2.1\\naudio.wasapi.2.2.1.nupkg.sha512",
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\naudio.winmm\\2.2.1\\naudio.winmm.2.2.1.nupkg.sha512",
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\nvorbis\\0.10.4\\nvorbis.0.10.4.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\onigwrap\\1.0.8\\onigwrap.1.0.8.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\plist-cil\\2.2.0\\plist-cil.2.2.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\shimskiasharp\\1.0.0\\shimskiasharp.1.0.0.nupkg.sha512",
@@ -68,6 +80,7 @@
     "C:\\Users\\Homewarriors\\.nuget\\packages\\system.collections\\4.3.0\\system.collections.4.3.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\system.componentmodel.annotations\\5.0.0\\system.componentmodel.annotations.5.0.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\system.diagnostics.debug\\4.3.0\\system.diagnostics.debug.4.3.0.nupkg.sha512",
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\system.drawing.common\\9.0.4\\system.drawing.common.9.0.4.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\system.globalization\\4.3.0\\system.globalization.4.3.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\system.io\\4.3.0\\system.io.4.3.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\system.io.abstractions\\22.0.15\\system.io.abstractions.22.0.15.nupkg.sha512",
@@ -79,6 +92,8 @@
     "C:\\Users\\Homewarriors\\.nuget\\packages\\system.reflection.primitives\\4.3.0\\system.reflection.primitives.4.3.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\system.resources.resourcemanager\\4.3.0\\system.resources.resourcemanager.4.3.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\system.runtime\\4.3.0\\system.runtime.4.3.0.nupkg.sha512",
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\system.security.accesscontrol\\4.7.0\\system.security.accesscontrol.4.7.0.nupkg.sha512",
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\system.security.principal.windows\\4.7.0\\system.security.principal.windows.4.7.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\system.text.encoding\\4.3.0\\system.text.encoding.4.3.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\system.text.json\\8.0.5\\system.text.json.8.0.5.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\system.threading\\4.3.0\\system.threading.4.3.0.nupkg.sha512",
@@ -91,5 +106,126 @@
     "C:\\Users\\Homewarriors\\.nuget\\packages\\textmatesharp.grammars\\1.0.70\\textmatesharp.grammars.1.0.70.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\tmds.dbus.protocol\\0.21.2\\tmds.dbus.protocol.0.21.2.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-26qp-ffjh-2x4v",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1901",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known low severity vulnerability, https://github.com/advisories/GHSA-6p22-q7w5-33pg",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-8793-7xv6-82cf",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1901",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known low severity vulnerability, https://github.com/advisories/GHSA-9r56-3gjq-hqf7",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-cr67-pvmx-2pp2",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known high severity vulnerability, https://github.com/advisories/GHSA-fwvm-ggf6-2p4x",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-gc62-2v5p-qpmp",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-mw3m-pqr2-qv7c",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-v67w-737x-v2c9",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known high severity vulnerability, https://github.com/advisories/GHSA-x9h5-r9v2-vcww",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
 }

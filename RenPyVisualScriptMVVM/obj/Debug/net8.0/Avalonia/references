@@ -41,6 +41,8 @@ C:\Users\Homewarriors\.nuget\packages\excss\4.1.4\lib\net6.0\ExCSS.dll
 C:\Users\Homewarriors\.nuget\packages\fizzler\1.2.1\lib\netstandard2.0\Fizzler.dll
 C:\Users\Homewarriors\.nuget\packages\harfbuzzsharp\7.3.0.3\lib\net6.0\HarfBuzzSharp.dll
 C:\Users\Homewarriors\.nuget\packages\htmlagilitypack\1.11.42\lib\netstandard2.0\HtmlAgilityPack.dll
+C:\Users\Homewarriors\.nuget\packages\magick.net-q8-anycpu\14.10.4\lib\net8.0\Magick.NET-Q8-AnyCPU.dll
+C:\Users\Homewarriors\.nuget\packages\magick.net.core\14.10.4\lib\net8.0\Magick.NET.Core.dll
 C:\Users\Homewarriors\.nuget\packages\markdown.avalonia.tight\11.0.2\lib\net6.0\Markdown.Avalonia.dll
 C:\Users\Homewarriors\.nuget\packages\markdown.avalonia\11.0.2\lib\net6.0\Markdown.Avalonia.Full.dll
 C:\Users\Homewarriors\.nuget\packages\markdown.avalonia.html\11.0.2\lib\net6.0\Markdown.Avalonia.Html.dll
@@ -54,8 +56,17 @@ C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\Micros
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\Microsoft.VisualBasic.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\Microsoft.Win32.Primitives.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\Microsoft.Win32.Registry.dll
+C:\Users\Homewarriors\.nuget\packages\microsoft.win32.systemevents\9.0.4\lib\net8.0\Microsoft.Win32.SystemEvents.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\mscorlib.dll
+C:\Users\Homewarriors\.nuget\packages\naudio.asio\2.2.1\lib\netstandard2.0\NAudio.Asio.dll
+C:\Users\Homewarriors\.nuget\packages\naudio.core\2.2.1\lib\netstandard2.0\NAudio.Core.dll
+C:\Users\Homewarriors\.nuget\packages\naudio\2.2.1\lib\net6.0\NAudio.dll
+C:\Users\Homewarriors\.nuget\packages\naudio.midi\2.2.1\lib\netstandard2.0\NAudio.Midi.dll
+C:\Users\Homewarriors\.nuget\packages\naudio.vorbis\1.5.0\lib\netstandard2.0\NAudio.Vorbis.dll
+C:\Users\Homewarriors\.nuget\packages\naudio.wasapi\2.2.1\lib\netstandard2.0\NAudio.Wasapi.dll
+C:\Users\Homewarriors\.nuget\packages\naudio.winmm\2.2.1\lib\netstandard2.0\NAudio.WinMM.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\netstandard.dll
+C:\Users\Homewarriors\.nuget\packages\nvorbis\0.10.4\lib\netstandard2.0\NVorbis.dll
 C:\Users\Homewarriors\.nuget\packages\onigwrap\1.0.8\lib\netstandard2.0\Onigwrap.dll
 C:\Users\Homewarriors\.nuget\packages\plist-cil\2.2.0\lib\net5.0\plist-cil.dll
 C:\Users\Homewarriors\.nuget\packages\bodong.propertymodels\11.3.0.16\lib\net8.0\PropertyModels.dll
@@ -95,6 +106,7 @@ C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\System
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\System.Diagnostics.TraceSource.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\System.Diagnostics.Tracing.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\System.dll
+C:\Users\Homewarriors\.nuget\packages\system.drawing.common\9.0.4\lib\net8.0\System.Drawing.Common.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\System.Drawing.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\System.Drawing.Primitives.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\System.Dynamic.Runtime.dll
@@ -147,6 +159,7 @@ C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\System
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\System.Numerics.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\System.Numerics.Vectors.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\System.ObjectModel.dll
+C:\Users\Homewarriors\.nuget\packages\system.drawing.common\9.0.4\lib\net8.0\System.Private.Windows.Core.dll
 C:\Users\Homewarriors\.nuget\packages\system.reactive\5.0.0\lib\net5.0\System.Reactive.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\System.Reflection.DispatchProxy.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\System.Reflection.dll

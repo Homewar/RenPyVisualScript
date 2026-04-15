@@ -94,6 +94,10 @@
               "target": "Package",
               "version": "[11.3.0.2, )"
             },
+            "Magick.NET-Q8-AnyCPU": {
+              "target": "Package",
+              "version": "[14.10.4, )"
+            },
             "Markdown.Avalonia": {
               "target": "Package",
               "version": "[11.0.2, )"
@@ -102,6 +106,14 @@
               "target": "Package",
               "version": "[11.0.2, )"
             },
+            "NAudio": {
+              "target": "Package",
+              "version": "[2.2.1, )"
+            },
+            "NAudio.Vorbis": {
+              "target": "Package",
+              "version": "[1.5.0, )"
+            },
             "Splat": {
               "target": "Package",
               "version": "[15.4.1, )"
@@ -109,6 +121,10 @@
             "Splat.Microsoft.Extensions.DependencyInjection": {
               "target": "Package",
               "version": "[15.4.1, )"
+            },
+            "System.Drawing.Common": {
+              "target": "Package",
+              "version": "[9.0.4, )"
             },
             "System.IO.Abstractions": {
               "target": "Package",

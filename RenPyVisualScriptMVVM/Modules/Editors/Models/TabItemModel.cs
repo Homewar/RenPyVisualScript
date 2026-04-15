@@ -72,17 +72,15 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Models
             if (line <= 0)
                 return;
 
-            if (!_breakpoints.Add(line))
+            if (_breakpoints.Contains(line))
             {
                 _breakpoints.Remove(line);
-
-                if (ActiveBreakpointLine == line)
-                    ActiveBreakpointLine = _breakpoints.Count > 0
-                        ? _breakpoints.Max()
-                        : null;
+                ActiveBreakpointLine = null;
             }
             else
             {
+                _breakpoints.Clear();
+                _breakpoints.Add(line);
                 ActiveBreakpointLine = line;
             }
 

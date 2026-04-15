@@ -65,8 +65,32 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     public TabItemModel? SelectedTab
     {
         get => _selectedTab;
-        set => SetProperty(ref _selectedTab, value);
+        set
+        {
+            if (_selectedTab == value)
+                return;
+
+            if (_selectedTab is not null)
+                _selectedTab.PropertyChanged -= OnSelectedTabPropertyChanged;
+
+            if (SetProperty(ref _selectedTab, value))
+            {
+                if (_selectedTab is not null)
+                    _selectedTab.PropertyChanged += OnSelectedTabPropertyChanged;
+
+                OnPropertyChanged(nameof(RunButtonText));
+                OnPropertyChanged(nameof(StartPointText));
+            }
+        }
     }
+
+    public string RunButtonText => SelectedTab?.ActiveBreakpointLine is int line && line > 0
+        ? $"Run from line {line}"
+        : "Run";
+
+    public string StartPointText => SelectedTab?.ActiveBreakpointLine is int line && line > 0
+        ? $"Start point: line {line}"
+        : "Start point: not set";
 
     public FileTreeViewModel FileTreeVm { get; }
     public ObservableCollection<FileNode> FileTreeNodes => FileTreeVm.Nodes;
@@ -137,6 +161,15 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         if (e.PropertyName is nameof(IDESettings.ShowSystemResources))
         {
             RefreshStructure();
+        }
+    }
+
+    private void OnSelectedTabPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(TabItemModel.ActiveBreakpointLine) or nameof(TabItemModel.BreakpointsVersion))
+        {
+            OnPropertyChanged(nameof(RunButtonText));
+            OnPropertyChanged(nameof(StartPointText));
         }
     }
 
@@ -415,6 +448,14 @@ public sealed class ScriptEditorViewModel : BaseViewModel
 
     private void RunProject()
     {
+        var tab = SelectedTab;
+        var breakpointLine = tab?.ActiveBreakpointLine;
+        if (tab is not null && breakpointLine is int line && line > 0)
+        {
+            RunProjectFromLocation(tab.FilePath, line);
+            return;
+        }
+
         RunProjectInternal(startLabel: null);
     }
 

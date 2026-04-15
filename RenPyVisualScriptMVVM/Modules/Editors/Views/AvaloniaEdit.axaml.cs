@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Styling;
 using System;
@@ -29,6 +30,10 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
 {
     public partial class AvaloniaEdit : UserControl
     {
+        private static readonly Regex LabelLineRegex = new(
+            @"^\s*label\s+[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?\s*:\s*$",
+            RegexOptions.Compiled);
+
         public static readonly StyledProperty<string> FilePathProperty =
             AvaloniaProperty.Register<AvaloniaEdit, string>(nameof(FilePath));
 
@@ -50,6 +55,7 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
         private readonly BreakpointLineColorizer _breakpointColorizer;
 
         private CompletionWindow _completionWindow;
+        private int? _contextMenuLine;
 
         //вынести в отдельный файл или класс, если нужно будет расширять
         private readonly string[] renpyKeywords = new string[]
@@ -136,6 +142,8 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
             textEditor.FontSize = 20.0;
             textEditor.Options.ConvertTabsToSpaces = true;
             textEditor.Options.IndentationSize = 4;
+            ToolTip.SetTip(BreakpointGutter, "Start point gutter: left-click to set or remove the start point on a line. Right-click for options.");
+            ToolTip.SetTip(textEditor, "Press F9 on the current line to toggle the start point.");
             _registryOptions = new RegistryOptions(ThemeName.DarkPlus);
             // NOTE: do NOT call InstallTextMate() here — it registers a LineTransformer
             // that permanently overrides SyntaxHighlighting even when SetGrammar(null).
@@ -192,7 +200,7 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
                         return;
 
                     // На всякий случай не пытаемся открывать изображения как текст
-                    if (IsImageExtension(Path.GetExtension(path)))
+                    if (IsImageExtension(System.IO.Path.GetExtension(path)))
                         return;
 
                     try
@@ -200,7 +208,7 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
                         var content = ReadFileAsTextSafe(path);
                         textEditor.Text = content;
                         ScriptText = content;
-                        LanguageExtension = Path.GetExtension(path);
+                        LanguageExtension = System.IO.Path.GetExtension(path);
                         NavigateToTargetLine();
                     }
                     catch (Exception ex)
@@ -216,6 +224,7 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
             };
 
             DataContextChanged += OnDataContextChanged;
+            BreakpointGutter.PointerPressed += BreakpointGutter_PointerPressed;
             
             
             textEditor.TextChanged += (sender, e) =>
@@ -230,8 +239,7 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
             {
                 if (e.Key == Key.F9 && DataContext is TabItemModel tab)
                 {
-                    tab.ToggleBreakpoint(textEditor.TextArea.Caret.Line);
-                    RefreshBreakpointVisuals();
+                    TryToggleStartPoint(tab, textEditor.TextArea.Caret.Line);
                     e.Handled = true;
                     return;
                 }
@@ -317,7 +325,6 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
 
             textEditor.TextArea.TextEntering += TextArea_TextEntering;
             textEditor.TextArea.TextEntered += TextArea_TextEntered;
-            textEditor.PointerPressed += TextEditor_PointerPressed;
         }
 
         private void OnDataContextChanged(object? sender, EventArgs e)
@@ -426,22 +433,110 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
             }, DispatcherPriority.Background);
         }
 
-        private void TextEditor_PointerPressed(object? sender, PointerPressedEventArgs e)
+        private void BreakpointGutter_PointerPressed(object? sender, PointerPressedEventArgs e)
         {
-            if (!e.GetCurrentPoint(textEditor).Properties.IsLeftButtonPressed)
+            if (DataContext is not TabItemModel tab)
                 return;
 
-            var point = e.GetPosition(textEditor);
-            if (point.X > 48)
+            var point = e.GetPosition(BreakpointGutter);
+            var line = GetLineFromGutterPoint(point.Y);
+            if (line <= 0)
                 return;
 
-            var position = textEditor.GetPositionFromPoint(point);
-            if (!position.HasValue || DataContext is not TabItemModel tab)
+            var currentPoint = e.GetCurrentPoint(BreakpointGutter);
+
+            if (currentPoint.Properties.IsRightButtonPressed)
+            {
+                _contextMenuLine = line;
+                ShowBreakpointContextMenu(tab);
+                e.Handled = true;
+                return;
+            }
+
+            if (!currentPoint.Properties.IsLeftButtonPressed)
                 return;
 
-            tab.ToggleBreakpoint(position.Value.Line);
-            RefreshBreakpointVisuals();
+            TryToggleStartPoint(tab, line);
             e.Handled = true;
+        }
+
+        private int GetLineFromGutterPoint(double y)
+        {
+            if (textEditor.Document is null || textEditor.Document.LineCount == 0)
+                return 0;
+
+            var textView = textEditor.TextArea.TextView;
+            var lineHeight = Math.Max(1.0, textView.DefaultLineHeight);
+            var scrollY = textView.ScrollOffset.Y;
+            var line = (int)Math.Floor((scrollY + y) / lineHeight) + 1;
+            return Math.Clamp(line, 1, textEditor.Document.LineCount);
+        }
+
+        private void ShowBreakpointContextMenu(TabItemModel tab)
+        {
+            if (!_contextMenuLine.HasValue)
+                return;
+
+            var line = _contextMenuLine.Value;
+            var isLabelLine = IsLabelLine(line);
+            var toggleItem = new MenuItem
+            {
+                Header = tab.HasBreakpoint(line)
+                    ? $"Remove start point from label line {line}"
+                    : $"Set start point on label line {line}",
+                IsEnabled = isLabelLine
+            };
+            toggleItem.Click += (_, _) =>
+            {
+                TryToggleStartPoint(tab, line);
+            };
+
+            var clearItem = new MenuItem
+            {
+                Header = "Clear current start point",
+                IsEnabled = tab.ActiveBreakpointLine.HasValue
+            };
+            clearItem.Click += (_, _) =>
+            {
+                if (tab.ActiveBreakpointLine is int activeLine)
+                {
+                    tab.ToggleBreakpoint(activeLine);
+                    RefreshBreakpointVisuals();
+                }
+            };
+
+            var infoItem = new MenuItem
+            {
+                Header = isLabelLine
+                    ? $"Line {line} is a label"
+                    : $"Line {line} is not a label",
+                IsEnabled = false
+            };
+
+            var contextMenu = new ContextMenu
+            {
+                ItemsSource = new object[] { infoItem, toggleItem, clearItem }
+            };
+            contextMenu.Open(textEditor);
+        }
+
+        private void TryToggleStartPoint(TabItemModel tab, int line)
+        {
+            if (!IsLabelLine(line))
+                return;
+
+            tab.ToggleBreakpoint(line);
+            RefreshBreakpointVisuals();
+        }
+
+        private bool IsLabelLine(int line)
+        {
+            if (line <= 0 || textEditor.Document is null || line > textEditor.Document.LineCount)
+                return false;
+
+            var documentLine = textEditor.Document.GetLineByNumber(line);
+            var text = textEditor.Document.GetText(documentLine);
+            return LabelLineRegex.IsMatch(text);
         }
 
         private void RefreshBreakpointVisuals()
@@ -451,6 +546,30 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
 
             _breakpointColorizer.SetBreakpoints(tab.GetBreakpoints(), tab.ActiveBreakpointLine);
             textEditor.TextArea.TextView.Redraw();
+            RenderBreakpointMarker(tab.ActiveBreakpointLine);
+        }
+
+        private void RenderBreakpointMarker(int? activeLine)
+        {
+            BreakpointCanvas.Children.Clear();
+
+            if (!activeLine.HasValue || textEditor.Document is null || textEditor.Document.LineCount == 0)
+                return;
+
+            var marker = new Ellipse
+            {
+                Width = 10,
+                Height = 10,
+                Fill = Brush.Parse("#D16969"),
+                Stroke = Brush.Parse("#F48771"),
+                StrokeThickness = 1
+            };
+
+            var lineHeight = Math.Max(1.0, textEditor.TextArea.TextView.DefaultLineHeight);
+            var y = (activeLine.Value - 1) * lineHeight + (lineHeight - marker.Height) / 2.0;
+            Canvas.SetLeft(marker, (BreakpointGutter.Bounds.Width - marker.Width) / 2.0);
+            Canvas.SetTop(marker, y);
+            BreakpointCanvas.Children.Add(marker);
         }
 
         private void ShowCompletion()

@@ -16,6 +16,8 @@
 
     <Window.Resources>
         <conv:StringToBrushConverter x:Key="StrToBrush"/>
+        <local:ImagePreviewConverter x:Key="ImagePreviewConverter"/>
+        <local:VideoPreviewConverter x:Key="VideoPreviewConverter"/>
     </Window.Resources>
 
     <Grid ShowGridLines="False">
@@ -53,8 +55,8 @@
 
         <Border BorderBrush="#ea592a" BorderThickness="0,0,0,2" Grid.Column="2">
             <StackPanel Orientation="Horizontal" Grid.Column="2" HorizontalAlignment="Right">
-                <Button Content="Run" Command="{Binding RunProjectCmd}" Margin="0,0,6,0"/>
-                <Button Content="Run Here" Command="{Binding RunFromHereCmd}" Margin="0,0,6,0"/>
+                <TextBlock Text="{Binding StartPointText}" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#d6d6d6"/>
+                <Button Content="{Binding RunButtonText}" Command="{Binding RunProjectCmd}" Margin="0,0,6,0"/>
                 <Button Content="Graph" Command="{Binding OpenGraphCmd}" Margin="0,0,6,0"/>
                 <Button Content="Refresh" Command="{Binding RefreshStructureCmd}" Margin="0,0,6,0"/>
             </StackPanel>
@@ -197,13 +199,27 @@
                             <ListBox ItemsSource="{Binding ImageResources}" Background="Transparent" BorderThickness="0">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate x:DataType="models:ResourceFileItem">
-                                        <Grid ColumnDefinitions="*,Auto" Margin="8,4">
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding Name}"/>
-                                                <TextBlock Text="{Binding RelativePath}" Foreground="#808080" FontSize="11"/>
-                                            </StackPanel>
-                                            <TextBlock Grid.Column="1" Text="{Binding Extension}" Foreground="#9cdcfe" VerticalAlignment="Center"/>
-                                        </Grid>
+                                        <Border Margin="8,4" Padding="6,4" Background="Transparent">
+                                            <ToolTip.Tip>
+                                                <Border Background="#1b1b1c" BorderBrush="#3c3c3c" BorderThickness="1" Padding="10" MaxWidth="420">
+                                                    <StackPanel Spacing="8">
+                                                        <local:AnimatedImagePreview FilePath="{Binding FullPath}"
+                                                                                    MaxWidth="360"
+                                                                                    MaxHeight="220"
+                                                                                    Stretch="Uniform"/>
+                                                        <TextBlock Text="{Binding Name}" Foreground="#d6d6d6"/>
+                                                        <TextBlock Text="{Binding RelativePath}" Foreground="#808080" FontSize="11" TextWrapping="Wrap"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </ToolTip.Tip>
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Name}"/>
+                                                    <TextBlock Text="{Binding RelativePath}" Foreground="#808080" FontSize="11"/>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="1" Text="{Binding Extension}" Foreground="#9cdcfe" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
@@ -216,12 +232,24 @@
                             <ListBox ItemsSource="{Binding AudioResources}" Background="Transparent" BorderThickness="0">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate x:DataType="models:ResourceFileItem">
-                                        <Grid ColumnDefinitions="*,Auto" Margin="8,4">
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding Name}"/>
-                                                <TextBlock Text="{Binding RelativePath}" Foreground="#808080" FontSize="11"/>
+                                            <Grid ColumnDefinitions="*,Auto,Auto" Margin="8,4">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Name}"/>
+                                                    <TextBlock Text="{Binding RelativePath}" Foreground="#808080" FontSize="11"/>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="1" Text="{Binding Extension}" Foreground="#9cdcfe" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6">
+                                                <Button Content="▶"
+                                                        Click="AudioPlay_OnClick"
+                                                        Padding="8,2"
+                                                        FontSize="14"
+                                                        ToolTip.Tip="Play / Pause"/>
+                                                <Button Content="■"
+                                                        Click="AudioStop_OnClick"
+                                                        Padding="8,2"
+                                                        FontSize="14"
+                                                        ToolTip.Tip="Stop"/>
                                             </StackPanel>
-                                            <TextBlock Grid.Column="1" Text="{Binding Extension}" Foreground="#9cdcfe" VerticalAlignment="Center"/>
                                         </Grid>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
@@ -235,13 +263,26 @@
                             <ListBox ItemsSource="{Binding VideoResources}" Background="Transparent" BorderThickness="0">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate x:DataType="models:ResourceFileItem">
-                                        <Grid ColumnDefinitions="*,Auto" Margin="8,4">
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding Name}"/>
-                                                <TextBlock Text="{Binding RelativePath}" Foreground="#808080" FontSize="11"/>
-                                            </StackPanel>
-                                            <TextBlock Grid.Column="1" Text="{Binding Extension}" Foreground="#9cdcfe" VerticalAlignment="Center"/>
-                                        </Grid>
+                                        <Border Margin="8,4" Padding="6,4" Background="Transparent">
+                                            <ToolTip.Tip>
+                                                <Border Background="#1b1b1c" BorderBrush="#3c3c3c" BorderThickness="1" Padding="10" MaxWidth="480">
+                                                    <StackPanel Spacing="8">
+                                                        <local:VideoThumbnailPreview FilePath="{Binding FullPath}"
+                                                                                     Width="400"
+                                                                                     Height="225"/>
+                                                        <TextBlock Text="{Binding Name}" Foreground="#d6d6d6"/>
+                                                        <TextBlock Text="{Binding RelativePath}" Foreground="#808080" FontSize="11" TextWrapping="Wrap"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </ToolTip.Tip>
+                                            <Grid ColumnDefinitions="*,Auto" Margin="0">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Name}"/>
+                                                    <TextBlock Text="{Binding RelativePath}" Foreground="#808080" FontSize="11"/>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="1" Text="{Binding Extension}" Foreground="#9cdcfe" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>

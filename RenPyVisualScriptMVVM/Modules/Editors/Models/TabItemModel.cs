@@ -32,6 +32,13 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Models
             private set => SetProperty(ref _navigationRequestId, value);
         }
 
+        private int _reloadRequestId;
+        public int ReloadRequestId
+        {
+            get => _reloadRequestId;
+            private set => SetProperty(ref _reloadRequestId, value);
+        }
+
         private readonly HashSet<int> _breakpoints = new();
 
         private int _breakpointsVersion;
@@ -60,6 +67,15 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Models
         public void RequestNavigation(int? line)
         {
             TargetLine = line;
+            NavigationRequestId++;
+        }
+
+        public void RequestReload(int? line = null)
+        {
+            if (line.HasValue)
+                TargetLine = line;
+
+            ReloadRequestId++;
             NavigationRequestId++;
         }
 

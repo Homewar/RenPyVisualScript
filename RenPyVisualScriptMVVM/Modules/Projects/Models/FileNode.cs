@@ -14,12 +14,14 @@ namespace RenPyVisualScriptMVVM.Modules.Projects.Models
         public string FullPath { get; }
         public ObservableCollection<FileNode> Children { get; }
         public bool IsDirectory => Directory.Exists(FullPath);
+        public bool IsRoot { get; }
 
-        public FileNode(string path)
+        public FileNode(string path, bool isRoot = false)
         {
             FullPath = path;
-            Name = Path.GetFileName(path);
+            Name = string.IsNullOrWhiteSpace(Path.GetFileName(path)) ? path : Path.GetFileName(path);
             Children = new ObservableCollection<FileNode>();
+            IsRoot = isRoot;
         }
     }
 }

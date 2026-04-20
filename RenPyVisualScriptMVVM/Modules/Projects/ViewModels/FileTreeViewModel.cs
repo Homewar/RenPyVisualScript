@@ -40,7 +40,9 @@ namespace RenPyVisualScriptMVVM.Modules.Projects.ViewModels
             if (string.IsNullOrWhiteSpace(Path) || !Directory.Exists(Path))
                 return;
 
-            LoadDirectory(Path, Nodes);
+            var root = new FileNode(Path, isRoot: true);
+            Nodes.Add(root);
+            LoadDirectory(Path, root.Children);
         }
 
         private void LoadDirectory(string path, ObservableCollection<FileNode> collection)

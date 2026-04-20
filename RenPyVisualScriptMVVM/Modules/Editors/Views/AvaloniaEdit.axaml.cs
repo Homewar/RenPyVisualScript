@@ -49,6 +49,9 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
         public static readonly StyledProperty<int> NavigationRequestIdProperty =
             AvaloniaProperty.Register<AvaloniaEdit, int>(nameof(NavigationRequestId));
 
+        public static readonly StyledProperty<int> ReloadRequestIdProperty =
+            AvaloniaProperty.Register<AvaloniaEdit, int>(nameof(ReloadRequestId));
+
         private readonly RegistryOptions _registryOptions;
         private Installation? _textMateInstallation;
         private readonly RenPyCharacterColorizer _characterColorizer;
@@ -130,6 +133,12 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
         {
             get => GetValue(NavigationRequestIdProperty);
             set => SetValue(NavigationRequestIdProperty, value);
+        }
+
+        public int ReloadRequestId
+        {
+            get => GetValue(ReloadRequestIdProperty);
+            set => SetValue(ReloadRequestIdProperty, value);
         }
 
         public AvaloniaEdit()
@@ -220,6 +229,11 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
                 if (e.Property == NavigationRequestIdProperty || e.Property == TargetLineProperty)
                 {
                     NavigateToTargetLine();
+                }
+
+                if (e.Property == ReloadRequestIdProperty)
+                {
+                    ReloadCurrentFile();
                 }
             };
 
@@ -431,6 +445,30 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
                 textEditor.TextArea.Caret.BringCaretToView();
                 textEditor.ScrollTo(safeLine, 1);
             }, DispatcherPriority.Background);
+        }
+
+        private void ReloadCurrentFile()
+        {
+            var path = FilePath;
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+                return;
+
+            if (IsImageExtension(System.IO.Path.GetExtension(path)))
+                return;
+
+            try
+            {
+                var content = ReadFileAsTextSafe(path);
+                textEditor.Text = content;
+                ScriptText = content;
+                _characterColorizer.UpdateText(content);
+                textEditor.TextArea.TextView.Redraw();
+                NavigateToTargetLine();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error reloading file: {ex.Message}");
+            }
         }
 
         private void BreakpointGutter_PointerPressed(object? sender, PointerPressedEventArgs e)

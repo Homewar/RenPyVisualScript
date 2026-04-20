@@ -55,6 +55,9 @@
     <Compile Update="Modules\Editors\Views\ScriptEditor.axaml.cs">
       <DependentUpon>ScriptEditor.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Modules\Editors\Views\CharacterCreateDialog.axaml.cs">
+      <DependentUpon>CharacterCreateDialog.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Modules\Projects\Views\NewProjectDialog.axaml.cs">
       <DependentUpon>NewProjectDialog.axaml</DependentUpon>
     </Compile>

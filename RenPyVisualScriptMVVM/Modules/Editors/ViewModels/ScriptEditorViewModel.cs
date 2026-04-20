@@ -23,11 +23,15 @@ using RenPyVisualScriptMVVM.Modules.GraphEditor.ViewModels;
 using RenPyVisualScriptMVVM.Modules.Editors.Services;
 using RenPyVisualScriptMVVM.Modules.Editors.Services.Interfaces;
 using System.Collections.Generic;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace RenPyVisualScriptMVVM.Modules.Editors.ViewModels;
 
 public sealed class ScriptEditorViewModel : BaseViewModel
 {
+    private static readonly Regex CharacterCodeRegex = new("^[A-Za-z_][A-Za-z0-9_]*$", RegexOptions.Compiled);
+    private static readonly Regex ImageDefinitionPrefixRegex = new(@"^\s*image\s+(?<tag>[A-Za-z_][A-Za-z0-9_]*)\s*=", RegexOptions.Compiled);
     private readonly IProjectContext _ctx;
     private readonly ISettingsService _settings;
     private readonly IDESettings _ide;
@@ -53,6 +57,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     public ObservableCollection<ResourceFileItem> ImageResources { get; } = new();
     public ObservableCollection<ResourceFileItem> AudioResources { get; } = new();
     public ObservableCollection<ResourceFileItem> VideoResources { get; } = new();
+    public ObservableCollection<ResourceFileItem> FontResources { get; } = new();
 
     private string _structureSummary = "Проект ещё не разобран";
     public string StructureSummary
@@ -113,6 +118,8 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     }
 
     public string? ProjectPath => _ctx.ProjectPath;
+
+    public IReadOnlyList<ResourceFileItem> AvailableCharacterImages => ImageResources;
 
     public ScriptEditorViewModel(
         IProjectContext ctx,
@@ -183,6 +190,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         ImageResources.Clear();
         AudioResources.Clear();
         VideoResources.Clear();
+        FontResources.Clear();
 
         var snapshot = _structureReader.Read(_ctx.ProjectPath);
 
@@ -201,7 +209,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         LoadResourceFiles(_ctx.ProjectPath);
 
         var projectName = string.IsNullOrWhiteSpace(ProjectName) ? "Проект" : ProjectName;
-        StructureSummary = $"{projectName}: {CharacterList.Count} персонажей, {LabelList.Count} label, {StructureLinks.Count} связей, {ImageResources.Count} изображений, {AudioResources.Count} аудио, {VideoResources.Count} видео";
+        StructureSummary = $"{projectName}: {CharacterList.Count} персонажей, {LabelList.Count} label, {StructureLinks.Count} связей, {ImageResources.Count} изображений, {AudioResources.Count} аудио, {VideoResources.Count} видео, {FontResources.Count} шрифтов";
     }
 
     private void LoadResourceFiles(string? projectPath)
@@ -231,7 +239,13 @@ public sealed class ScriptEditorViewModel : BaseViewModel
                 }
 
                 if (IsVideoExtension(ext))
+                {
                     VideoResources.Add(new ResourceFileItem(file, projectPath));
+                    continue;
+                }
+
+                if (IsFontExtension(ext))
+                    FontResources.Add(new ResourceFileItem(file, projectPath));
             }
         }
         catch (Exception ex)
@@ -312,6 +326,66 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         OpenFileInTab(node.FullPath, node.Name);
     }
 
+    public void CreateCharacter(CharacterCreationRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(ProjectPath))
+            throw new InvalidOperationException("Project path is not set.");
+
+        if (request is null)
+            throw new InvalidOperationException("Character data is missing.");
+
+        var codeName = request.CodeName.Trim();
+        var displayName = request.DisplayName.Trim();
+        var color = request.Color.Trim();
+        var imageTag = request.ImageTag?.Trim();
+        var imageSourcePath = request.ImageSourcePath?.Trim();
+
+        if (!CharacterCodeRegex.IsMatch(codeName))
+            throw new InvalidOperationException("Code name must start with a letter or '_' and contain only letters, digits, and '_'.");
+
+        if (string.IsNullOrWhiteSpace(displayName))
+            throw new InvalidOperationException("Display name cannot be empty.");
+
+        if (CharacterList.Any(c => string.Equals(c.Name, codeName, StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidOperationException($"Character '{codeName}' already exists.");
+
+        if (!string.IsNullOrWhiteSpace(color) && !color.StartsWith("#", StringComparison.Ordinal))
+            throw new InvalidOperationException("Color must be empty or in hex format like #ffffff.");
+
+        string? resolvedImageRelativePath = null;
+        if (!string.IsNullOrWhiteSpace(imageSourcePath))
+        {
+            var imported = ImportCharacterImage(ProjectPath, codeName, imageSourcePath);
+            imageSourcePath = imported.fullPath;
+            resolvedImageRelativePath = imported.relativePath;
+            imageTag ??= codeName;
+        }
+
+        var targetFile = GetCharacterDefinitionsFilePath(ProjectPath);
+        Directory.CreateDirectory(Path.GetDirectoryName(targetFile)!);
+
+        var existingLines = File.Exists(targetFile) ? File.ReadAllLines(targetFile) : Array.Empty<string>();
+        var lineNumber = existingLines.Length + 1;
+        if (existingLines.Length > 0 && !string.IsNullOrWhiteSpace(existingLines[^1]))
+            lineNumber++;
+
+        var builder = new StringBuilder();
+        if (existingLines.Length > 0 && !string.IsNullOrWhiteSpace(existingLines[^1]))
+            builder.AppendLine();
+
+        if (!string.IsNullOrWhiteSpace(resolvedImageRelativePath)
+            && !string.IsNullOrWhiteSpace(imageTag)
+            && !HasImageDefinition(existingLines, imageTag))
+            builder.AppendLine(BuildImageDefinition(imageTag, resolvedImageRelativePath));
+
+        builder.AppendLine(BuildCharacterDefinition(codeName, displayName, color, imageTag));
+        File.AppendAllText(targetFile, builder.ToString(), Encoding.UTF8);
+
+        RefreshStructure();
+        ReloadOpenTab(targetFile, lineNumber);
+        NavigateToFile(targetFile, lineNumber);
+    }
+
     public void NavigateToFile(string filePath, int? line = null)
     {
         if (string.IsNullOrWhiteSpace(filePath))
@@ -321,6 +395,55 @@ public sealed class ScriptEditorViewModel : BaseViewModel
             filePath = Path.GetFullPath(Path.Combine(ProjectPath, filePath));
 
         OpenFileInTab(filePath, Path.GetFileName(filePath), line);
+    }
+
+    public string CreateFile(string fileName, FileNode? selectedNode)
+    {
+        if (string.IsNullOrWhiteSpace(ProjectPath))
+            throw new InvalidOperationException("Project path is not set.");
+
+        var trimmedName = fileName.Trim();
+        if (string.IsNullOrWhiteSpace(trimmedName))
+            throw new InvalidOperationException("File name cannot be empty.");
+
+        if (trimmedName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            throw new InvalidOperationException("File name contains invalid characters.");
+
+        var parentDirectory = ResolveCreationDirectory(selectedNode);
+        var targetPath = Path.Combine(parentDirectory, trimmedName);
+        if (Directory.Exists(targetPath) || File.Exists(targetPath))
+            throw new InvalidOperationException($"'{trimmedName}' already exists.");
+
+        Directory.CreateDirectory(parentDirectory);
+        using (File.Create(targetPath))
+        {
+        }
+
+        RefreshStructure();
+        NavigateToFile(targetPath);
+        return targetPath;
+    }
+
+    public string CreateFolder(string folderName, FileNode? selectedNode)
+    {
+        if (string.IsNullOrWhiteSpace(ProjectPath))
+            throw new InvalidOperationException("Project path is not set.");
+
+        var trimmedName = folderName.Trim();
+        if (string.IsNullOrWhiteSpace(trimmedName))
+            throw new InvalidOperationException("Folder name cannot be empty.");
+
+        if (trimmedName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            throw new InvalidOperationException("Folder name contains invalid characters.");
+
+        var parentDirectory = ResolveCreationDirectory(selectedNode);
+        var targetPath = Path.Combine(parentDirectory, trimmedName);
+        if (Directory.Exists(targetPath) || File.Exists(targetPath))
+            throw new InvalidOperationException($"'{trimmedName}' already exists.");
+
+        Directory.CreateDirectory(targetPath);
+        RefreshStructure();
+        return targetPath;
     }
 
     private void OpenFileInTab(string filePath, string header, int? line = null)
@@ -357,6 +480,27 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         {
             Debug.WriteLine($"OpenFileInTab error: {ex}");
         }
+    }
+
+    private string ResolveCreationDirectory(FileNode? selectedNode)
+    {
+        if (selectedNode is null)
+            return ProjectPath!;
+
+        if (selectedNode.IsDirectory)
+            return selectedNode.FullPath;
+
+        var directory = Path.GetDirectoryName(selectedNode.FullPath);
+        return string.IsNullOrWhiteSpace(directory) ? ProjectPath! : directory;
+    }
+
+    private void ReloadOpenTab(string filePath, int? line = null)
+    {
+        var normalizedPath = Path.GetFullPath(filePath);
+        var existing = Tabs.FirstOrDefault(t =>
+            string.Equals(Path.GetFullPath(t.FilePath), normalizedPath, StringComparison.OrdinalIgnoreCase));
+
+        existing?.RequestReload(line);
     }
 
     private static bool IsImageExtension(string? ext)
@@ -400,6 +544,100 @@ public sealed class ScriptEditorViewModel : BaseViewModel
             || ext.Equals(".mkv", StringComparison.OrdinalIgnoreCase)
             || ext.Equals(".mpeg", StringComparison.OrdinalIgnoreCase)
             || ext.Equals(".mpg", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string GetCharacterDefinitionsFilePath(string projectPath)
+    {
+        var gameDirectory = Path.Combine(projectPath, "game");
+        if (Directory.Exists(gameDirectory))
+            return Path.Combine(gameDirectory, "characters.rpy");
+
+        return Path.Combine(projectPath, "characters.rpy");
+    }
+
+    private static string BuildCharacterDefinition(string codeName, string displayName, string color, string? imageTag)
+    {
+        var arguments = new List<string> { Quote(displayName) };
+
+        if (!string.IsNullOrWhiteSpace(color))
+            arguments.Add($"color={Quote(color)}");
+
+        if (!string.IsNullOrWhiteSpace(imageTag))
+            arguments.Add($"image={Quote(imageTag!)}");
+
+        return $"define {codeName} = Character({string.Join(", ", arguments)})";
+    }
+
+    private static string BuildImageDefinition(string imageTag, string relativePath)
+    {
+        var normalized = relativePath.Replace('\\', '/');
+        return $"image {imageTag} = {Quote(normalized)}";
+    }
+
+    private static bool HasImageDefinition(IEnumerable<string> lines, string imageTag)
+    {
+        foreach (var line in lines)
+        {
+            var match = ImageDefinitionPrefixRegex.Match(line);
+            if (match.Success && string.Equals(match.Groups["tag"].Value, imageTag, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static (string fullPath, string relativePath) ImportCharacterImage(string projectPath, string codeName, string imageSourcePath)
+    {
+        var normalizedProjectPath = Path.GetFullPath(projectPath);
+        var normalizedSourcePath = Path.GetFullPath(imageSourcePath);
+
+        if (normalizedSourcePath.StartsWith(normalizedProjectPath, StringComparison.OrdinalIgnoreCase))
+        {
+            var existingRelativePath = Path.GetRelativePath(normalizedProjectPath, normalizedSourcePath);
+            return (normalizedSourcePath, existingRelativePath);
+        }
+
+        var extension = Path.GetExtension(normalizedSourcePath);
+        var fileName = $"{codeName}{extension}";
+        var imagesDirectory = Directory.Exists(Path.Combine(projectPath, "game"))
+            ? Path.Combine(projectPath, "game", "images", "characters")
+            : Path.Combine(projectPath, "images", "characters");
+
+        Directory.CreateDirectory(imagesDirectory);
+
+        var targetPath = Path.Combine(imagesDirectory, fileName);
+        var suffix = 1;
+        while (File.Exists(targetPath))
+        {
+            fileName = $"{codeName}_{suffix}{extension}";
+            targetPath = Path.Combine(imagesDirectory, fileName);
+            suffix++;
+        }
+
+        File.Copy(normalizedSourcePath, targetPath, overwrite: false);
+        var relativePath = Path.GetRelativePath(normalizedProjectPath, targetPath);
+        return (targetPath, relativePath);
+    }
+
+    private static string Quote(string value)
+    {
+        var escaped = value
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("\"", "\\\"", StringComparison.Ordinal);
+        return $"\"{escaped}\"";
+    }
+
+    private static bool IsFontExtension(string? ext)
+    {
+        if (string.IsNullOrWhiteSpace(ext))
+            return false;
+
+        return ext.Equals(".ttf", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".otf", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".ttc", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".woff", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".woff2", StringComparison.OrdinalIgnoreCase)
+            || ext.Equals(".fon", StringComparison.OrdinalIgnoreCase);
     }
 
     private void SaveProject()

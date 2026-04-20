@@ -7,6 +7,8 @@
         xmlns:conv="using:RenPyVisualScriptMVVM.Modules.Editors.ViewModels"
         xmlns:core="using:RenPyVisualScriptMVVM.Core.Models"
         xmlns:local="clr-namespace:RenPyVisualScriptMVVM.Modules.Editors.Views"
+        xmlns:editConv="using:RenPyVisualScriptMVVM.Modules.Editors.Converters"
+        xmlns:editCtrl="using:RenPyVisualScriptMVVM.Modules.Editors.Controls"
         mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
         x:Class="RenPyVisualScriptMVVM.Modules.Editors.Views.ScriptEditor"
         x:DataType="vm:ScriptEditorViewModel"
@@ -16,8 +18,9 @@
 
     <Window.Resources>
         <conv:StringToBrushConverter x:Key="StrToBrush"/>
-        <local:ImagePreviewConverter x:Key="ImagePreviewConverter"/>
-        <local:VideoPreviewConverter x:Key="VideoPreviewConverter"/>
+        <editConv:ImagePreviewConverter x:Key="ImagePreviewConverter"/>
+        <editConv:VideoPreviewConverter x:Key="VideoPreviewConverter"/>
+        <editConv:FontPreviewConverter x:Key="FontPreviewConverter"/>
     </Window.Resources>
 
     <Grid ShowGridLines="False">
@@ -58,7 +61,6 @@
                 <TextBlock Text="{Binding StartPointText}" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#d6d6d6"/>
                 <Button Content="{Binding RunButtonText}" Command="{Binding RunProjectCmd}" Margin="0,0,6,0"/>
                 <Button Content="Graph" Command="{Binding OpenGraphCmd}" Margin="0,0,6,0"/>
-                <Button Content="Refresh" Command="{Binding RefreshStructureCmd}" Margin="0,0,6,0"/>
             </StackPanel>
         </Border>
 
@@ -70,23 +72,18 @@
             <TabControl>
                 <TabItem Header="source">
                     <Grid Margin="0">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-
-                        <Border Background="#2d2d30" Padding="8" BorderBrush="#3c3c3c" BorderThickness="0,0,0,1">
-                            <DockPanel>
-                                <TextBlock Text="{Binding StructureSummary}" Foreground="#d6d6d6" VerticalAlignment="Center"/>
-                                <Button DockPanel.Dock="Right" Content="Refresh" Command="{Binding RefreshStructureCmd}" Background="#EA592A"/>
-                            </DockPanel>
-                        </Border>
-
-                        <ScrollViewer Grid.Row="1" Margin="0,8,0,0">
+                        <ScrollViewer Margin="0,8,0,0">
                             <StackPanel Spacing="8" HorizontalAlignment="Stretch">
                                 <Expander IsExpanded="True" Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1" HorizontalAlignment="Stretch">
                                 <Expander.Header>
-                                    <TextBlock Text="Characters" FontSize="14" Foreground="#d6d6d6" Margin="8,6"/>
+                                    <DockPanel Margin="8,6">
+                                        <Button DockPanel.Dock="Right"
+                                                Content="Add"
+                                                Click="CreateCharacter_OnClick"
+                                                Padding="10,2"
+                                                Margin="8,0,0,0"/>
+                                        <TextBlock Text="{Binding CharacterList.Count, StringFormat='Characters ({0})'}" FontSize="14" Foreground="#d6d6d6" VerticalAlignment="Center"/>
+                                    </DockPanel>
                                 </Expander.Header>
                                 <ListBox ItemsSource="{Binding CharacterList}" Background="Transparent" BorderThickness="0" DoubleTapped="CharacterList_OnDoubleTapped">
                                     <ListBox.ItemTemplate>
@@ -111,7 +108,7 @@
 
                                 <Expander IsExpanded="True" Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1" HorizontalAlignment="Stretch">
                                 <Expander.Header>
-                                    <TextBlock Text="Labels" FontSize="14" Foreground="#d6d6d6" Margin="8,6"/>
+                                    <TextBlock Text="{Binding LabelList.Count, StringFormat='Labels ({0})'}" FontSize="14" Foreground="#d6d6d6" Margin="8,6"/>
                                 </Expander.Header>
                                 <ListBox ItemsSource="{Binding LabelList}" Background="Transparent" BorderThickness="0" DoubleTapped="LabelList_OnDoubleTapped">
                                     <ListBox.ItemTemplate>
@@ -133,7 +130,7 @@
 
                                 <Expander IsExpanded="True" Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1" HorizontalAlignment="Stretch">
                                 <Expander.Header>
-                                    <TextBlock Text="Links and choices" FontSize="14" Foreground="#d6d6d6" Margin="8,6"/>
+                                    <TextBlock Text="{Binding TransitionItems.Count, StringFormat='Links and choices ({0})'}" FontSize="14" Foreground="#d6d6d6" Margin="8,6"/>
                                 </Expander.Header>
                                 <ListBox ItemsSource="{Binding TransitionItems}" Background="Transparent" BorderThickness="0" DoubleTapped="TransitionItems_OnDoubleTapped">
                                     <ListBox.ItemTemplate>
@@ -183,7 +180,37 @@
                         <TreeView ItemsSource="{Binding FileTreeNodes}" Margin="10" SelectedItem="{Binding SelectedFileNode,Mode=TwoWay}">
                             <TreeView.ItemTemplate>
                                 <TreeDataTemplate ItemsSource="{Binding Children}">
-                                    <TextBlock Text="{Binding Name}"/>
+                                    <DockPanel LastChildFill="False">
+                                        <TextBlock Text="{Binding Name}"
+                                                   VerticalAlignment="Center"
+                                                   Margin="0,0,6,0"/>
+                                        <StackPanel DockPanel.Dock="Right"
+                                                    Orientation="Horizontal"
+                                                    Spacing="4"
+                                                    IsVisible="{Binding IsRoot}">
+                                            <Button Click="CreateFile_OnClick"
+                                                    Width="24"
+                                                    Height="22"
+                                                    Padding="0"
+                                                    ToolTip.Tip="New File"
+                                                    Background="Transparent">
+                                                <Image Source="avares://RenPyVisualScriptMVVM/Assets/Icons/new-file.png"
+                                                    Width="12"
+                                                    Height="12"
+                                                    />
+                                            </Button>
+                                            <Button Click="CreateFolder_OnClick"
+                                                    Width="24"
+                                                    Height="22"
+                                                    Padding="0"
+                                                    ToolTip.Tip="New Folder"
+                                                    Background="Transparent">
+                                                <Image Source="avares://RenPyVisualScriptMVVM/Assets/Icons/new-folder.png"
+                                                    Width="14"
+                                                    Height="14"/>
+                                            </Button>
+                                        </StackPanel>
+                                    </DockPanel>
                                 </TreeDataTemplate>
                             </TreeView.ItemTemplate>
                         </TreeView>
@@ -194,7 +221,7 @@
                         <StackPanel Spacing="8" HorizontalAlignment="Stretch">
                             <Expander IsExpanded="True" Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1" HorizontalAlignment="Stretch">
                             <Expander.Header>
-                                <TextBlock Text="Images" FontSize="14" Foreground="#d6d6d6" Margin="8,6"/>
+                                <TextBlock Text="{Binding ImageResources.Count, StringFormat='Images ({0})'}" FontSize="14" Foreground="#d6d6d6" Margin="8,6"/>
                             </Expander.Header>
                             <ListBox ItemsSource="{Binding ImageResources}" Background="Transparent" BorderThickness="0">
                                 <ListBox.ItemTemplate>
@@ -203,7 +230,7 @@
                                             <ToolTip.Tip>
                                                 <Border Background="#1b1b1c" BorderBrush="#3c3c3c" BorderThickness="1" Padding="10" MaxWidth="420">
                                                     <StackPanel Spacing="8">
-                                                        <local:AnimatedImagePreview FilePath="{Binding FullPath}"
+                                                        <editCtrl:AnimatedImagePreview FilePath="{Binding FullPath}"
                                                                                     MaxWidth="360"
                                                                                     MaxHeight="220"
                                                                                     Stretch="Uniform"/>
@@ -227,7 +254,7 @@
 
                             <Expander IsExpanded="True" Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1" HorizontalAlignment="Stretch">
                             <Expander.Header>
-                                <TextBlock Text="Music and audio" FontSize="14" Foreground="#d6d6d6" Margin="8,6"/>
+                                <TextBlock Text="{Binding AudioResources.Count, StringFormat='Music and audio ({0})'}" FontSize="14" Foreground="#d6d6d6" Margin="8,6"/>
                             </Expander.Header>
                             <ListBox ItemsSource="{Binding AudioResources}" Background="Transparent" BorderThickness="0">
                                 <ListBox.ItemTemplate>
@@ -258,7 +285,7 @@
 
                             <Expander IsExpanded="True" Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1" HorizontalAlignment="Stretch">
                             <Expander.Header>
-                                <TextBlock Text="Video" FontSize="14" Foreground="#d6d6d6" Margin="8,6"/>
+                                <TextBlock Text="{Binding VideoResources.Count, StringFormat='Video ({0})'}" FontSize="14" Foreground="#d6d6d6" Margin="8,6"/>
                             </Expander.Header>
                             <ListBox ItemsSource="{Binding VideoResources}" Background="Transparent" BorderThickness="0">
                                 <ListBox.ItemTemplate>
@@ -267,7 +294,7 @@
                                             <ToolTip.Tip>
                                                 <Border Background="#1b1b1c" BorderBrush="#3c3c3c" BorderThickness="1" Padding="10" MaxWidth="480">
                                                     <StackPanel Spacing="8">
-                                                        <local:VideoThumbnailPreview FilePath="{Binding FullPath}"
+                                                        <editCtrl:VideoThumbnailPreview FilePath="{Binding FullPath}"
                                                                                      Width="400"
                                                                                      Height="225"/>
                                                         <TextBlock Text="{Binding Name}" Foreground="#d6d6d6"/>
@@ -283,6 +310,31 @@
                                                 <TextBlock Grid.Column="1" Text="{Binding Extension}" Foreground="#9cdcfe" VerticalAlignment="Center"/>
                                             </Grid>
                                         </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            </Expander>
+
+                            <Expander IsExpanded="True" Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1" HorizontalAlignment="Stretch">
+                            <Expander.Header>
+                                <TextBlock Text="{Binding FontResources.Count, StringFormat='Fonts ({0})'}" FontSize="14" Foreground="#d6d6d6" Margin="8,6"/>
+                            </Expander.Header>
+                            <ListBox ItemsSource="{Binding FontResources}" Background="Transparent" BorderThickness="0">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="models:ResourceFileItem">
+                                        <Grid ColumnDefinitions="*,Auto" Margin="8,4">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="{Binding Name}"/>
+                                                <Border Background="#202022" BorderBrush="#3c3c3c" BorderThickness="1" CornerRadius="4" Padding="8,6">
+                                                    <Image Source="{Binding FullPath, Converter={StaticResource FontPreviewConverter}}"
+                                                           Height="42"
+                                                           Stretch="Uniform"
+                                                           HorizontalAlignment="Left"/>
+                                                </Border>
+                                                <TextBlock Text="{Binding RelativePath}" Foreground="#808080" FontSize="11"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="{Binding Extension}" Foreground="#9cdcfe" VerticalAlignment="Center"/>
+                                        </Grid>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
@@ -318,7 +370,8 @@
                 <DataTemplate x:DataType="models:TabItemModel">
                     <local:AvaloniaEdit FilePath="{Binding FilePath}"
                                         TargetLine="{Binding TargetLine}"
-                                        NavigationRequestId="{Binding NavigationRequestId}"/>
+                                        NavigationRequestId="{Binding NavigationRequestId}"
+                                        ReloadRequestId="{Binding ReloadRequestId}"/>
                 </DataTemplate>
             </TabControl.ContentTemplate>
         </TabControl>

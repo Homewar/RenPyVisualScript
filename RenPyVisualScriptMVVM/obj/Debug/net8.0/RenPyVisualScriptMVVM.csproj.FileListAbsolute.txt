@@ -663,7 +663,6 @@ C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\MicroCom.Runtime.dll
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.dll
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
-C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\Microsoft.Win32.SystemEvents.dll
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\NAudio.dll
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\NAudio.Asio.dll
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\NAudio.Core.dll
@@ -680,8 +679,6 @@ C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\Splat.Microsoft.Extensions.DependencyInjection.dll
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\Svg.Custom.dll
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\Svg.Model.dll
-C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\System.Drawing.Common.dll
-C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\System.Private.Windows.Core.dll
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\System.IO.Abstractions.dll
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\System.IO.Pipelines.dll
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\System.Reactive.dll
@@ -711,7 +708,6 @@ C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\runtimes\win-arm64\native\Magick.Native-Q8-arm64.dll
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\runtimes\win-x64\native\Magick.Native-Q8-x64.dll
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\runtimes\win-x86\native\Magick.Native-Q8-x86.dll
-C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\runtimes\win\lib\net8.0\Microsoft.Win32.SystemEvents.dll
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\runtimes\linux-arm64\native\libonigwrap.so
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\runtimes\linux-bionic-arm64\native\libonigwrap.so
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\runtimes\linux-bionic-x64\native\libonigwrap.so
@@ -736,3 +732,7 @@ C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\obj\Debug\net8.0\RenPyVisualScriptMVVM.pdb
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\obj\Debug\net8.0\RenPyVisualScriptMVVM.genruntimeconfig.cache
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\obj\Debug\net8.0\ref\RenPyVisualScriptMVVM.dll
+C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\Microsoft.Win32.SystemEvents.dll
+C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\System.Drawing.Common.dll
+C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\System.Private.Windows.Core.dll
+C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\runtimes\win\lib\net8.0\Microsoft.Win32.SystemEvents.dll

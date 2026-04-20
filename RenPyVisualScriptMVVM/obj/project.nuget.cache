@@ -120,6 +120,30 @@
       ]
     },
     {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-5592-p365-24xh",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-5xg3-585r-9jh5",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
       "code": "NU1901",
       "level": "Warning",
       "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known low severity vulnerability, https://github.com/advisories/GHSA-6p22-q7w5-33pg",
@@ -146,6 +170,30 @@
     {
       "code": "NU1901",
       "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known low severity vulnerability, https://github.com/advisories/GHSA-8vfj-q2cp-5m5j",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-98cp-rj9f-6v5g",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1901",
+      "level": "Warning",
       "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known low severity vulnerability, https://github.com/advisories/GHSA-9r56-3gjq-hqf7",
       "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
       "warningLevel": 1,
@@ -159,6 +207,18 @@
       "code": "NU1902",
       "level": "Warning",
       "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-cr67-pvmx-2pp2",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-f4qm-vj5j-9xpw",
       "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
       "warningLevel": 1,
       "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
@@ -194,6 +254,18 @@
     {
       "code": "NU1902",
       "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-jvgr-9ph5-m8v4",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
       "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-mw3m-pqr2-qv7c",
       "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
       "warningLevel": 1,
@@ -206,7 +278,91 @@
     {
       "code": "NU1902",
       "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-pcvx-ph33-r5vv",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1901",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known low severity vulnerability, https://github.com/advisories/GHSA-pmpg-6pww-fg6q",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-pwg5-6jfc-crvh",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1901",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known low severity vulnerability, https://github.com/advisories/GHSA-q8h3-jv9v-57qx",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-r83h-crwp-3vm7",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
       "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-v67w-737x-v2c9",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1901",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known low severity vulnerability, https://github.com/advisories/GHSA-w54j-7wpm-crhj",
+      "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
+      "libraryId": "Magick.NET-Q8-AnyCPU",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1901",
+      "level": "Warning",
+      "message": "Package 'Magick.NET-Q8-AnyCPU' 14.10.4 has a known low severity vulnerability, https://github.com/advisories/GHSA-x928-4434-crqj",
       "projectPath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
       "warningLevel": 1,
       "filePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",

@@ -1,0 +1,156 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:RenPyVisualScriptMVVM.Modules.Editors.ViewModels"
+        xmlns:editConv="using:RenPyVisualScriptMVVM.Modules.Editors.Converters"
+        mc:Ignorable="d"
+        x:Class="RenPyVisualScriptMVVM.Modules.Editors.Views.CharacterCreateDialog"
+        x:DataType="vm:CharacterCreateDialogViewModel"
+        Title="Quick character creation"
+        Width="460"
+        Height="540"
+        MinWidth="420"
+        MinHeight="540"
+        MaxHeight="540"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#1e1e1e">
+
+  <Window.Resources>
+    <editConv:ImagePreviewConverter x:Key="ImagePreviewConverter"/>
+  </Window.Resources>
+
+  <Window.Styles>
+    <Style Selector="TextBox">
+      <Setter Property="Background" Value="#2d2d30"/>
+      <Setter Property="Foreground" Value="#f3f3f3"/>
+      <Setter Property="BorderBrush" Value="#3c3c3c"/>
+      <Setter Property="CaretBrush" Value="#f3f3f3"/>
+    </Style>
+    <Style Selector="ComboBox">
+      <Setter Property="Background" Value="#2d2d30"/>
+      <Setter Property="Foreground" Value="#f3f3f3"/>
+      <Setter Property="BorderBrush" Value="#3c3c3c"/>
+    </Style>
+    <Style Selector="ComboBoxItem">
+      <Setter Property="Background" Value="#2d2d30"/>
+      <Setter Property="Foreground" Value="#f3f3f3"/>
+    </Style>
+    
+    <!-- поля ввода-->
+    <!-- Обычное состояние (не в фокусе) -->
+    <Style Selector="TextBox /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="#252526" />
+        <Setter Property="BorderBrush" Value="#3C3C3C" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="TextElement.Foreground">
+        <Setter Property="Foreground" Value="#f3f3f3" />
+    </Style>
+    <!-- В фокусе (с текстом или без) -->
+    <Style Selector="TextBox:focus-within:focus /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="#2d2d30" />
+        <Setter Property="BorderBrush" Value="#007ACC" />
+        <Setter Property="BorderThickness" Value="2" />
+    </Style>
+
+    <!-- В фокусе + hover -->
+    <Style Selector="TextBox:focus-within:focus:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="#2d2d30" />
+        
+        <Setter Property="BorderBrush" Value="#0099FF" />
+    </Style>
+
+  </Window.Styles>
+
+  <Border Background="#1e1e1e">
+    <Grid Margin="16"
+          RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*"
+          RowSpacing="10">
+      <StackPanel Grid.Row="0" Spacing="4">
+        <TextBlock Text="Code name" Foreground="#b8b8b8"/>
+
+        <TextBox Text="{Binding CodeName, UpdateSourceTrigger=PropertyChanged}"
+                 Watermark="eileen" Foreground="#b8b8b8"/>
+      </StackPanel>
+
+      <StackPanel Grid.Row="1" Spacing="4">
+        <TextBlock Text="Display name" Foreground="#b8b8b8"/>
+        <TextBox Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}"
+                 Watermark="Eileen" Foreground="#b8b8b8"/>
+      </StackPanel>
+
+      <StackPanel Grid.Row="2" Spacing="4">
+        <TextBlock Text="Color" Foreground="#b8b8b8"/>
+        <TextBox Text="{Binding Color}"
+                 Watermark="#b8b8b8" Foreground="#b8b8b8"/>
+      </StackPanel>
+
+      <StackPanel Grid.Row="3" Spacing="4">
+        <TextBlock Text="Image source" Foreground="#b8b8b8"/>
+        <ToggleSwitch IsChecked="{Binding IsPcImageMode}"
+                      OnContent="From PC"
+                      OffContent="From project"
+                      Foreground="#b8b8b8"
+                      />
+      </StackPanel>
+
+      <StackPanel Grid.Row="4" Spacing="4"
+                  IsVisible="{Binding IsProjectImageMode}">
+        <TextBlock Text="Project image (optional)" Foreground="#b8b8b8"/>
+        <ComboBox ItemsSource="{Binding ImageOptions}"
+                  SelectedItem="{Binding SelectedImage}"/>
+      </StackPanel>
+
+      <StackPanel Grid.Row="4" Spacing="4"
+                  IsVisible="{Binding IsPcImageMode}">
+        <TextBlock Text="Choose file from PC" Foreground="#b8b8b8"/>
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+          <TextBox Grid.Column="0"
+                   Text="{Binding LocalImagePath}"
+                   Watermark="No local file selected"
+                   IsReadOnly="True"/>
+          <Button Grid.Column="1"
+                  Content="Browse"
+                  Click="BrowseImage_OnClick"
+                  Background="#252526"
+                  Foreground="#f3f3f3"
+                  BorderBrush="#3c3c3c"/>
+        </Grid>
+      </StackPanel>
+
+      <StackPanel Grid.Row="5" Spacing="4">
+        <TextBlock Text="Preview" Foreground="#b8b8b8"/>
+        <Border Background="#202022"
+                BorderBrush="#3c3c3c"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="8"
+                Height="120">
+          <Image Source="{Binding PreviewImagePath, Converter={StaticResource ImagePreviewConverter}}"
+                 Stretch="Uniform"/>
+        </Border>
+      </StackPanel>
+
+      <StackPanel Grid.Row="6"
+                  Orientation="Horizontal"
+                  Spacing="8"
+                  HorizontalAlignment="Right"
+                  VerticalAlignment="Bottom">
+        <Button Content="Cancel"
+                Command="{Binding CancelCmd}"
+                Width="90"
+                Background="#252526"
+                Foreground="#f3f3f3"
+                BorderBrush="#3c3c3c"/>
+        <Button Content="Create"
+                Command="{Binding CreateCmd}"
+                Width="90"
+                Background="#ea592a"
+                Foreground="#f3f3f3"
+                BorderBrush="#ea592a"/>
+      </StackPanel>
+    </Grid>
+  </Border>
+</Window>

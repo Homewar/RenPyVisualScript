@@ -1,27 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace RenPyVisualScriptMVVM.Modules.Projects.Models
+namespace RenPyVisualScriptMVVM.Modules.Projects.Models;
+
+public sealed class FileNode
 {
-    public sealed class FileNode
-    {
-        public string Name { get; }
-        public string FullPath { get; }
-        public ObservableCollection<FileNode> Children { get; }
-        public bool IsDirectory => Directory.Exists(FullPath);
-        public bool IsRoot { get; }
+    public string Name { get; private set; }
+    public string FullPath { get; private set; }
+    public ObservableCollection<FileNode> Children { get; } = new();
+    public bool IsDirectory => Directory.Exists(FullPath);
+    public bool IsRoot { get; }
+    public FileNode? Parent { get; }
 
-        public FileNode(string path, bool isRoot = false)
-        {
-            FullPath = path;
-            Name = string.IsNullOrWhiteSpace(Path.GetFileName(path)) ? path : Path.GetFileName(path);
-            Children = new ObservableCollection<FileNode>();
-            IsRoot = isRoot;
-        }
+    public FileNode(string path, FileNode? parent = null, bool isRoot = false)
+    {
+        FullPath = path;
+        Name = string.IsNullOrWhiteSpace(Path.GetFileName(path)) ? path : Path.GetFileName(path);
+        Parent = parent;
+        IsRoot = isRoot;
+    }
+
+    public void UpdatePath(string newPath)
+    {
+        FullPath = newPath;
+        Name = string.IsNullOrWhiteSpace(Path.GetFileName(newPath)) ? newPath : Path.GetFileName(newPath);
     }
 }

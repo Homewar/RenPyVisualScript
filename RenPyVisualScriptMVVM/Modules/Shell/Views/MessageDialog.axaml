@@ -1,22 +1,30 @@
-﻿<Window xmlns="https://github.com/avaloniaui"
+<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:RenPyVisualScriptMVVM.Modules.Shell.ViewModels"
         x:Class="RenPyVisualScriptMVVM.Modules.Shell.Views.MessageDialog"
         x:DataType="vm:MessageDialogViewModel"
-        Width="520" Height="320"
-        CanResize="False"
+        Width="760"
+        Height="460"
+        MinWidth="640"
+        MinHeight="360"
         Background="#1e1e1e"
         Title="{Binding Title}">
 
   <Grid RowDefinitions="*,Auto" Margin="16" RowSpacing="12">
 
     <ScrollViewer Grid.Row="0">
-      <TextBlock Text="{Binding Message}"
-                 Foreground="White"
-                 TextWrapping="Wrap" />
+      <TextBox x:Name="MessageTextBox"
+               Text="{Binding Message}"
+               IsReadOnly="True"
+               AcceptsReturn="True"
+               TextWrapping="Wrap"
+               Foreground="White"
+               Background="#252526"
+               BorderBrush="#3c3c3c" />
     </ScrollViewer>
 
     <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+      <Button Content="Copy" Click="Copy_OnClick" />
       <Button Content="OK" Command="{Binding OkCmd}" />
     </StackPanel>
 

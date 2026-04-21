@@ -8,8 +8,19 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Models
 {
     public sealed class TabItemModel : ObservableObject
     {
-        public string Header { get; }
-        public string FilePath { get; }
+        private string _header;
+        public string Header
+        {
+            get => _header;
+            private set => SetProperty(ref _header, value);
+        }
+
+        private string _filePath;
+        public string FilePath
+        {
+            get => _filePath;
+            private set => SetProperty(ref _filePath, value);
+        }
 
         private string _scriptText = string.Empty;
         public string ScriptText
@@ -59,9 +70,15 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Models
 
         public TabItemModel(string header, string filePath, Action<TabItemModel> closeAction)
         {
+            _header = header;
+            _filePath = filePath;
+            CloseCommand = new RelayCommand(() => closeAction(this));
+        }
+
+        public void UpdateFileIdentity(string header, string filePath)
+        {
             Header = header;
             FilePath = filePath;
-            CloseCommand = new RelayCommand(() => closeAction(this));
         }
 
         public void RequestNavigation(int? line)

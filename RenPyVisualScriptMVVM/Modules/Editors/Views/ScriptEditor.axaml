@@ -13,10 +13,24 @@
         x:Class="RenPyVisualScriptMVVM.Modules.Editors.Views.ScriptEditor"
         x:DataType="vm:ScriptEditorViewModel"
         RequestedThemeVariant="Dark"
-        Background="#1e1e1e"
+        Background="{StaticResource EditorBackgroundBrush}"
         Title="{Binding ProjectName}">
 
     <Window.Resources>
+        <SolidColorBrush x:Key="EditorBackgroundBrush" Color="#1e1e1e"/>
+        <SolidColorBrush x:Key="ActivityBarBackgroundBrush" Color="#181818"/>
+        <SolidColorBrush x:Key="PanelBackgroundBrush" Color="#252526"/>
+        <SolidColorBrush x:Key="PanelRaisedBrush" Color="#2d2d30"/>
+        <SolidColorBrush x:Key="PreviewBackgroundBrush" Color="#1b1b1c"/>
+        <SolidColorBrush x:Key="PreviewSurfaceBrush" Color="#202022"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#3c3c3c"/>
+        <SolidColorBrush x:Key="SubtleBorderBrush" Color="#2a2a2a"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#ea592a"/>
+        <SolidColorBrush x:Key="PrimaryTextBrush" Color="#d6d6d6"/>
+        <SolidColorBrush x:Key="SecondaryTextBrush" Color="#8f8f8f"/>
+        <SolidColorBrush x:Key="MutedTextBrush" Color="#b8b8b8"/>
+        <SolidColorBrush x:Key="IconTextBrush" Color="#d0d0d0"/>
+        <SolidColorBrush x:Key="InfoTextBrush" Color="#9cdcfe"/>
         <conv:StringToBrushConverter x:Key="StrToBrush"/>
         <editConv:ImagePreviewConverter x:Key="ImagePreviewConverter"/>
         <editConv:VideoPreviewConverter x:Key="VideoPreviewConverter"/>
@@ -25,17 +39,18 @@
 
     <Grid ShowGridLines="False">
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="52"/>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto" MinWidth="320" />
+            <ColumnDefinition Width="360" MinWidth="320" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Border BorderBrush="#ea592a" BorderThickness="0,0,0,2" Grid.Row="0">
-            <StackPanel Orientation="Horizontal" Grid.Column="0">
+        <Border BorderBrush="{StaticResource AccentBrush}" BorderThickness="0,0,0,2" Grid.Row="0" Grid.Column="1">
+            <StackPanel Orientation="Horizontal">
                 <DockPanel>
                     <Menu DockPanel.Dock="Top">
                         <MenuItem Header="File">
@@ -56,23 +71,76 @@
             </StackPanel>
         </Border>
 
-        <Border BorderBrush="#ea592a" BorderThickness="0,0,0,2" Grid.Column="2">
-            <StackPanel Orientation="Horizontal" Grid.Column="2" HorizontalAlignment="Right">
-                <TextBlock Text="{Binding StartPointText}" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#d6d6d6"/>
-                <Button Content="{Binding RunButtonText}" Command="{Binding RunProjectCmd}" Margin="0,0,6,0"/>
-                <Button Content="Graph" Command="{Binding OpenGraphCmd}" Margin="0,0,6,0"/>
+        <Border Grid.Row="0" Grid.Column="3" BorderBrush="{StaticResource AccentBrush}" BorderThickness="0,0,0,2">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <TextBlock Text="{Binding StartPointText}" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="{StaticResource PrimaryTextBrush}"/>
             </StackPanel>
         </Border>
 
-        <GridSplitter Grid.Row="1" Grid.Column="1" ResizeDirection="Columns"
-                      Margin="0,-1,3,0" ResizeBehavior="PreviousAndNext"
-                      Background="#EA592A"/>
+        <Border Grid.Row="1"
+                Grid.Column="0"
+                Background="{StaticResource ActivityBarBackgroundBrush}"
+                BorderBrush="{StaticResource SubtleBorderBrush}"
+                BorderThickness="0,0,1,0">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        Margin="0,10,0,0"
+                        Spacing="8">
+                <Button Width="36"
+                        Height="36"
+                        Padding="0"
+                        Background="Transparent"
+                        BorderBrush="Transparent"
+                        Command="{Binding RunProjectCmd}"
+                        ToolTip.Tip="{Binding RunButtonText}">
+                    <Grid Width="26" Height="26">
+                        <Image x:Name="RunActivityIcon"
+                               Width="26"
+                               Height="26"
+                               IsVisible="False"/>
+                        <TextBlock x:Name="RunActivityFallback"
+                                   Text="▶"
+                                   FontSize="22"
+                                   Foreground="{StaticResource IconTextBrush}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+                </Button>
+                <Button Width="36"
+                        Height="36"
+                        Padding="0"
+                        Background="Transparent"
+                        BorderBrush="Transparent"
+                        Command="{Binding OpenGraphCmd}"
+                        ToolTip.Tip="Open Graph">
+                    <Grid Width="26" Height="26">
+                        <Image x:Name="GraphActivityIcon"
+                               Width="26"
+                               Height="26"
+                               IsVisible="False"
+                               Source="avares://RenPyVisualScriptMVVM/Assets/Icons/graph_editor.png"
+                               />
+                        <TextBlock x:Name="GraphActivityFallback"
+                                   Text="◫"
+                                   FontSize="21"
+                                   Foreground="{StaticResource IconTextBrush}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+                </Button>
+            </StackPanel>
+        </Border>
 
-        <Grid Grid.Row="1" Grid.Column="2">
+        <GridSplitter Grid.Row="1" Grid.Column="2" ResizeDirection="Columns"
+                      Margin="0,-1,3,0" ResizeBehavior="PreviousAndNext"
+                      Background="{StaticResource AccentBrush}"/>
+
+        <Grid Grid.Row="1" Grid.Column="3">
             <TabControl>
-                <TabItem Header="source">
+                <TabItem Header="source" FontSize="16">
                     <Grid Margin="0">
-                        <ScrollViewer Margin="0,8,0,0">
+                        <ScrollViewer Margin="0,8,0,0"
+                                      Padding="0,0,12,0">
                             <StackPanel Spacing="8" HorizontalAlignment="Stretch">
                                 <Expander IsExpanded="True" Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1" HorizontalAlignment="Stretch">
                                 <Expander.Header>
@@ -93,12 +161,12 @@
                                                         Background="{Binding Color, Converter={StaticResource StrToBrush}}"
                                                         VerticalAlignment="Center"/>
                                                 <StackPanel Grid.Column="1" Margin="8,0,0,0">
-                                                    <TextBlock Text="{Binding Name}"/>
-                                                    <TextBlock Text="{Binding InGameName}" Foreground="#9cdcfe" FontSize="11"/>
+                                                    <TextBlock Text="{Binding Name}" FontSize="14"/>
+                                                    <TextBlock Text="{Binding InGameName}" Foreground="#9cdcfe" FontSize="12"/>
                                                 </StackPanel>
                                                 <StackPanel Grid.Column="2" HorizontalAlignment="Right">
-                                                    <TextBlock Text="{Binding Color}" Foreground="#808080" HorizontalAlignment="Right"/>
-                                                    <TextBlock Text="{Binding Line, StringFormat='{}line {0}'}" Foreground="#808080" FontSize="11" HorizontalAlignment="Right"/>
+                                                    <TextBlock Text="{Binding Color}" Foreground="#808080" HorizontalAlignment="Right" FontSize="12"/>
+                                                    <TextBlock Text="{Binding Line, StringFormat='{}line {0}'}" Foreground="#808080" FontSize="12" HorizontalAlignment="Right"/>
                                                 </StackPanel>
                                             </Grid>
                                         </DataTemplate>
@@ -115,12 +183,12 @@
                                         <DataTemplate x:DataType="models:LabelOutlineItem">
                                             <Grid ColumnDefinitions="*,Auto" Margin="8,4">
                                                 <StackPanel>
-                                                    <TextBlock Text="{Binding Name}"/>
-                                                    <TextBlock Text="{Binding FilePath}" Foreground="#808080" FontSize="11"/>
+                                                    <TextBlock Text="{Binding Name}" FontSize="14"/>
+                                                    <TextBlock Text="{Binding FilePath}" Foreground="#808080" FontSize="12"/>
                                                 </StackPanel>
                                                 <StackPanel Grid.Column="1" HorizontalAlignment="Right">
-                                                    <TextBlock Text="{Binding StatementCount, StringFormat='{}{0} stmts'}" HorizontalAlignment="Right"/>
-                                                    <TextBlock Text="{Binding Line, StringFormat='{}line {0}'}" Foreground="#808080" FontSize="11" HorizontalAlignment="Right"/>
+                                                    <TextBlock Text="{Binding StatementCount, StringFormat='{}{0} stmts'}" HorizontalAlignment="Right" FontSize="12"/>
+                                                    <TextBlock Text="{Binding Line, StringFormat='{}line {0}'}" Foreground="#808080" FontSize="12" HorizontalAlignment="Right"/>
                                                 </StackPanel>
                                             </Grid>
                                         </DataTemplate>
@@ -141,13 +209,13 @@
                                                         <TextBlock Text="{Binding Kind}" FontSize="11"/>
                                                     </Border>
                                                     <StackPanel Grid.Column="1" Margin="8,0,0,0">
-                                                        <TextBlock Text="{Binding Description}"/>
-                                                        <TextBlock Text="{Binding Source, StringFormat='{}from {0}'}" Foreground="#9cdcfe" FontSize="11"/>
-                                                        <TextBlock Text="{Binding Target, StringFormat='{}target {0}'}" Foreground="#808080" FontSize="11" IsVisible="{Binding ShowTarget}"/>
+                                                        <TextBlock Text="{Binding Description}" FontSize="14"/>
+                                                        <TextBlock Text="{Binding Source, StringFormat='{}from {0}'}" Foreground="#9cdcfe" FontSize="12"/>
+                                                        <TextBlock Text="{Binding Target, StringFormat='{}target {0}'}" Foreground="#808080" FontSize="12" IsVisible="{Binding ShowTarget}"/>
                                                     </StackPanel>
                                                     <StackPanel Grid.Column="2" HorizontalAlignment="Right">
-                                                        <TextBlock Text="{Binding FileName}" Foreground="#808080" FontSize="11" HorizontalAlignment="Right"/>
-                                                        <TextBlock Text="{Binding Line, StringFormat='{}line {0}'}" Foreground="#808080" FontSize="11" HorizontalAlignment="Right"/>
+                                                        <TextBlock Text="{Binding FileName}" Foreground="#808080" FontSize="12" HorizontalAlignment="Right"/>
+                                                        <TextBlock Text="{Binding Line, StringFormat='{}line {0}'}" Foreground="#808080" FontSize="12" HorizontalAlignment="Right"/>
                                                     </StackPanel>
 
                                                     <ItemsControl Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,8,0,0" ItemsSource="{Binding Choices}" IsVisible="{Binding IsMenuGroup}">
@@ -156,10 +224,10 @@
                                                                 <Border Margin="0,4,0,0" Padding="8,6" Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1" CornerRadius="4" DoubleTapped="TransitionChoice_OnDoubleTapped">
                                                                     <Grid ColumnDefinitions="*,Auto">
                                                                         <StackPanel>
-                                                                            <TextBlock Text="{Binding Description}" />
-                                                                            <TextBlock Text="{Binding Target, StringFormat='{}target {0}'}" Foreground="#808080" FontSize="11"/>
+                                                                            <TextBlock Text="{Binding Description}" FontSize="14"/>
+                                                                            <TextBlock Text="{Binding Target, StringFormat='{}target {0}'}" Foreground="#808080" FontSize="12"/>
                                                                         </StackPanel>
-                                                                        <TextBlock Grid.Column="1" Text="{Binding Line, StringFormat='{}line {0}'}" Foreground="#808080" FontSize="11" VerticalAlignment="Center"/>
+                                                                        <TextBlock Grid.Column="1" Text="{Binding Line, StringFormat='{}line {0}'}" Foreground="#808080" FontSize="12" VerticalAlignment="Center"/>
                                                                     </Grid>
                                                                 </Border>
                                                             </DataTemplate>
@@ -175,49 +243,54 @@
                         </ScrollViewer>
                     </Grid>
                 </TabItem>
-                <TabItem Header="files">
+                <TabItem Header="files" FontSize="16">
                     <Grid>
-                        <TreeView ItemsSource="{Binding FileTreeNodes}" Margin="10" SelectedItem="{Binding SelectedFileNode,Mode=TwoWay}">
+                        <TreeView ItemsSource="{Binding FileTreeNodes}"
+                                  Margin="10,10,18,10"
+                                  SelectedItem="{Binding SelectedFileNode,Mode=TwoWay}"
+                                  KeyDown="FileTree_OnKeyDown">
+                            <TreeView.Styles>
+                                <Style Selector="TreeViewItem /template/ ToggleButton#PART_ExpandCollapseChevron">
+                                    <Setter Property="Width" Value="10"/>
+                                    <Setter Property="Height" Value="10"/>
+                                    <Setter Property="Margin" Value="0,0,2,0"/>
+                                </Style>
+                            </TreeView.Styles>
                             <TreeView.ItemTemplate>
                                 <TreeDataTemplate ItemsSource="{Binding Children}">
-                                    <DockPanel LastChildFill="False">
-                                        <TextBlock Text="{Binding Name}"
-                                                   VerticalAlignment="Center"
-                                                   Margin="0,0,6,0"/>
-                                        <StackPanel DockPanel.Dock="Right"
-                                                    Orientation="Horizontal"
-                                                    Spacing="4"
-                                                    IsVisible="{Binding IsRoot}">
-                                            <Button Click="CreateFile_OnClick"
-                                                    Width="24"
-                                                    Height="22"
-                                                    Padding="0"
-                                                    ToolTip.Tip="New File"
-                                                    Background="Transparent">
-                                                <Image Source="avares://RenPyVisualScriptMVVM/Assets/Icons/new-file.png"
-                                                    Width="12"
-                                                    Height="12"
-                                                    />
-                                            </Button>
-                                            <Button Click="CreateFolder_OnClick"
-                                                    Width="24"
-                                                    Height="22"
-                                                    Padding="0"
-                                                    ToolTip.Tip="New Folder"
-                                                    Background="Transparent">
-                                                <Image Source="avares://RenPyVisualScriptMVVM/Assets/Icons/new-folder.png"
-                                                    Width="14"
-                                                    Height="14"/>
-                                            </Button>
-                                        </StackPanel>
-                                    </DockPanel>
+                                    <Border Background="Transparent"
+                                            HorizontalAlignment="Stretch"
+                                            Padding="4,2"
+                                            PointerPressed="FileNode_OnPointerPressed"
+                                            PointerMoved="FileNode_OnPointerMoved"
+                                            DragDrop.AllowDrop="True"
+                                            DragDrop.DragOver="FileNode_OnDragOver"
+                                            DragDrop.Drop="FileNode_OnDrop">
+                                        <Border.ContextMenu>
+                                            <ContextMenu Opened="FileNodeContextMenu_OnOpened">
+                                                <MenuItem Header="New File" Click="CreateFile_OnClick"/>
+                                                <MenuItem Header="New Folder" Click="CreateFolder_OnClick"/>
+                                                <MenuItem Header="Rename" Click="RenameFile_OnClick"/>
+                                                <MenuItem Header="Delete" Click="DeleteFile_OnClick"/>
+                                            </ContextMenu>
+                                        </Border.ContextMenu>
+                                        <Grid ColumnDefinitions="*,Auto"
+                                              HorizontalAlignment="Stretch">
+                                            <TextBlock Text="{Binding Name}"
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,0,6,0"
+                                                       Foreground="#b8b8b8"
+                                                       FontSize="13"/>
+                                        </Grid>
+                                    </Border>
                                 </TreeDataTemplate>
                             </TreeView.ItemTemplate>
                         </TreeView>
                     </Grid>
                 </TabItem>
-                <TabItem Header="resources">
-                    <ScrollViewer Margin="0,8,0,0">
+                <TabItem Header="resources" FontSize="16">
+                    <ScrollViewer Margin="0,8,0,0"
+                                  Padding="0,0,12,0">
                         <StackPanel Spacing="8" HorizontalAlignment="Stretch">
                             <Expander IsExpanded="True" Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1" HorizontalAlignment="Stretch">
                             <Expander.Header>
@@ -241,10 +314,10 @@
                                             </ToolTip.Tip>
                                             <Grid ColumnDefinitions="*,Auto">
                                                 <StackPanel>
-                                                    <TextBlock Text="{Binding Name}"/>
-                                                    <TextBlock Text="{Binding RelativePath}" Foreground="#808080" FontSize="11"/>
+                                                    <TextBlock Text="{Binding Name}" FontSize="14"/>
+                                                    <TextBlock Text="{Binding RelativePath}" Foreground="#808080" FontSize="12"/>
                                                 </StackPanel>
-                                                <TextBlock Grid.Column="1" Text="{Binding Extension}" Foreground="#9cdcfe" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Extension}" Foreground="#9cdcfe" VerticalAlignment="Center" FontSize="12"/>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>
@@ -261,10 +334,10 @@
                                     <DataTemplate x:DataType="models:ResourceFileItem">
                                             <Grid ColumnDefinitions="*,Auto,Auto" Margin="8,4">
                                                 <StackPanel>
-                                                    <TextBlock Text="{Binding Name}"/>
-                                                    <TextBlock Text="{Binding RelativePath}" Foreground="#808080" FontSize="11"/>
+                                                    <TextBlock Text="{Binding Name}" FontSize="14"/>
+                                                    <TextBlock Text="{Binding RelativePath}" Foreground="#808080" FontSize="12"/>
                                                 </StackPanel>
-                                                <TextBlock Grid.Column="1" Text="{Binding Extension}" Foreground="#9cdcfe" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Extension}" Foreground="#9cdcfe" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="12"/>
                                                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6">
                                                 <Button Content="▶"
                                                         Click="AudioPlay_OnClick"
@@ -304,10 +377,10 @@
                                             </ToolTip.Tip>
                                             <Grid ColumnDefinitions="*,Auto" Margin="0">
                                                 <StackPanel>
-                                                    <TextBlock Text="{Binding Name}"/>
-                                                    <TextBlock Text="{Binding RelativePath}" Foreground="#808080" FontSize="11"/>
+                                                    <TextBlock Text="{Binding Name}" FontSize="14"/>
+                                                    <TextBlock Text="{Binding RelativePath}" Foreground="#808080" FontSize="12"/>
                                                 </StackPanel>
-                                                <TextBlock Grid.Column="1" Text="{Binding Extension}" Foreground="#9cdcfe" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Extension}" Foreground="#9cdcfe" VerticalAlignment="Center" FontSize="12"/>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>
@@ -324,16 +397,16 @@
                                     <DataTemplate x:DataType="models:ResourceFileItem">
                                         <Grid ColumnDefinitions="*,Auto" Margin="8,4">
                                             <StackPanel Spacing="4">
-                                                <TextBlock Text="{Binding Name}"/>
+                                                <TextBlock Text="{Binding Name}" FontSize="14"/>
                                                 <Border Background="#202022" BorderBrush="#3c3c3c" BorderThickness="1" CornerRadius="4" Padding="8,6">
                                                     <Image Source="{Binding FullPath, Converter={StaticResource FontPreviewConverter}}"
                                                            Height="42"
                                                            Stretch="Uniform"
                                                            HorizontalAlignment="Left"/>
                                                 </Border>
-                                                <TextBlock Text="{Binding RelativePath}" Foreground="#808080" FontSize="11"/>
+                                                <TextBlock Text="{Binding RelativePath}" Foreground="#808080" FontSize="12"/>
                                             </StackPanel>
-                                            <TextBlock Grid.Column="1" Text="{Binding Extension}" Foreground="#9cdcfe" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Extension}" Foreground="#9cdcfe" VerticalAlignment="Center" FontSize="12"/>
                                         </Grid>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
@@ -345,7 +418,7 @@
             </TabControl>
         </Grid>
 
-        <TabControl Grid.Row="1" Grid.Column="0"
+        <TabControl Grid.Row="1" Grid.Column="1"
                     ItemsSource="{Binding Tabs}"
                     SelectedItem="{Binding SelectedTab, Mode=TwoWay}">
 

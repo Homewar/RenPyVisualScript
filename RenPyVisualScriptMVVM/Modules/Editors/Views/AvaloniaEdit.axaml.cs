@@ -339,6 +339,7 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
 
             textEditor.TextArea.TextEntering += TextArea_TextEntering;
             textEditor.TextArea.TextEntered += TextArea_TextEntered;
+            textEditor.PointerPressed += TextEditor_PointerPressed;
         }
 
         private void OnDataContextChanged(object? sender, EventArgs e)
@@ -498,6 +499,16 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
             e.Handled = true;
         }
 
+        private void TextEditor_PointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            var currentPoint = e.GetCurrentPoint(textEditor);
+            if (!currentPoint.Properties.IsRightButtonPressed)
+                return;
+
+            ShowTextFormattingContextMenu();
+            e.Handled = true;
+        }
+
         private int GetLineFromGutterPoint(double y)
         {
             if (textEditor.Document is null || textEditor.Document.LineCount == 0)
@@ -556,6 +567,64 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
                 ItemsSource = new object[] { infoItem, toggleItem, clearItem }
             };
             contextMenu.Open(textEditor);
+        }
+
+        private void ShowTextFormattingContextMenu()
+        {
+            var hasSelection = textEditor.SelectionLength > 0;
+
+            var formattingMenu = new MenuItem
+            {
+                Header = "Wrap with Ren'Py tag",
+                ItemsSource = new object[]
+                {
+                    CreateWrapMenuItem("Bold", "{b}", "{/b}", hasSelection),
+                    CreateWrapMenuItem("Italic", "{i}", "{/i}", hasSelection),
+                    CreateWrapMenuItem("Underline", "{u}", "{/u}", hasSelection),
+                    CreateWrapMenuItem("Strike", "{s}", "{/s}", hasSelection),
+                    CreateWrapMenuItem("No-wrap", "{nw}", "", hasSelection),
+                    CreateWrapMenuItem("Wait", "{w}", "", hasSelection),
+                    CreateWrapMenuItem("Fast", "{fast}", "", hasSelection),
+                    CreateWrapMenuItem("Color", "{color=#ffffff}", "{/color}", hasSelection),
+                    CreateWrapMenuItem("Size", "{size=+10}", "{/size}", hasSelection),
+                    CreateWrapMenuItem("Font", "{font=your_font.ttf}", "{/font}", hasSelection)
+                }
+            };
+
+            var contextMenu = new ContextMenu
+            {
+                ItemsSource = new object[] { formattingMenu }
+            };
+            contextMenu.Open(textEditor);
+        }
+
+        private MenuItem CreateWrapMenuItem(string header, string prefix, string suffix, bool isEnabled)
+        {
+            var item = new MenuItem
+            {
+                Header = header,
+                IsEnabled = isEnabled
+            };
+
+            item.Click += (_, _) => WrapSelection(prefix, suffix);
+            return item;
+        }
+
+        private void WrapSelection(string prefix, string suffix)
+        {
+            if (textEditor.Document is null || textEditor.SelectionLength <= 0)
+                return;
+
+            var start = textEditor.SelectionStart;
+            var length = textEditor.SelectionLength;
+            var selectedText = textEditor.Text.Substring(start, length);
+            var wrappedText = prefix + selectedText + suffix;
+
+            textEditor.Document.Replace(start, length, wrappedText);
+            textEditor.SelectionStart = start;
+            textEditor.SelectionLength = wrappedText.Length;
+            textEditor.TextArea.Caret.Offset = start + wrappedText.Length;
+            textEditor.Focus();
         }
 
         private void TryToggleStartPoint(TabItemModel tab, int line)

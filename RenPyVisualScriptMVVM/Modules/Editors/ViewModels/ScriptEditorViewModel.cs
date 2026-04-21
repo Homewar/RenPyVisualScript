@@ -136,7 +136,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         _editorNavigation = editorNavigation;
         _loc = loc ?? Locator.Current;
 
-        FileTreeVm = new FileTreeViewModel(_ctx);
+        FileTreeVm = new FileTreeViewModel(_ctx, _ide.ShowSystemResources);
 
         SaveCmd = new RelayCommand(SaveProject);
         ShowProjectSetCmd = new RelayCommand(OpenProjectSettings);
@@ -145,7 +145,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         RunProjectCmd = new RelayCommand(RunProject);
         RunFromHereCmd = new RelayCommand(RunFromHere);
         OpenGraphCmd = new RelayCommand(OpenGraphWindow);
-        RefreshStructureCmd = new RelayCommand(RefreshStructure);
+        RefreshStructureCmd = new RelayCommand(() => RefreshStructure());
 
         _ctx.PropertyChanged += OnProjectContextChanged;
         _ide.PropertyChanged += OnIdeSettingsChanged;
@@ -180,9 +180,14 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         }
     }
 
-    private void RefreshStructure()
+    private void RefreshStructure(bool refreshFileTree = true)
     {
-        FileTreeVm.Refresh();
+        if (refreshFileTree)
+        {
+            FileTreeVm.ShowSystemResources = _ide.ShowSystemResources;
+            FileTreeVm.Refresh();
+        }
+
         CharacterList.Clear();
         LabelList.Clear();
         StructureLinks.Clear();
@@ -419,7 +424,9 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         {
         }
 
-        RefreshStructure();
+        var createdNode = FileTreeVm.AddPath(targetPath);
+        RefreshStructure(refreshFileTree: false);
+        SelectedFileNode = createdNode;
         NavigateToFile(targetPath);
         return targetPath;
     }
@@ -442,7 +449,144 @@ public sealed class ScriptEditorViewModel : BaseViewModel
             throw new InvalidOperationException($"'{trimmedName}' already exists.");
 
         Directory.CreateDirectory(targetPath);
-        RefreshStructure();
+        var createdNode = FileTreeVm.AddPath(targetPath);
+        RefreshStructure(refreshFileTree: false);
+        SelectedFileNode = createdNode;
+        return targetPath;
+    }
+
+    public void DeleteFileSystemEntry(FileNode? selectedNode)
+    {
+        if (selectedNode is null)
+            throw new InvalidOperationException("Nothing is selected.");
+
+        if (selectedNode.IsRoot)
+            throw new InvalidOperationException("Root project folder cannot be deleted.");
+
+        if (selectedNode.IsDirectory)
+        {
+            if (Directory.Exists(selectedNode.FullPath))
+                Directory.Delete(selectedNode.FullPath, recursive: true);
+        }
+        else
+        {
+            if (File.Exists(selectedNode.FullPath))
+                File.Delete(selectedNode.FullPath);
+        }
+
+        var openTab = Tabs.FirstOrDefault(t =>
+            string.Equals(Path.GetFullPath(t.FilePath), Path.GetFullPath(selectedNode.FullPath), StringComparison.OrdinalIgnoreCase));
+
+        if (openTab is not null)
+            Tabs.Remove(openTab);
+
+        FileTreeVm.RemovePath(selectedNode.FullPath);
+        SelectedFileNode = selectedNode.Parent;
+        RefreshStructure(refreshFileTree: false);
+    }
+
+    public string RenameFileSystemEntry(FileNode? selectedNode, string newName)
+    {
+        if (selectedNode is null)
+            throw new InvalidOperationException("Nothing is selected.");
+
+        if (selectedNode.IsRoot)
+            throw new InvalidOperationException("Root project folder cannot be renamed.");
+
+        var trimmedName = newName.Trim();
+        if (string.IsNullOrWhiteSpace(trimmedName))
+            throw new InvalidOperationException("Name cannot be empty.");
+
+        if (trimmedName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            throw new InvalidOperationException("Name contains invalid characters.");
+
+        var currentPath = Path.GetFullPath(selectedNode.FullPath);
+        var parentDirectory = Path.GetDirectoryName(currentPath);
+        if (string.IsNullOrWhiteSpace(parentDirectory))
+            throw new InvalidOperationException("Parent directory was not found.");
+
+        var targetPath = Path.Combine(parentDirectory, trimmedName);
+        if (string.Equals(currentPath, targetPath, StringComparison.OrdinalIgnoreCase))
+            return currentPath;
+
+        if (File.Exists(targetPath) || Directory.Exists(targetPath))
+            throw new InvalidOperationException($"'{trimmedName}' already exists.");
+
+        if (selectedNode.IsDirectory)
+            Directory.Move(currentPath, targetPath);
+        else
+            File.Move(currentPath, targetPath);
+
+        UpdateOpenTabsAfterRename(currentPath, targetPath, selectedNode.IsDirectory);
+        var renamedNode = FileTreeVm.RenamePath(currentPath, targetPath);
+        RefreshStructure(refreshFileTree: false);
+        SelectedFileNode = renamedNode;
+        NavigateToFile(targetPath);
+        return targetPath;
+    }
+
+    public bool CanMoveFileSystemEntry(string sourcePath, FileNode? targetNode)
+    {
+        if (targetNode is null || string.IsNullOrWhiteSpace(sourcePath))
+            return false;
+
+        var sourceNode = FileTreeVm.FindNode(sourcePath);
+        if (sourceNode is null || sourceNode.IsRoot)
+            return false;
+
+        var sourceFullPath = Path.GetFullPath(sourceNode.FullPath);
+        var targetDirectory = ResolveMoveTargetDirectory(targetNode);
+        if (string.IsNullOrWhiteSpace(targetDirectory))
+            return false;
+
+        var targetFullDirectory = Path.GetFullPath(targetDirectory);
+        var sourceParent = Path.GetDirectoryName(sourceFullPath);
+        if (string.Equals(sourceParent, targetFullDirectory, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (sourceNode.IsDirectory && IsSameOrDescendantPath(sourceFullPath, targetFullDirectory))
+            return false;
+
+        var targetPath = Path.Combine(targetFullDirectory, Path.GetFileName(sourceFullPath));
+        return !File.Exists(targetPath) && !Directory.Exists(targetPath);
+    }
+
+    public string MoveFileSystemEntry(FileNode? sourceNode, FileNode? targetNode)
+    {
+        if (sourceNode is null || targetNode is null)
+            throw new InvalidOperationException("Source or target is missing.");
+
+        if (sourceNode.IsRoot)
+            throw new InvalidOperationException("Root project folder cannot be moved.");
+
+        var sourcePath = Path.GetFullPath(sourceNode.FullPath);
+        var targetDirectory = ResolveMoveTargetDirectory(targetNode);
+        if (string.IsNullOrWhiteSpace(targetDirectory))
+            throw new InvalidOperationException("Target directory was not found.");
+
+        var targetDirectoryPath = Path.GetFullPath(targetDirectory);
+        var sourceParent = Path.GetDirectoryName(sourcePath);
+        if (string.Equals(sourceParent, targetDirectoryPath, StringComparison.OrdinalIgnoreCase))
+            return sourcePath;
+
+        if (sourceNode.IsDirectory && IsSameOrDescendantPath(sourcePath, targetDirectoryPath))
+            throw new InvalidOperationException("A folder cannot be moved into itself or one of its children.");
+
+        var targetPath = Path.Combine(targetDirectoryPath, Path.GetFileName(sourcePath));
+        if (File.Exists(targetPath) || Directory.Exists(targetPath))
+            throw new InvalidOperationException($"'{Path.GetFileName(sourcePath)}' already exists in target folder.");
+
+        if (sourceNode.IsDirectory)
+            Directory.Move(sourcePath, targetPath);
+        else
+            File.Move(sourcePath, targetPath);
+
+        UpdateOpenTabsAfterRename(sourcePath, targetPath, sourceNode.IsDirectory);
+        FileTreeVm.RemovePath(sourcePath);
+        var movedNode = FileTreeVm.AddPath(targetPath);
+        RefreshStructure(refreshFileTree: false);
+        SelectedFileNode = movedNode;
+        NavigateToFile(targetPath);
         return targetPath;
     }
 
@@ -494,6 +638,14 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         return string.IsNullOrWhiteSpace(directory) ? ProjectPath! : directory;
     }
 
+    private string? ResolveMoveTargetDirectory(FileNode targetNode)
+    {
+        if (targetNode.IsDirectory)
+            return targetNode.FullPath;
+
+        return Path.GetDirectoryName(targetNode.FullPath);
+    }
+
     private void ReloadOpenTab(string filePath, int? line = null)
     {
         var normalizedPath = Path.GetFullPath(filePath);
@@ -501,6 +653,68 @@ public sealed class ScriptEditorViewModel : BaseViewModel
             string.Equals(Path.GetFullPath(t.FilePath), normalizedPath, StringComparison.OrdinalIgnoreCase));
 
         existing?.RequestReload(line);
+    }
+
+    private void UpdateOpenTabsAfterRename(string oldPath, string newPath, bool isDirectory)
+    {
+        var normalizedOldPath = Path.GetFullPath(oldPath);
+        var normalizedNewPath = Path.GetFullPath(newPath);
+
+        foreach (var tab in Tabs.ToList())
+        {
+            var normalizedTabPath = Path.GetFullPath(tab.FilePath);
+            if (isDirectory)
+            {
+                var relativePath = TryGetRelativeDescendantPath(normalizedOldPath, normalizedTabPath);
+                if (relativePath is null)
+                    continue;
+
+                var movedPath = Path.Combine(normalizedNewPath, relativePath);
+                tab.UpdateFileIdentity(Path.GetFileName(movedPath), movedPath);
+                tab.RequestReload();
+                continue;
+            }
+
+            if (!string.Equals(normalizedTabPath, normalizedOldPath, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            tab.UpdateFileIdentity(Path.GetFileName(normalizedNewPath), normalizedNewPath);
+            tab.RequestReload();
+        }
+    }
+
+    private static string? TryGetRelativeDescendantPath(string parentPath, string childPath)
+    {
+        var normalizedParent = parentPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var normalizedChild = Path.GetFullPath(childPath);
+
+        if (!normalizedChild.StartsWith(normalizedParent, StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        if (normalizedChild.Length == normalizedParent.Length)
+            return string.Empty;
+
+        var nextChar = normalizedChild[normalizedParent.Length];
+        if (nextChar != Path.DirectorySeparatorChar && nextChar != Path.AltDirectorySeparatorChar)
+            return null;
+
+        return normalizedChild[(normalizedParent.Length + 1)..];
+    }
+
+    private static bool IsSameOrDescendantPath(string parentPath, string childPath)
+    {
+        var normalizedParent = Path.GetFullPath(parentPath)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var normalizedChild = Path.GetFullPath(childPath)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+        return string.Equals(normalizedParent, normalizedChild, StringComparison.OrdinalIgnoreCase)
+            || normalizedChild.StartsWith(
+                normalizedParent + Path.DirectorySeparatorChar,
+                StringComparison.OrdinalIgnoreCase)
+            || normalizedChild.StartsWith(
+                normalizedParent + Path.AltDirectorySeparatorChar,
+                StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsImageExtension(string? ext)

@@ -702,10 +702,10 @@
           }
         }
       },
-      "Magick.NET-Q8-AnyCPU/14.10.4": {
+      "Magick.NET-Q8-AnyCPU/14.12.0": {
         "type": "package",
         "dependencies": {
-          "Magick.NET.Core": "14.10.4"
+          "Magick.NET.Core": "14.12.0"
         },
         "compile": {
           "lib/net8.0/Magick.NET-Q8-AnyCPU.dll": {
@@ -755,7 +755,7 @@
           }
         }
       },
-      "Magick.NET.Core/14.10.4": {
+      "Magick.NET.Core/14.12.0": {
         "type": "package",
         "compile": {
           "lib/net8.0/Magick.NET.Core.dll": {
@@ -2703,10 +2703,10 @@
         "lib/uap10.0/HtmlAgilityPack.pri"
       ]
     },
-    "Magick.NET-Q8-AnyCPU/14.10.4": {
-      "sha512": "CHUcm/MLCHr/gSYjhfroNU6344aYQICLD3u7wTb4Uii0eCQ/NMEV/XB28DO/hULcLWqOcdk69NDgta61vjhmqw==",
+    "Magick.NET-Q8-AnyCPU/14.12.0": {
+      "sha512": "YGEgNTZ6DaMhXgJYLClRrmEe6CMsEL5E8hy4c2iH/aEmj41ojFAtA/PIXYH1AOYINNEUX/83nLp/y5obt9P/vw==",
       "type": "package",
-      "path": "magick.net-q8-anycpu/14.10.4",
+      "path": "magick.net-q8-anycpu/14.12.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -2719,7 +2719,7 @@
         "lib/net8.0/Magick.NET-Q8-AnyCPU.xml",
         "lib/netstandard20/Magick.NET-Q8-AnyCPU.dll",
         "lib/netstandard20/Magick.NET-Q8-AnyCPU.xml",
-        "magick.net-q8-anycpu.14.10.4.nupkg.sha512",
+        "magick.net-q8-anycpu.14.12.0.nupkg.sha512",
         "magick.net-q8-anycpu.nuspec",
         "runtimes/linux-arm64/native/Magick.Native-Q8-arm64.dll.so",
         "runtimes/linux-musl-x64/native/Magick.Native-Q8-x64.dll.so",
@@ -2731,10 +2731,10 @@
         "runtimes/win-x86/native/Magick.Native-Q8-x86.dll"
       ]
     },
-    "Magick.NET.Core/14.10.4": {
-      "sha512": "2OvmKkpHoe3f8LlhngRSrRb2f4uB2AAc5MNT0aDW97SMdpkpWYnKG1zaeCaU0dmBp4FaZ0/FawhcalaOOlgbng==",
+    "Magick.NET.Core/14.12.0": {
+      "sha512": "QPyuk1Lxp1xgSTP8xomnoZjeOtUeTSoeSuEckhGaUAi6GdZ5d2PmZqzr0O4m/zPbC4So/yg5rr2QO4vYD6fB5g==",
       "type": "package",
-      "path": "magick.net.core/14.10.4",
+      "path": "magick.net.core/14.12.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -2745,7 +2745,7 @@
         "lib/net8.0/Magick.NET.Core.xml",
         "lib/netstandard20/Magick.NET.Core.dll",
         "lib/netstandard20/Magick.NET.Core.xml",
-        "magick.net.core.14.10.4.nupkg.sha512",
+        "magick.net.core.14.12.0.nupkg.sha512",
         "magick.net.core.nuspec"
       ]
     },
@@ -4883,7 +4883,7 @@
       "AvaloniaEdit.TextMate >= 11.3.0",
       "CommunityToolkit.Mvvm >= 8.4.0",
       "Dock.Avalonia >= 11.3.0.2",
-      "Magick.NET-Q8-AnyCPU >= 14.10.4",
+      "Magick.NET-Q8-AnyCPU >= 14.12.0",
       "Markdown.Avalonia >= 11.0.2",
       "Markdown.Avalonia.SyntaxHigh >= 11.0.2",
       "NAudio >= 2.2.1",
@@ -4994,7 +4994,7 @@
           },
           "Magick.NET-Q8-AnyCPU": {
             "target": "Package",
-            "version": "[14.10.4, )"
+            "version": "[14.12.0, )"
           },
           "Markdown.Avalonia": {
             "target": "Package",
@@ -5064,237 +5064,5 @@
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.201/PortableRuntimeIdentifierGraph.json"
       }
     }
-  },
-  "logs": [
-    {
-      "code": "NU1902",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-26qp-ffjh-2x4v (уровень серьезности: средний уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1902",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-5592-p365-24xh (уровень серьезности: средний уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1902",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-5xg3-585r-9jh5 (уровень серьезности: средний уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1901",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-6p22-q7w5-33pg (уровень серьезности: низкий уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1902",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-8793-7xv6-82cf (уровень серьезности: средний уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1901",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-8vfj-q2cp-5m5j (уровень серьезности: низкий уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1902",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-98cp-rj9f-6v5g (уровень серьезности: средний уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1901",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-9r56-3gjq-hqf7 (уровень серьезности: низкий уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1902",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-cr67-pvmx-2pp2 (уровень серьезности: средний уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1902",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-f4qm-vj5j-9xpw (уровень серьезности: средний уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1903",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-fwvm-ggf6-2p4x (уровень серьезности: высокий уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1902",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-gc62-2v5p-qpmp (уровень серьезности: средний уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1902",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-jvgr-9ph5-m8v4 (уровень серьезности: средний уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1902",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-mw3m-pqr2-qv7c (уровень серьезности: средний уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1902",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-pcvx-ph33-r5vv (уровень серьезности: средний уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1901",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-pmpg-6pww-fg6q (уровень серьезности: низкий уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1902",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-pwg5-6jfc-crvh (уровень серьезности: средний уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1901",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-q8h3-jv9v-57qx (уровень серьезности: низкий уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1902",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-r83h-crwp-3vm7 (уровень серьезности: средний уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1902",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-v67w-737x-v2c9 (уровень серьезности: средний уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1901",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-w54j-7wpm-crhj (уровень серьезности: низкий уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1901",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-x928-4434-crqj (уровень серьезности: низкий уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    },
-    {
-      "code": "NU1903",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "У пакета \"Magick.NET-Q8-AnyCPU\" 14.10.4 есть известная уязвимость https://github.com/advisories/GHSA-x9h5-r9v2-vcww (уровень серьезности: высокий уровень)",
-      "libraryId": "Magick.NET-Q8-AnyCPU",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    }
-  ]
+  }
 }

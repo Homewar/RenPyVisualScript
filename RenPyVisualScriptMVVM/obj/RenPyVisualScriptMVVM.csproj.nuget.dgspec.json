@@ -96,7 +96,7 @@
             },
             "Magick.NET-Q8-AnyCPU": {
               "target": "Package",
-              "version": "[14.10.4, )"
+              "version": "[14.12.0, )"
             },
             "Markdown.Avalonia": {
               "target": "Package",

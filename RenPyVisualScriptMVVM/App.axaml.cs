@@ -16,6 +16,10 @@ using RenPyVisualScriptMVVM.Modules.Shell.Services;
 using RenPyVisualScriptMVVM.Modules.Shell.Services.Interfaces;
 using RenPyVisualScriptMVVM.Modules.Shell.ViewModels;
 using RenPyVisualScriptMVVM.Modules.Shell.Views;
+using RenPyVisualScriptMVVM.Modules.StoryEditor.ViewModels;
+using RenPyVisualScriptMVVM.Infrastructure.StoryStorage.Services;
+using RenPyVisualScriptMVVM.Infrastructure.StoryStorage.Parsers;
+using RenPyVisualScriptMVVM.Infrastructure.StoryStorage.Interfaces;
 using Splat;
 using System;
 using System.IO.Abstractions;
@@ -49,8 +53,15 @@ public partial class App : Application
         loc.RegisterConstant<ISettingsService>(settingsSvc);
 
         loc.RegisterConstant<IWindowService>(new WindowService(desktop));
+        loc.RegisterLazySingleton<IApplicationDialogService>(() =>
+            new ApplicationDialogService(Locator.Current.GetService<IWindowService>()!));
         loc.RegisterConstant<IFileSystem>(new FileSystem());
         loc.RegisterConstant<IEditorNavigationService>(new EditorNavigationService());
+        loc.RegisterConstant<IEditorDialogService>(new EditorDialogService());
+
+        loc.RegisterLazySingleton<IRenPyStoryParser>(() => new RenPyStoryParser());
+        loc.RegisterLazySingleton<IStoryStorageService>(() =>
+            new StoryStorageService(Locator.Current.GetService<IRenPyStoryParser>()!));
 
         loc.RegisterLazySingleton<IProjectStorage>(() =>
             new FileSystemProjectStorage(Locator.Current.GetService<IFileSystem>()!));
@@ -77,6 +88,7 @@ public partial class App : Application
                 ctx,
                 Locator.Current.GetService<IProjectApplicationService>()!,
                 Locator.Current.GetService<IWindowService>()!,
+                Locator.Current.GetService<IApplicationDialogService>()!,
                 settingsSvc,
                 () => Locator.Current.GetService<NewProjectDialogViewModel>()!,
                 () => Locator.Current.GetService<ProjectSelectorViewModel>()!,
@@ -92,6 +104,8 @@ public partial class App : Application
                 Locator.Current.GetService<RenPyVisualScriptMVVM.Core.Models.IDESettings>()!,
                 Locator.Current.GetService<IWindowService>()!,
                 Locator.Current.GetService<IEditorNavigationService>()!,
+                Locator.Current.GetService<IStoryStorageService>()!,
+                Locator.Current.GetService<IApplicationDialogService>()!,
                 Locator.Current));
 
         loc.Register<FileTreeViewModel>(() =>
@@ -108,7 +122,13 @@ public partial class App : Application
                 Locator.Current.GetService<ISettingsIDE>()!,
                 Locator.Current.GetService<RenPyVisualScriptMVVM.Core.Models.IDESettings>()!));
 
-        loc.Register<GraphEditorWindowViewModel>(() => new GraphEditorWindowViewModel());
+        loc.Register<GraphEditorWindowViewModel>(() =>
+            new GraphEditorWindowViewModel(Locator.Current.GetService<IStoryStorageService>()!));
+        loc.Register<StoryTextEditorWindowViewModel>(() =>
+            new StoryTextEditorWindowViewModel(
+                Locator.Current.GetService<IProjectContext>()!,
+                Locator.Current.GetService<IStoryStorageService>()!,
+                Locator.Current.GetService<IApplicationDialogService>()!));
 
         var mainWindow = new MainWindow
         {

@@ -16,6 +16,7 @@ public sealed class MainWindowViewModel : BaseViewModel
     private readonly IProjectContext _ctx;
     private readonly IProjectApplicationService _projects;
     private readonly IWindowService _windows;
+    private readonly IApplicationDialogService _dialogs;
     private readonly ISettingsService _settings;
 
     private readonly Func<NewProjectDialogViewModel> _newProjectDialogFactory;
@@ -30,6 +31,7 @@ public sealed class MainWindowViewModel : BaseViewModel
         IProjectContext ctx,
         IProjectApplicationService projects,
         IWindowService windows,
+        IApplicationDialogService dialogs,
         ISettingsService settings,
         Func<NewProjectDialogViewModel> newProjectDialogFactory,
         Func<ProjectSelectorViewModel> projectSelectorFactory,
@@ -38,6 +40,7 @@ public sealed class MainWindowViewModel : BaseViewModel
         _ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
         _projects = projects ?? throw new ArgumentNullException(nameof(projects));
         _windows = windows ?? throw new ArgumentNullException(nameof(windows));
+        _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
 
         _newProjectDialogFactory = newProjectDialogFactory ?? throw new ArgumentNullException(nameof(newProjectDialogFactory));

@@ -72,7 +72,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Views
                 GraphCanvas.SyncRouteNodes();
                 SaveViewState();
                 var result = GraphRpyExporter.SynchronizeGraph(vm.ProjectPath, vm.Snapshot, GraphCanvas.Nodes, GraphCanvas.Edges);
-                vm.RefreshSnapshotFromProject();
+                await vm.RefreshSnapshotFromProjectAsync();
                 vm.NotifyGraphSaved();
                 var windows = Locator.Current.GetService<IWindowService>();
                 if (windows != null)

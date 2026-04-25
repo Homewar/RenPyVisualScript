@@ -6,8 +6,10 @@ using Avalonia.Platform;
 using RenPyVisualScriptMVVM.Core.Models;
 using RenPyVisualScriptMVVM.Modules.Editors.Models;
 using RenPyVisualScriptMVVM.Modules.Editors.Services;
+using RenPyVisualScriptMVVM.Modules.Editors.Services.Interfaces;
 using RenPyVisualScriptMVVM.Modules.Editors.ViewModels;
 using RenPyVisualScriptMVVM.Modules.Projects.Models;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,12 +21,14 @@ public partial class ScriptEditor : Window
 {
     private const string FileNodeDragFormat = "application/x-renpy-file-node-path";
     private readonly AudioPreviewPlayer _audioPreviewPlayer = new();
+    private readonly IEditorDialogService _dialogService;
     private Point? _fileDragStartPoint;
     private FileNode? _fileDragNode;
 
     public ScriptEditor()
     {
         InitializeComponent();
+        _dialogService = Locator.Current.GetService<IEditorDialogService>() ?? new EditorDialogService();
         LoadOptionalToolbarIcon(RunActivityIcon, RunActivityFallback,
             "avares://RenPyVisualScriptMVVM/Assets/Icons/activity-run.png",
             "avares://RenPyVisualScriptMVVM/Assets/Icons/run.png");
@@ -72,7 +76,7 @@ public partial class ScriptEditor : Window
         }
         catch (Exception ex)
         {
-            await ShowMessageBoxAsync("Audio preview error", ex.Message);
+            await _dialogService.ShowMessageAsync(this, "Audio preview error", ex.Message);
         }
     }
 
@@ -86,7 +90,7 @@ public partial class ScriptEditor : Window
         if (ViewModel is null)
             return;
 
-        var request = await ShowCreateCharacterDialogAsync();
+        var request = await _dialogService.ShowCreateCharacterDialogAsync(this, BuildCharacterImageItems());
         if (request is null)
             return;
 
@@ -96,7 +100,7 @@ public partial class ScriptEditor : Window
         }
         catch (Exception ex)
         {
-            await ShowMessageBoxAsync("Create character error", ex.Message);
+            await _dialogService.ShowMessageAsync(this, "Create character error", ex.Message);
         }
     }
 
@@ -106,7 +110,7 @@ public partial class ScriptEditor : Window
             return;
 
         var targetNode = ResolveFileNodeFromMenu(sender) ?? ViewModel.SelectedFileNode;
-        var fileName = await ShowTextInputDialogAsync("Create file", "File name", "script.rpy");
+        var fileName = await _dialogService.ShowTextInputDialogAsync(this, "Create file", "File name", "script.rpy");
         if (string.IsNullOrWhiteSpace(fileName))
             return;
 
@@ -116,7 +120,7 @@ public partial class ScriptEditor : Window
         }
         catch (Exception ex)
         {
-            await ShowMessageBoxAsync("Create file error", ex.Message);
+            await _dialogService.ShowMessageAsync(this, "Create file error", ex.Message);
         }
     }
 
@@ -126,7 +130,7 @@ public partial class ScriptEditor : Window
             return;
 
         var targetNode = ResolveFileNodeFromMenu(sender) ?? ViewModel.SelectedFileNode;
-        var folderName = await ShowTextInputDialogAsync("Create folder", "Folder name", "new_folder");
+        var folderName = await _dialogService.ShowTextInputDialogAsync(this, "Create folder", "Folder name", "new_folder");
         if (string.IsNullOrWhiteSpace(folderName))
             return;
 
@@ -136,7 +140,7 @@ public partial class ScriptEditor : Window
         }
         catch (Exception ex)
         {
-            await ShowMessageBoxAsync("Create folder error", ex.Message);
+            await _dialogService.ShowMessageAsync(this, "Create folder error", ex.Message);
         }
     }
 
@@ -146,9 +150,11 @@ public partial class ScriptEditor : Window
             return;
 
         var targetType = targetNode.IsDirectory ? "folder" : "file";
-        var confirmed = await ShowConfirmDialogAsync(
+        var confirmed = await _dialogService.ShowConfirmDialogAsync(
+            this,
             "Delete",
-            $"Delete {targetType} '{targetNode.Name}'?");
+            $"Delete {targetType} '{targetNode.Name}'?",
+            "Delete");
 
         if (!confirmed)
             return;
@@ -159,7 +165,7 @@ public partial class ScriptEditor : Window
         }
         catch (Exception ex)
         {
-            await ShowMessageBoxAsync("Delete error", ex.Message);
+            await _dialogService.ShowMessageAsync(this, "Delete error", ex.Message);
         }
     }
 
@@ -198,7 +204,7 @@ public partial class ScriptEditor : Window
         if (ViewModel is null || targetNode is null || targetNode.IsRoot)
             return;
 
-        var newName = await ShowTextInputDialogAsync("Rename", "New name", targetNode.Name);
+        var newName = await _dialogService.ShowTextInputDialogAsync(this, "Rename", "New name", targetNode.Name);
         if (string.IsNullOrWhiteSpace(newName))
             return;
 
@@ -208,7 +214,7 @@ public partial class ScriptEditor : Window
         }
         catch (Exception ex)
         {
-            await ShowMessageBoxAsync("Rename error", ex.Message);
+            await _dialogService.ShowMessageAsync(this, "Rename error", ex.Message);
         }
     }
 
@@ -306,7 +312,7 @@ public partial class ScriptEditor : Window
         }
         catch (Exception ex)
         {
-            await ShowMessageBoxAsync("Move error", ex.Message);
+            await _dialogService.ShowMessageAsync(this, "Move error", ex.Message);
         }
 
         e.Handled = true;
@@ -317,7 +323,7 @@ public partial class ScriptEditor : Window
         if (ViewModel is null)
             return;
 
-        var fileName = await ShowTextInputDialogAsync("Create file", "File name", "script.rpy");
+        var fileName = await _dialogService.ShowTextInputDialogAsync(this, "Create file", "File name", "script.rpy");
         if (string.IsNullOrWhiteSpace(fileName))
             return;
 
@@ -327,7 +333,7 @@ public partial class ScriptEditor : Window
         }
         catch (Exception ex)
         {
-            await ShowMessageBoxAsync("Create file error", ex.Message);
+            await _dialogService.ShowMessageAsync(this, "Create file error", ex.Message);
         }
     }
 
@@ -346,178 +352,6 @@ public partial class ScriptEditor : Window
         }
 
         return (source as StyledElement)?.DataContext as FileNode;
-    }
-
-    private async System.Threading.Tasks.Task<CharacterCreationRequest?> ShowCreateCharacterDialogAsync()
-    {
-        var vm = new CharacterCreateDialogViewModel(BuildCharacterImageItems());
-        var dialog = new CharacterCreateDialog
-        {
-            DataContext = vm
-        };
-
-        var dialogResult = await dialog.ShowDialog<bool?>(this);
-        return dialogResult == true ? vm.Result : null;
-    }
-
-    private async System.Threading.Tasks.Task<string?> ShowTextInputDialogAsync(string title, string label, string initialValue)
-    {
-        var textBox = new TextBox
-        {
-            Text = initialValue,
-            CaretIndex = initialValue.Length
-        };
-
-        string? result = null;
-
-        var confirmButton = new Button
-        {
-            Content = "OK",
-            Width = 90,
-            IsDefault = true
-        };
-        var cancelButton = new Button
-        {
-            Content = "Cancel",
-            Width = 90,
-            IsCancel = true
-        };
-
-        var buttonRow = new StackPanel
-        {
-            Orientation = Avalonia.Layout.Orientation.Horizontal,
-            Spacing = 8,
-            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
-            Children = { cancelButton, confirmButton }
-        };
-
-        var panel = new StackPanel
-        {
-            Margin = new Thickness(16),
-            Spacing = 10,
-            Children =
-            {
-                new TextBlock { Text = label },
-                textBox,
-                buttonRow
-            }
-        };
-
-        var dialog = new Window
-        {
-            Title = title,
-            Width = 420,
-            Height = 170,
-            CanResize = false,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            Content = panel
-        };
-
-        confirmButton.Click += (_, _) =>
-        {
-            result = textBox.Text;
-            dialog.Close();
-        };
-        cancelButton.Click += (_, _) => dialog.Close();
-
-        await dialog.ShowDialog(this);
-        return result;
-    }
-
-    private async System.Threading.Tasks.Task ShowMessageBoxAsync(string title, string message)
-    {
-        var window = new Window
-        {
-            Title = title,
-            Width = 420,
-            Height = 180,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            Content = new StackPanel
-            {
-                Margin = new Thickness(16),
-                Spacing = 12,
-                Children =
-                {
-                    new TextBlock
-                    {
-                        Text = message,
-                        TextWrapping = Avalonia.Media.TextWrapping.Wrap
-                    },
-                    new Button
-                    {
-                        Content = "OK",
-                        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
-                        Width = 80
-                    }
-                }
-            }
-        };
-
-        if (window.Content is StackPanel panel && panel.Children[1] is Button button)
-            button.Click += (_, _) => window.Close();
-
-        await window.ShowDialog(this);
-    }
-
-    private async System.Threading.Tasks.Task<bool> ShowConfirmDialogAsync(string title, string message)
-    {
-        var result = false;
-
-        var confirmButton = new Button
-        {
-            Content = "Delete",
-            Width = 90,
-            IsDefault = true
-        };
-        var cancelButton = new Button
-        {
-            Content = "Cancel",
-            Width = 90,
-            IsCancel = true
-        };
-
-        var buttonRow = new StackPanel
-        {
-            Orientation = Avalonia.Layout.Orientation.Horizontal,
-            Spacing = 8,
-            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
-            Children = { cancelButton, confirmButton }
-        };
-
-        var panel = new StackPanel
-        {
-            Margin = new Thickness(16),
-            Spacing = 10,
-            Children =
-            {
-                new TextBlock
-                {
-                    Text = message,
-                    TextWrapping = Avalonia.Media.TextWrapping.Wrap
-                },
-                buttonRow
-            }
-        };
-
-        var dialog = new Window
-        {
-            Title = title,
-            Width = 420,
-            Height = 170,
-            CanResize = false,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            Content = panel
-        };
-
-        confirmButton.Click += (_, _) =>
-        {
-            result = true;
-            dialog.Close();
-        };
-        cancelButton.Click += (_, _) => dialog.Close();
-
-        await dialog.ShowDialog(this);
-        return result;
     }
 
     private IReadOnlyList<CharacterImageOption> BuildCharacterImageItems()

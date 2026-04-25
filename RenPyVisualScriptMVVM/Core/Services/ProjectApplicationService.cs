@@ -1,6 +1,5 @@
 ﻿using RenPyVisualScriptMVVM.Core.Models;
 using RenPyVisualScriptMVVM.Core.Services.Interfaces;
-using RenPyVisualScriptMVVM.Core.Models;
 using System;
 using System.Threading.Tasks;
 

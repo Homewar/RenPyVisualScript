@@ -1,0 +1,33 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="RenPyVisualScriptMVVM.Modules.Editors.Views.TextInputDialog"
+        Width="420"
+        Height="170"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#1e1e1e">
+
+  <StackPanel Margin="16" Spacing="10">
+    <TextBlock x:Name="LabelTextBlock"
+               Foreground="#d6d6d6"/>
+
+    <TextBox x:Name="InputTextBox"
+             Background="#252526"
+             Foreground="#d6d6d6"
+             BorderBrush="#3c3c3c"
+             CaretBrush="#d6d6d6"/>
+
+    <StackPanel Orientation="Horizontal"
+                Spacing="8"
+                HorizontalAlignment="Right">
+      <Button Content="Cancel"
+              Width="90"
+              IsCancel="True"
+              Click="Cancel_OnClick"/>
+      <Button Content="OK"
+              Width="90"
+              IsDefault="True"
+              Click="Ok_OnClick"/>
+    </StackPanel>
+  </StackPanel>
+</Window>

@@ -1,6 +1,5 @@
 ﻿using RenPyVisualScriptMVVM.Core.Models;
 using RenPyVisualScriptMVVM.Core.Services.Interfaces;
-using RenPyVisualScriptMVVM.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,10 +21,7 @@ namespace RenPyVisualScriptMVVM.Core.Services
 
         public async Task<ProjectFiles> CreateAsync(VisualNovellProjectData data)
         {
-            // создаём модель/папки (ваш storage уже умеет root folder)
             var model = _storage.Create(data.Name!.Trim());
-
-            // запускаем renpy-скрипт
             var gen = new CreateProjectRequest(_ide, model, data);
             await gen.CreateAsync();
 

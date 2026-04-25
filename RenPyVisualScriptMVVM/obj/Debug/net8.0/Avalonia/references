@@ -50,8 +50,21 @@ C:\Users\Homewarriors\.nuget\packages\markdown.avalonia.svg\11.0.2\lib\net6.0\Ma
 C:\Users\Homewarriors\.nuget\packages\markdown.avalonia.syntaxhigh\11.0.2\lib\net6.0\Markdown.Avalonia.SyntaxHigh.dll
 C:\Users\Homewarriors\.nuget\packages\microcom.runtime\0.11.0\lib\net5.0\MicroCom.Runtime.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\Microsoft.CSharp.dll
+C:\Users\Homewarriors\.nuget\packages\microsoft.data.sqlite.core\8.0.15\lib\net8.0\Microsoft.Data.Sqlite.dll
+C:\Users\Homewarriors\.nuget\packages\microsoft.entityframeworkcore.abstractions\8.0.15\lib\net8.0\Microsoft.EntityFrameworkCore.Abstractions.dll
+C:\Users\Homewarriors\.nuget\packages\microsoft.entityframeworkcore\8.0.15\lib\net8.0\Microsoft.EntityFrameworkCore.dll
+C:\Users\Homewarriors\.nuget\packages\microsoft.entityframeworkcore.relational\8.0.15\lib\net8.0\Microsoft.EntityFrameworkCore.Relational.dll
+C:\Users\Homewarriors\.nuget\packages\microsoft.entityframeworkcore.sqlite.core\8.0.15\lib\net8.0\Microsoft.EntityFrameworkCore.Sqlite.dll
+C:\Users\Homewarriors\.nuget\packages\microsoft.extensions.caching.abstractions\8.0.0\lib\net8.0\Microsoft.Extensions.Caching.Abstractions.dll
+C:\Users\Homewarriors\.nuget\packages\microsoft.extensions.caching.memory\8.0.1\lib\net8.0\Microsoft.Extensions.Caching.Memory.dll
+C:\Users\Homewarriors\.nuget\packages\microsoft.extensions.configuration.abstractions\8.0.0\lib\net8.0\Microsoft.Extensions.Configuration.Abstractions.dll
 C:\Users\Homewarriors\.nuget\packages\microsoft.extensions.dependencyinjection.abstractions\9.0.6\lib\net8.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
 C:\Users\Homewarriors\.nuget\packages\microsoft.extensions.dependencyinjection\9.0.6\lib\net8.0\Microsoft.Extensions.DependencyInjection.dll
+C:\Users\Homewarriors\.nuget\packages\microsoft.extensions.dependencymodel\8.0.2\lib\net8.0\Microsoft.Extensions.DependencyModel.dll
+C:\Users\Homewarriors\.nuget\packages\microsoft.extensions.logging.abstractions\8.0.2\lib\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
+C:\Users\Homewarriors\.nuget\packages\microsoft.extensions.logging\8.0.1\lib\net8.0\Microsoft.Extensions.Logging.dll
+C:\Users\Homewarriors\.nuget\packages\microsoft.extensions.options\8.0.2\lib\net8.0\Microsoft.Extensions.Options.dll
+C:\Users\Homewarriors\.nuget\packages\microsoft.extensions.primitives\8.0.0\lib\net8.0\Microsoft.Extensions.Primitives.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\Microsoft.VisualBasic.Core.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\Microsoft.VisualBasic.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\Microsoft.Win32.Primitives.dll
@@ -74,6 +87,9 @@ C:\Users\Homewarriors\.nuget\packages\shimskiasharp\1.0.0\lib\net6.0\ShimSkiaSha
 C:\Users\Homewarriors\.nuget\packages\skiasharp\2.88.9\lib\net6.0\SkiaSharp.dll
 C:\Users\Homewarriors\.nuget\packages\splat\15.4.1\lib\net8.0\Splat.dll
 C:\Users\Homewarriors\.nuget\packages\splat.microsoft.extensions.dependencyinjection\15.4.1\lib\net8.0\Splat.Microsoft.Extensions.DependencyInjection.dll
+C:\Users\Homewarriors\.nuget\packages\sqlitepclraw.bundle_e_sqlite3\2.1.6\lib\netstandard2.0\SQLitePCLRaw.batteries_v2.dll
+C:\Users\Homewarriors\.nuget\packages\sqlitepclraw.core\2.1.6\lib\netstandard2.0\SQLitePCLRaw.core.dll
+C:\Users\Homewarriors\.nuget\packages\sqlitepclraw.provider.e_sqlite3\2.1.6\lib\net6.0\SQLitePCLRaw.provider.e_sqlite3.dll
 C:\Users\Homewarriors\.nuget\packages\svg.custom\1.0.0\lib\net6.0\Svg.Custom.dll
 C:\Users\Homewarriors\.nuget\packages\svg.model\1.0.0\lib\net6.0\Svg.Model.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\System.AppContext.dll

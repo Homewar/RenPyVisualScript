@@ -2,7 +2,6 @@
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using RenPyVisualScriptMVVM.Modules.Editors.Models;
-using RenPyVisualScriptMVVM.Core.Services;
 using RenPyVisualScriptMVVM.Core.Services.Interfaces;
 using RenPyVisualScriptMVVM.Modules.Shell.Services.Interfaces;
 using Splat;
@@ -20,11 +19,14 @@ using RenPyVisualScriptMVVM.Modules.Projects.ViewModels;
 using RenPyVisualScriptMVVM.Core.Models;
 using RenPyVisualScriptMVVM.Modules.Projects.Models;
 using RenPyVisualScriptMVVM.Modules.GraphEditor.ViewModels;
+using RenPyVisualScriptMVVM.Modules.StoryEditor.ViewModels;
 using RenPyVisualScriptMVVM.Modules.Editors.Services;
 using RenPyVisualScriptMVVM.Modules.Editors.Services.Interfaces;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using RenPyVisualScriptMVVM.Infrastructure.StoryStorage.Interfaces;
+using System.Threading.Tasks;
 
 namespace RenPyVisualScriptMVVM.Modules.Editors.ViewModels;
 
@@ -38,7 +40,10 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     private readonly IWindowService _windows;
     private readonly IEditorNavigationService _editorNavigation;
     private readonly IReadonlyDependencyResolver _loc;
-    private readonly RenPyStructureReader _structureReader = new();
+    private readonly IStoryStorageService _storyStorage;
+    private readonly IApplicationDialogService _dialogs;
+    private readonly RenPyStructureReader _fallbackStructureReader = new();
+    private bool _isShowingStoryIndexError;
 
     public IRelayCommand SaveCmd { get; }
     public IRelayCommand ShowProjectSetCmd { get; }
@@ -47,6 +52,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     public IRelayCommand RunProjectCmd { get; }
     public IRelayCommand RunFromHereCmd { get; }
     public IRelayCommand OpenGraphCmd { get; }
+    public IRelayCommand OpenStoryTextEditorCmd { get; }
     public IRelayCommand RefreshStructureCmd { get; }
 
     public ObservableCollection<TabItemModel> Tabs { get; } = new();
@@ -127,6 +133,8 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         IDESettings ide,
         IWindowService windows,
         IEditorNavigationService editorNavigation,
+        IStoryStorageService storyStorage,
+        IApplicationDialogService dialogs,
         IReadonlyDependencyResolver? loc = null)
     {
         _ctx = ctx;
@@ -134,6 +142,8 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         _ide = ide;
         _windows = windows;
         _editorNavigation = editorNavigation;
+        _storyStorage = storyStorage;
+        _dialogs = dialogs;
         _loc = loc ?? Locator.Current;
 
         FileTreeVm = new FileTreeViewModel(_ctx, _ide.ShowSystemResources);
@@ -145,6 +155,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         RunProjectCmd = new RelayCommand(RunProject);
         RunFromHereCmd = new RelayCommand(RunFromHere);
         OpenGraphCmd = new RelayCommand(OpenGraphWindow);
+        OpenStoryTextEditorCmd = new RelayCommand(OpenStoryTextEditorWindow);
         RefreshStructureCmd = new RelayCommand(() => RefreshStructure());
 
         _ctx.PropertyChanged += OnProjectContextChanged;
@@ -182,22 +193,53 @@ public sealed class ScriptEditorViewModel : BaseViewModel
 
     private void RefreshStructure(bool refreshFileTree = true)
     {
+        _ = RefreshStructureAsync(refreshFileTree);
+    }
+
+    private async Task RefreshStructureAsync(bool refreshFileTree = true)
+    {
         if (refreshFileTree)
         {
             FileTreeVm.ShowSystemResources = _ide.ShowSystemResources;
             FileTreeVm.Refresh();
         }
 
-        CharacterList.Clear();
-        LabelList.Clear();
-        StructureLinks.Clear();
-        TransitionItems.Clear();
         ImageResources.Clear();
         AudioResources.Clear();
         VideoResources.Clear();
         FontResources.Clear();
 
-        var snapshot = _structureReader.Read(_ctx.ProjectPath);
+        var snapshot = new ProjectStructureSnapshot(
+            Array.Empty<Character>(),
+            Array.Empty<LabelOutlineItem>(),
+            Array.Empty<StructureLinkItem>());
+
+        if (!string.IsNullOrWhiteSpace(_ctx.ProjectPath))
+        {
+            try
+            {
+                await _storyStorage.RebuildProjectIndexAsync(_ctx.ProjectPath, _ctx.ProjectName);
+                snapshot = await _storyStorage.ReadProjectStructureAsync(_ctx.ProjectPath);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Story index refresh error: {ex}");
+                await ShowStoryIndexErrorAsync(ex);
+                snapshot = _fallbackStructureReader.Read(_ctx.ProjectPath);
+            }
+        }
+
+        if (snapshot.Labels.Count == 0 && !string.IsNullOrWhiteSpace(_ctx.ProjectPath))
+        {
+            var fallbackSnapshot = _fallbackStructureReader.Read(_ctx.ProjectPath);
+            if (fallbackSnapshot.Labels.Count > 0)
+                snapshot = fallbackSnapshot;
+        }
+
+        CharacterList.Clear();
+        LabelList.Clear();
+        StructureLinks.Clear();
+        TransitionItems.Clear();
 
         foreach (var character in snapshot.Characters)
             CharacterList.Add(character);
@@ -215,6 +257,41 @@ public sealed class ScriptEditorViewModel : BaseViewModel
 
         var projectName = string.IsNullOrWhiteSpace(ProjectName) ? "Проект" : ProjectName;
         StructureSummary = $"{projectName}: {CharacterList.Count} персонажей, {LabelList.Count} label, {StructureLinks.Count} связей, {ImageResources.Count} изображений, {AudioResources.Count} аудио, {VideoResources.Count} видео, {FontResources.Count} шрифтов";
+    }
+
+    private async Task RebuildStoryIndexAsync()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(_ctx.ProjectPath))
+                return;
+
+            await _storyStorage.RebuildProjectIndexAsync(_ctx.ProjectPath, _ctx.ProjectName);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Story index rebuild error: {ex}");
+            await ShowStoryIndexErrorAsync(ex);
+        }
+    }
+
+    private async Task ShowStoryIndexErrorAsync(Exception ex)
+    {
+        if (_isShowingStoryIndexError)
+            return;
+
+        try
+        {
+            _isShowingStoryIndexError = true;
+            await _dialogs.ShowErrorAsync(
+                "Ошибка обновления БД",
+                "Индекс истории не был обновлён. Приложение продолжит работу, но данные поиска/аналитики по словам, тегам и label могут быть устаревшими.",
+                ex);
+        }
+        finally
+        {
+            _isShowingStoryIndexError = false;
+        }
     }
 
     private void LoadResourceFiles(string? projectPath)
@@ -613,7 +690,8 @@ public sealed class ScriptEditorViewModel : BaseViewModel
             var tab = new TabItemModel(
                 header,
                 filePath,
-                closeAction: t => Tabs.Remove(t));
+                closeAction: t => Tabs.Remove(t),
+                fileSavedAction: OnTabFileSaved);
 
             tab.RequestNavigation(line);
             Tabs.Add(tab);
@@ -885,10 +963,51 @@ public sealed class ScriptEditorViewModel : BaseViewModel
 
     private void OpenGraphWindow()
     {
+        _ = OpenGraphWindowAsync();
+    }
+
+    private void OpenStoryTextEditorWindow()
+    {
+        var vm = _loc.GetService<StoryTextEditorWindowViewModel>()!;
+        vm.SourceFilesChanged -= OnStoryTextSourceFilesChanged;
+        vm.SourceFilesChanged += OnStoryTextSourceFilesChanged;
+        _windows.ShowWindow(vm);
+    }
+
+    private void OnStoryTextSourceFilesChanged(IReadOnlyCollection<string> filePaths)
+    {
+        var changed = new HashSet<string>(
+            filePaths.Select(Path.GetFullPath),
+            StringComparer.OrdinalIgnoreCase);
+
+        foreach (var tab in Tabs.Where(x => changed.Contains(Path.GetFullPath(x.FilePath))).ToArray())
+            tab.RequestReload();
+
+        RefreshStructure(refreshFileTree: false);
+    }
+
+    private async Task OpenGraphWindowAsync()
+    {
         var vm = _loc.GetService<GraphEditorWindowViewModel>()!;
         vm.GraphSaved -= OnGraphSaved;
         vm.GraphSaved += OnGraphSaved;
-        var snapshot = _structureReader.Read(_ctx.ProjectPath);
+        var snapshot = new ProjectStructureSnapshot(Array.Empty<Character>(), Array.Empty<LabelOutlineItem>(), Array.Empty<StructureLinkItem>());
+        if (!string.IsNullOrWhiteSpace(_ctx.ProjectPath))
+        {
+            try
+            {
+                snapshot = await _storyStorage.ReadProjectStructureAsync(_ctx.ProjectPath);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Graph snapshot DB read error: {ex}");
+                await ShowStoryIndexErrorAsync(ex);
+                snapshot = _fallbackStructureReader.Read(_ctx.ProjectPath);
+            }
+
+            if (snapshot.Labels.Count == 0)
+                snapshot = _fallbackStructureReader.Read(_ctx.ProjectPath);
+        }
         vm.LoadSnapshot(snapshot, ProjectName, _ctx.ProjectPath);
         _windows.ShowWindow(vm);
     }
@@ -896,6 +1015,14 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     private void OnGraphSaved()
     {
         RefreshStructure();
+    }
+
+    private void OnTabFileSaved(TabItemModel tab)
+    {
+        if (!Path.GetExtension(tab.FilePath).Equals(".rpy", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        RefreshStructure(refreshFileTree: false);
     }
 
     private void RunProject()
@@ -941,14 +1068,12 @@ public sealed class ScriptEditorViewModel : BaseViewModel
             : Path.GetFullPath(Path.Combine(ProjectPath, filePath));
 
         var relativePath = Path.GetRelativePath(ProjectPath, normalizedFilePath).Replace('\\', '/');
-        var snapshot = _structureReader.Read(ProjectPath);
-
-        return snapshot.Labels
+        return LabelList
             .Where(label => string.Equals(label.FilePath, relativePath, StringComparison.OrdinalIgnoreCase))
             .Where(label => line >= label.Line && line <= label.EndLine)
             .OrderByDescending(label => label.Line)
             .FirstOrDefault()
-            ?? snapshot.Labels
+            ?? LabelList
                 .Where(label => string.Equals(label.FilePath, relativePath, StringComparison.OrdinalIgnoreCase))
                 .Where(label => label.Line <= line)
                 .OrderByDescending(label => label.Line)

@@ -37,10 +37,19 @@ build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 [C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/Editors/Views/CharacterCreateDialog.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
+[C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/Editors/Views/ConfirmDialog.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/Editors/Views/EditorMessageDialog.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
 [C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/Editors/Views/MarkDownEditor.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
 [C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/Editors/Views/ScriptEditor.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/Editors/Views/TextInputDialog.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
 [C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/GraphEditor/Views/GraphEditorWindow.axaml]
@@ -68,4 +77,7 @@ build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
 [C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/Shell/Views/SDKrequest.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/StoryEditor/Views/StoryTextEditorWindow.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml

@@ -67,12 +67,14 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Models
         }
 
         public IRelayCommand CloseCommand { get; }
+        public IRelayCommand FileSavedCommand { get; }
 
-        public TabItemModel(string header, string filePath, Action<TabItemModel> closeAction)
+        public TabItemModel(string header, string filePath, Action<TabItemModel> closeAction, Action<TabItemModel>? fileSavedAction = null)
         {
             _header = header;
             _filePath = filePath;
             CloseCommand = new RelayCommand(() => closeAction(this));
+            FileSavedCommand = new RelayCommand(() => fileSavedAction?.Invoke(this));
         }
 
         public void UpdateFileIdentity(string header, string filePath)

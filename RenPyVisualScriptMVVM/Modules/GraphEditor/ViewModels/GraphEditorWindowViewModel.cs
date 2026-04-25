@@ -1,18 +1,20 @@
 using Avalonia;
 using Avalonia.Media;
+using RenPyVisualScriptMVVM.Infrastructure.StoryStorage.Interfaces;
 using RenPyVisualScriptMVVM.Modules.Editors.Models;
-using RenPyVisualScriptMVVM.Modules.Editors.Services;
 using RenPyVisualScriptMVVM.Modules.GraphEditor.Models;
 using RenPyVisualScriptMVVM.Modules.Shell.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace RenPyVisualScriptMVVM.Modules.GraphEditor.ViewModels;
 
 public sealed class GraphEditorWindowViewModel : BaseViewModel
 {
+    private readonly IStoryStorageService _storyStorage;
     private ProjectStructureSnapshot? _snapshot;
     private string? _projectName;
 
@@ -20,6 +22,11 @@ public sealed class GraphEditorWindowViewModel : BaseViewModel
     public string? ProjectPath { get; private set; }
     public ProjectStructureSnapshot? Snapshot => _snapshot;
     public event Action? GraphSaved;
+
+    public GraphEditorWindowViewModel(IStoryStorageService storyStorage)
+    {
+        _storyStorage = storyStorage;
+    }
 
     public void LoadSnapshot(ProjectStructureSnapshot snapshot, string? projectName = null, string? projectPath = null)
     {
@@ -33,13 +40,13 @@ public sealed class GraphEditorWindowViewModel : BaseViewModel
         OnPropertyChanged(nameof(Title));
     }
 
-    public void RefreshSnapshotFromProject()
+    public async Task RefreshSnapshotFromProjectAsync()
     {
         if (string.IsNullOrWhiteSpace(ProjectPath))
             return;
 
-        var structureReader = new RenPyStructureReader();
-        var snapshot = structureReader.Read(ProjectPath);
+        await _storyStorage.RebuildProjectIndexAsync(ProjectPath, _projectName);
+        var snapshot = await _storyStorage.ReadProjectStructureAsync(ProjectPath);
         LoadSnapshot(snapshot, _projectName, ProjectPath);
     }
 

@@ -24,6 +24,7 @@ using System.Xml;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using System.Text.RegularExpressions;
+using System.Windows.Input;
 using RenPyVisualScriptMVVM.Modules.Editors.Models;
 
 namespace RenPyVisualScriptMVVM.Modules.Editors.Views
@@ -51,6 +52,9 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
 
         public static readonly StyledProperty<int> ReloadRequestIdProperty =
             AvaloniaProperty.Register<AvaloniaEdit, int>(nameof(ReloadRequestId));
+
+        public static readonly StyledProperty<ICommand?> FileSavedCommandProperty =
+            AvaloniaProperty.Register<AvaloniaEdit, ICommand?>(nameof(FileSavedCommand));
 
         private readonly RegistryOptions _registryOptions;
         private Installation? _textMateInstallation;
@@ -139,6 +143,12 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
         {
             get => GetValue(ReloadRequestIdProperty);
             set => SetValue(ReloadRequestIdProperty, value);
+        }
+
+        public ICommand? FileSavedCommand
+        {
+            get => GetValue(FileSavedCommandProperty);
+            set => SetValue(FileSavedCommandProperty, value);
         }
 
         public AvaloniaEdit()
@@ -286,12 +296,7 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
             //изменение размера кода ctr + "+/-"
             textEditor.KeyDown += (sender, e) =>
             {
-                if (e.Key == Key.S && e.KeyModifiers.HasFlag(KeyModifiers.Control))
-                {
-                    SaveToFile();
-                    e.Handled = true;
-                }
-                else if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
+                if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
                 {
                     const double step = 2.0;
                     const double minFontSize = 8.0;
@@ -758,6 +763,8 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
             {
                 File.WriteAllText(FilePath, textEditor.Text);
                 Debug.WriteLine($"File saved: {FilePath}");
+                if (FileSavedCommand?.CanExecute(FilePath) == true)
+                    FileSavedCommand.Execute(FilePath);
             }
             catch (Exception ex)
             {

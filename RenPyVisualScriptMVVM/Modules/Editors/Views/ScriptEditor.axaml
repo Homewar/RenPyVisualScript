@@ -64,6 +64,7 @@
                         </MenuItem>
                         <MenuItem Header="Addon">
                             <MenuItem Header="Open Graph Editor" Command="{Binding OpenGraphCmd}"/>
+                            <MenuItem Header="Open Story Text Editor" Command="{Binding OpenStoryTextEditorCmd}"/>
                         </MenuItem>
                         <MenuItem Header="Comming Soon"/>
                     </Menu>
@@ -123,6 +124,22 @@
                         <TextBlock x:Name="GraphActivityFallback"
                                    Text="◫"
                                    FontSize="21"
+                                   Foreground="{StaticResource IconTextBrush}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+                </Button>
+                <Button Width="36"
+                        Height="36"
+                        Padding="0"
+                        Background="Transparent"
+                        BorderBrush="Transparent"
+                        Command="{Binding OpenStoryTextEditorCmd}"
+                        ToolTip.Tip="Open Story Text Editor">
+                    <Grid Width="26" Height="26">
+                        <TextBlock Text="T"
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
                                    Foreground="{StaticResource IconTextBrush}"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"/>
@@ -444,7 +461,8 @@
                     <local:AvaloniaEdit FilePath="{Binding FilePath}"
                                         TargetLine="{Binding TargetLine}"
                                         NavigationRequestId="{Binding NavigationRequestId}"
-                                        ReloadRequestId="{Binding ReloadRequestId}"/>
+                                        ReloadRequestId="{Binding ReloadRequestId}"
+                                        FileSavedCommand="{Binding FileSavedCommand}"/>
                 </DataTemplate>
             </TabControl.ContentTemplate>
         </TabControl>

@@ -22,6 +22,7 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
     private readonly IApplicationDialogService _dialogs;
     private readonly List<FragmentTextRange> _fragmentRanges = new();
     private readonly List<ProtectedTextRange> _protectedRanges = new();
+    private readonly HashSet<Guid> _deletedFragmentIds = new();
 
     private StoryTextLabelItem? _selectedLabel;
     private string _fullPlainText = string.Empty;
@@ -110,7 +111,7 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
         }
     }
 
-    public bool IsDocumentModified => Fragments.Any(x =>
+    public bool IsDocumentModified => _deletedFragmentIds.Count > 0 || Fragments.Any(x =>
         TryReadRangeText(x.Id, out var text) &&
         (!string.Equals(x.RawText, text, StringComparison.Ordinal)
          || !string.Equals(x.OriginalSpeakerCode, x.SpeakerCode, StringComparison.Ordinal)));
@@ -190,6 +191,9 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
         var isInProtectedBreak = IsInProtectedDialogueBreak(offset, range);
         var isAtSegmentStart = offset == range.Start || isInProtectedBreak;
         var isAtSegmentEnd = offset == range.Start + range.Length || isInProtectedBreak;
+        if (TryDeleteEmptyFragment(fragment, range, isAtSegmentStart, isAtSegmentEnd, deleteForward, out caretOffset))
+            return true;
+
         if ((!deleteForward && (!isAtSegmentStart || range.SegmentIndex == 0))
             || (deleteForward && !isAtSegmentEnd))
         {
@@ -232,6 +236,61 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
 
         OnPropertyChanged(nameof(IsDocumentModified));
         return caretOffset >= 0;
+    }
+
+    private bool TryDeleteEmptyFragment(
+        StoryTextFragmentItem fragment,
+        FragmentTextRange range,
+        bool isAtSegmentStart,
+        bool isAtSegmentEnd,
+        bool deleteForward,
+        out int caretOffset)
+    {
+        caretOffset = -1;
+
+        var fragmentRanges = _fragmentRanges
+            .Where(x => x.FragmentId == fragment.Id)
+            .ToList();
+        var currentText = TryReadRangeText(fragment.Id, out var rangeText)
+            ? rangeText
+            : fragment.EditedPlainText;
+
+        if (fragmentRanges.Count != 1
+            || range.SegmentIndex != 0
+            || !string.IsNullOrWhiteSpace(currentText)
+            || (!deleteForward && !isAtSegmentStart)
+            || (deleteForward && !isAtSegmentEnd))
+        {
+            return false;
+        }
+
+        CaptureEditedFragmentTexts();
+
+        var removedRangeStart = range.Start;
+        var removedIndex = Fragments.IndexOf(fragment);
+        if (removedIndex < 0)
+            return false;
+
+        _deletedFragmentIds.Add(fragment.Id);
+        Fragments.RemoveAt(removedIndex);
+
+        BuildDocument();
+        var activeRange = _fragmentRanges
+            .Where(x => x.Start >= removedRangeStart)
+            .OrderBy(x => x.Start)
+            .FirstOrDefault()
+            ?? _fragmentRanges
+                .OrderByDescending(x => x.Start)
+                .FirstOrDefault();
+
+        var activeFragment = activeRange is null
+            ? null
+            : Fragments.FirstOrDefault(x => x.Id == activeRange.FragmentId);
+        SetActiveFragment(activeFragment);
+
+        caretOffset = activeRange?.Start ?? 0;
+        OnPropertyChanged(nameof(IsDocumentModified));
+        return true;
     }
 
     public bool IsEditableTextRange(int start, int length)
@@ -306,6 +365,7 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
         Fragments.Clear();
         _fragmentRanges.Clear();
         _protectedRanges.Clear();
+        _deletedFragmentIds.Clear();
         SetDocumentText(string.Empty, string.Empty);
 
         if (string.IsNullOrWhiteSpace(_ctx.ProjectPath) || SelectedLabel is null)
@@ -344,14 +404,16 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
             .Select(fragment => new StoryTextFragmentEdit(fragment.Id, fragment.SpeakerCode, fragment.EditedPlainText))
             .ToList();
 
-        if (modified.Count > 0)
+        if (modified.Count > 0 || _deletedFragmentIds.Count > 0)
         {
             try
             {
-                StatusText = $"Saving {modified.Count} lines...";
-                await _storyStorage.UpdateStoryTextFragmentEditsAsync(
+                var changeCount = modified.Count + _deletedFragmentIds.Count;
+                StatusText = $"Saving {changeCount} lines...";
+                await _storyStorage.ApplyStoryTextFragmentChangesAsync(
                     _ctx.ProjectPath,
                     modified,
+                    _deletedFragmentIds.ToArray(),
                     _ctx.ProjectName);
                 StatusText = "Saved";
                 RaiseSourceFilesChanged();

@@ -338,22 +338,42 @@ public sealed class StoryStorageService : IStoryStorageService
 
     public async Task UpdateStoryTextFragmentEditsAsync(string projectPath, IReadOnlyList<StoryTextFragmentEdit> fragmentEdits, string? projectName = null, CancellationToken cancellationToken = default)
     {
+        await ApplyStoryTextFragmentChangesAsync(
+            projectPath,
+            fragmentEdits,
+            Array.Empty<Guid>(),
+            projectName,
+            cancellationToken);
+    }
+
+    public async Task ApplyStoryTextFragmentChangesAsync(
+        string projectPath,
+        IReadOnlyList<StoryTextFragmentEdit> fragmentEdits,
+        IReadOnlyCollection<Guid> deletedFragmentIds,
+        string? projectName = null,
+        CancellationToken cancellationToken = default)
+    {
         try
         {
-            if (string.IsNullOrWhiteSpace(projectPath) || fragmentEdits.Count == 0)
+            if (string.IsNullOrWhiteSpace(projectPath))
                 return;
 
             var normalizedPath = Path.GetFullPath(projectPath);
-            await using var db = CreateDbContext(normalizedPath);
-            await db.Database.EnsureCreatedAsync(cancellationToken);
-            await EnsureSchemaAsync(db, cancellationToken);
-
             var editMap = fragmentEdits
                 .Where(x => x.FragmentId != Guid.Empty)
                 .ToDictionary(x => x.FragmentId);
-            var fragmentIds = editMap.Keys.ToArray();
+            var deleteIds = deletedFragmentIds
+                .Where(x => x != Guid.Empty)
+                .ToHashSet();
+            deleteIds.ExceptWith(editMap.Keys);
+
+            var fragmentIds = editMap.Keys.Concat(deleteIds).Distinct().ToArray();
             if (fragmentIds.Length == 0)
                 return;
+
+            await using var db = CreateDbContext(normalizedPath);
+            await db.Database.EnsureCreatedAsync(cancellationToken);
+            await EnsureSchemaAsync(db, cancellationToken);
 
             var fragments = await db.Fragments
                 .AsNoTracking()
@@ -378,17 +398,27 @@ public sealed class StoryStorageService : IStoryStorageService
                     if (lineIndex < 0 || lineIndex >= lines.Length)
                         throw new InvalidOperationException($"Строка {fragment.SourceLine} больше не существует в файле.");
 
-                    var edit = editMap[fragment.Id];
-                    var speakerCode = edit.UpdatesSpeaker
-                        ? edit.SpeakerCode
-                        : fragment.SpeakerCode ?? string.Empty;
                     lineIndex = ResolveFragmentLineIndex(lines, fragment, lineIndex);
-                    var replacementLines = BuildSayReplacementLines(lines[lineIndex], speakerCode, edit.Text);
-                    lines = lines
-                        .Take(lineIndex)
-                        .Concat(replacementLines)
-                        .Concat(lines.Skip(lineIndex + 1))
-                        .ToArray();
+                    if (deleteIds.Contains(fragment.Id))
+                    {
+                        lines = lines
+                            .Take(lineIndex)
+                            .Concat(lines.Skip(lineIndex + 1))
+                            .ToArray();
+                    }
+                    else
+                    {
+                        var edit = editMap[fragment.Id];
+                        var speakerCode = edit.UpdatesSpeaker
+                            ? edit.SpeakerCode
+                            : fragment.SpeakerCode ?? string.Empty;
+                        var replacementLines = BuildSayReplacementLines(lines[lineIndex], speakerCode, edit.Text);
+                        lines = lines
+                            .Take(lineIndex)
+                            .Concat(replacementLines)
+                            .Concat(lines.Skip(lineIndex + 1))
+                            .ToArray();
+                    }
                 }
 
                 await File.WriteAllLinesAsync(absoluteFilePath, lines, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), cancellationToken);

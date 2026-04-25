@@ -16,4 +16,5 @@ public interface IStoryStorageService
     Task UpdateStoryTextFragmentAsync(string projectPath, Guid fragmentId, string plainText, string? projectName = null, CancellationToken cancellationToken = default);
     Task UpdateStoryTextFragmentsAsync(string projectPath, IReadOnlyDictionary<Guid, string> fragmentTexts, string? projectName = null, CancellationToken cancellationToken = default);
     Task UpdateStoryTextFragmentEditsAsync(string projectPath, IReadOnlyList<StoryTextFragmentEdit> fragmentEdits, string? projectName = null, CancellationToken cancellationToken = default);
+    Task ApplyStoryTextFragmentChangesAsync(string projectPath, IReadOnlyList<StoryTextFragmentEdit> fragmentEdits, IReadOnlyCollection<Guid> deletedFragmentIds, string? projectName = null, CancellationToken cancellationToken = default);
 }

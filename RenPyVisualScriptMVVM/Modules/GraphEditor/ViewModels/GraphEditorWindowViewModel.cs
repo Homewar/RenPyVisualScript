@@ -1,6 +1,6 @@
 using Avalonia;
 using Avalonia.Media;
-using RenPyVisualScriptMVVM.Infrastructure.StoryStorage.Interfaces;
+using RenPyVisualScriptMVVM.Modules.Editors.Services;
 using RenPyVisualScriptMVVM.Modules.Editors.Models;
 using RenPyVisualScriptMVVM.Modules.GraphEditor.Models;
 using RenPyVisualScriptMVVM.Modules.Shell.ViewModels;
@@ -14,19 +14,14 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.ViewModels;
 
 public sealed class GraphEditorWindowViewModel : BaseViewModel
 {
-    private readonly IStoryStorageService _storyStorage;
     private ProjectStructureSnapshot? _snapshot;
     private string? _projectName;
 
     public string Title { get; private set; } = "Graph Editor";
     public string? ProjectPath { get; private set; }
     public ProjectStructureSnapshot? Snapshot => _snapshot;
-    public event Action? GraphSaved;
-
-    public GraphEditorWindowViewModel(IStoryStorageService storyStorage)
-    {
-        _storyStorage = storyStorage;
-    }
+    public event Action<IReadOnlyCollection<string>>? GraphSaved;
+    public event Action? SnapshotRefreshed;
 
     public void LoadSnapshot(ProjectStructureSnapshot snapshot, string? projectName = null, string? projectPath = null)
     {
@@ -40,19 +35,21 @@ public sealed class GraphEditorWindowViewModel : BaseViewModel
         OnPropertyChanged(nameof(Title));
     }
 
-    public async Task RefreshSnapshotFromProjectAsync()
+    public Task RefreshSnapshotFromProjectAsync()
     {
         if (string.IsNullOrWhiteSpace(ProjectPath))
-            return;
+            return Task.CompletedTask;
 
-        await _storyStorage.RebuildProjectIndexAsync(ProjectPath, _projectName);
-        var snapshot = await _storyStorage.ReadProjectStructureAsync(ProjectPath);
+        var structureReader = new RenPyStructureReader();
+        var snapshot = structureReader.Read(ProjectPath);
         LoadSnapshot(snapshot, _projectName, ProjectPath);
+        SnapshotRefreshed?.Invoke();
+        return Task.CompletedTask;
     }
 
-    public void NotifyGraphSaved()
+    public void NotifyGraphSaved(IReadOnlyCollection<string> updatedFiles)
     {
-        GraphSaved?.Invoke();
+        GraphSaved?.Invoke(updatedFiles);
     }
 
     public (List<Node> nodes, List<Edge> edges) BuildGraph()
@@ -344,6 +341,7 @@ public sealed class GraphEditorWindowViewModel : BaseViewModel
 
         return (nodes, edges);
     }
+
 
     private static IBrush GetNodeBrush(string seed)
     {

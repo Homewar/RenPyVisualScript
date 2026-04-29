@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "yTlPQ5o2Q9k=",
+  "dgSpecHash": "SfAYjJG6xaA=",
   "success": true,
   "projectFilePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
   "expectedPackageFiles": [
@@ -123,7 +123,11 @@
     "C:\\Users\\Homewarriors\\.nuget\\packages\\testably.abstractions.filesystem.interface\\9.0.0\\testably.abstractions.filesystem.interface.9.0.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\textmatesharp\\1.0.70\\textmatesharp.1.0.70.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\textmatesharp.grammars\\1.0.70\\textmatesharp.grammars.1.0.70.nupkg.sha512",
-    "C:\\Users\\Homewarriors\\.nuget\\packages\\tmds.dbus.protocol\\0.21.2\\tmds.dbus.protocol.0.21.2.nupkg.sha512"
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\tmds.dbus.protocol\\0.21.2\\tmds.dbus.protocol.0.21.2.nupkg.sha512",
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.26\\microsoft.netcore.app.ref.8.0.26.nupkg.sha512",
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.26\\microsoft.windowsdesktop.app.ref.8.0.26.nupkg.sha512",
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.26\\microsoft.aspnetcore.app.ref.8.0.26.nupkg.sha512",
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\8.0.26\\microsoft.netcore.app.host.win-x64.8.0.26.nupkg.sha512"
   ],
   "logs": []
 }

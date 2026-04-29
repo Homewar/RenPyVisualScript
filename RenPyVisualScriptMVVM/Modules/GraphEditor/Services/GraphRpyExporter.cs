@@ -26,6 +26,9 @@ public static class GraphRpyExporter
     private static readonly Regex JumpRegex = new(@"^\s*jump\s+[A-Za-z_][A-Za-z0-9_]*\b", RegexOptions.Compiled);
     private static readonly Regex CallRegex = new(@"^\s*call\s+[A-Za-z_][A-Za-z0-9_]*\b", RegexOptions.Compiled);
     private static readonly Regex ReturnRegex = new(@"^\s*return\b", RegexOptions.Compiled);
+    private static readonly Regex StaticTransferRegex = new(
+        @"^\s*(?:(?<kind>jump|call)\s+(?<target>[A-Za-z_][A-Za-z0-9_]*)\b|(?<kind>return)\b)",
+        RegexOptions.Compiled);
     private static readonly Regex ValidLabelRegex = new(@"^[A-Za-z_][A-Za-z0-9_]*$", RegexOptions.Compiled);
 
     public static GraphRpyExportResult SynchronizeGraph(
@@ -44,8 +47,11 @@ public static class GraphRpyExporter
         var structureReader = new RenPyStructureReader();
         var currentSnapshot = structureReader.Read(normalizedProjectPath);
 
-        var nodeList = nodes.ToList();
-        var edgeList = edges.ToList();
+        var nodeList = nodes.Where(IsExportableNode).ToList();
+        var exportableNodes = new HashSet<Node>(nodeList);
+        var edgeList = edges
+            .Where(edge => exportableNodes.Contains(edge.Start) && exportableNodes.Contains(edge.End))
+            .ToList();
         var renamedNodeMap = NormalizeManualNodeTitles(nodeList, initialSnapshot, currentSnapshot);
 
         var initialLabelNames = new HashSet<string>(initialSnapshot.Labels.Select(l => l.Name), StringComparer.OrdinalIgnoreCase);
@@ -57,10 +63,10 @@ public static class GraphRpyExporter
             StringComparer.OrdinalIgnoreCase);
 
         var labelByName = currentSnapshot.Labels.ToDictionary(l => l.Name, StringComparer.OrdinalIgnoreCase);
-        var targetFileByNode = ResolveTargetFiles(nodeList, edgeList, initialSnapshot, currentSnapshot, labelByName);
+        var targetFileByNode = ResolveTargetFiles(nodeList, edgeList, initialSnapshot, currentSnapshot, labelByName, normalizedProjectPath);
         var renderedBlockByLabel = nodeList.ToDictionary(
             n => n.Title,
-            n => RenderLabelBlock(n, edgeList.Where(e => e.Start == n).Select(e => e.End).Distinct().ToList()),
+            n => RenderLabelBlock(n, edgeList.Where(e => e.Start == n).Select(e => e.End).ToList()),
             StringComparer.OrdinalIgnoreCase);
 
         var filesToUpdate = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -70,6 +76,7 @@ public static class GraphRpyExporter
             filesToUpdate.Add(file);
 
         var updatedFiles = new List<string>();
+        var actualDeletedNodeCount = 0;
         foreach (var relativeFilePath in filesToUpdate.OrderBy(static p => p, StringComparer.OrdinalIgnoreCase))
         {
             var absoluteFilePath = Path.Combine(normalizedProjectPath, relativeFilePath.Replace('/', Path.DirectorySeparatorChar));
@@ -90,16 +97,20 @@ public static class GraphRpyExporter
             foreach (var label in labelsInFile)
             {
                 AppendRange(outputLines, currentLines, cursor, label.Line - 1);
+                var isManagedLabel = HasManagedGraphRegion(label);
+                var hasGraphFlowChanges = HasGraphFlowChanges(label.Name, edgeList, initialSnapshot);
 
-                if (deletedLabelNames.Contains(label.Name))
+                if (deletedLabelNames.Contains(label.Name) && isManagedLabel)
                 {
+                    actualDeletedNodeCount++;
                     cursor = label.EndLine + 1;
                     continue;
                 }
 
                 if (renderedBlockByLabel.TryGetValue(label.Name, out var renderedBlock)
                     && targetFileByNode.TryGetValue(label.Name, out var targetFile)
-                    && string.Equals(targetFile, relativeFilePath, StringComparison.OrdinalIgnoreCase))
+                    && string.Equals(targetFile, relativeFilePath, StringComparison.OrdinalIgnoreCase)
+                    && (isManagedLabel || hasGraphFlowChanges))
                 {
                     outputLines.AddRange(renderedBlock);
                 }
@@ -145,7 +156,7 @@ public static class GraphRpyExporter
         {
             UpdatedFiles = updatedFiles,
             SyncedNodeCount = nodeList.Count,
-            DeletedNodeCount = deletedLabelNames.Count,
+            DeletedNodeCount = actualDeletedNodeCount,
             SyncedEdgeCount = edgeList.Count,
             RenamedNodeMap = renamedNodeMap
         };
@@ -185,7 +196,8 @@ public static class GraphRpyExporter
         IReadOnlyCollection<Edge> edgeList,
         ProjectStructureSnapshot initialSnapshot,
         ProjectStructureSnapshot currentSnapshot,
-        IReadOnlyDictionary<string, LabelOutlineItem> currentLabelsByName)
+        IReadOnlyDictionary<string, LabelOutlineItem> currentLabelsByName,
+        string projectPath)
     {
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         var fallbackFile = ResolveFallbackFile(initialSnapshot, currentSnapshot);
@@ -196,7 +208,7 @@ public static class GraphRpyExporter
             {
                 if (!string.IsNullOrWhiteSpace(node.SourceFilePath))
                 {
-                    result[node.Title] = node.SourceFilePath!;
+                    result[node.Title] = NormalizeProjectRelativePath(projectPath, node.SourceFilePath!);
                     continue;
                 }
 
@@ -216,7 +228,7 @@ public static class GraphRpyExporter
 
             var incomingFile = edgeList
                 .Where(e => e.End == node && !e.Start.IsGeneratedManually && !string.IsNullOrWhiteSpace(e.Start.SourceFilePath))
-                .Select(e => e.Start.SourceFilePath!)
+                .Select(e => NormalizeProjectRelativePath(projectPath, e.Start.SourceFilePath!))
                 .GroupBy(static x => x, StringComparer.OrdinalIgnoreCase)
                 .OrderByDescending(static g => g.Count())
                 .ThenBy(static g => g.Key, StringComparer.OrdinalIgnoreCase)
@@ -231,7 +243,7 @@ public static class GraphRpyExporter
 
             var outgoingFile = edgeList
                 .Where(e => e.Start == node && !e.End.IsGeneratedManually && !string.IsNullOrWhiteSpace(e.End.SourceFilePath))
-                .Select(e => e.End.SourceFilePath!)
+                .Select(e => NormalizeProjectRelativePath(projectPath, e.End.SourceFilePath!))
                 .GroupBy(static x => x, StringComparer.OrdinalIgnoreCase)
                 .OrderByDescending(static g => g.Count())
                 .ThenBy(static g => g.Key, StringComparer.OrdinalIgnoreCase)
@@ -242,6 +254,24 @@ public static class GraphRpyExporter
         }
 
         return result;
+    }
+
+    private static bool IsExportableNode(Node node)
+    {
+        return !node.IsScreenConnector && !node.IsMenuConnector;
+    }
+
+    private static string NormalizeProjectRelativePath(string projectPath, string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+            return filePath;
+
+        var normalizedFilePath = filePath.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
+        if (!Path.IsPathRooted(normalizedFilePath))
+            return normalizedFilePath.Replace('\\', '/');
+
+        var relativePath = Path.GetRelativePath(projectPath, normalizedFilePath);
+        return relativePath.Replace('\\', '/');
     }
 
     private static string ResolveFallbackFile(ProjectStructureSnapshot initialSnapshot, ProjectStructureSnapshot currentSnapshot)
@@ -257,8 +287,8 @@ public static class GraphRpyExporter
 
     private static List<string> RenderLabelBlock(Node node, IReadOnlyList<Node> outgoingNodes)
     {
-        var staticBody = PrepareStaticBodyLines(node);
         var flowLines = BuildFlowLines(outgoingNodes);
+        var staticBody = PrepareStaticBodyLines(node, flowLines);
         var block = new List<string> { $"label {node.Title}:" };
 
         if (staticBody.Count > 0)
@@ -275,12 +305,17 @@ public static class GraphRpyExporter
         return block;
     }
 
-    private static List<string> PrepareStaticBodyLines(Node node)
+    private static List<string> PrepareStaticBodyLines(Node node, IReadOnlyList<string> newFlowLines)
     {
         var bodyLines = (node.BodyLines ?? new List<string>()).ToList();
+        var oldManagedFlowLines = ExtractManagedGraphFlowLines(bodyLines);
+        var newTargetNames = ExtractFlowTargetNames(newFlowLines);
         RemoveManagedGraphRegion(bodyLines);
         TrimTrailingBlankLines(bodyLines);
-        RemoveTrailingFlowBlock(bodyLines);
+        CommentRemovedStaticTransfers(bodyLines, newTargetNames);
+        CommentTrailingFlowBlock(bodyLines);
+        AddCommentedOldManagedFlow(bodyLines, oldManagedFlowLines, newFlowLines);
+        RemoveDuplicateGeneratedFlowComments(bodyLines);
         TrimTrailingBlankLines(bodyLines);
 
         if (bodyLines.Count == 0 && node.IsGeneratedManually)
@@ -299,7 +334,210 @@ public static class GraphRpyExporter
         bodyLines.RemoveRange(beginIndex, endIndex - beginIndex + 1);
     }
 
-    private static void RemoveTrailingFlowBlock(List<string> bodyLines)
+    private static List<string> ExtractManagedGraphFlowLines(IReadOnlyList<string> bodyLines)
+    {
+        var beginIndex = bodyLines.ToList().FindIndex(static line => line.Contains(GraphBeginMarker, StringComparison.Ordinal));
+        var endIndex = bodyLines.ToList().FindIndex(static line => line.Contains(GraphEndMarker, StringComparison.Ordinal));
+        if (beginIndex < 0 || endIndex <= beginIndex)
+            return new List<string>();
+
+        return bodyLines
+            .Skip(beginIndex + 1)
+            .Take(endIndex - beginIndex - 1)
+            .Where(line => !string.IsNullOrWhiteSpace(line))
+            .ToList();
+    }
+
+    private static void AddCommentedOldManagedFlow(
+        List<string> bodyLines,
+        IReadOnlyList<string> oldManagedFlowLines,
+        IReadOnlyList<string> newFlowLines)
+    {
+        if (oldManagedFlowLines.Count == 0 || FlowLinesEquivalent(oldManagedFlowLines, newFlowLines))
+            return;
+
+        RemoveTrailingGeneratedFlowCommentBlock(bodyLines);
+        TrimTrailingBlankLines(bodyLines);
+        if (bodyLines.Count > 0)
+            bodyLines.Add(string.Empty);
+
+        foreach (var line in oldManagedFlowLines)
+        {
+            if (IsCommentedRenPyLine(line))
+                continue;
+
+            var commentedLine = CommentRenPyLine(line);
+            if (!ContainsEquivalentLine(bodyLines, commentedLine))
+                bodyLines.Add(commentedLine);
+        }
+    }
+
+    private static void RemoveDuplicateGeneratedFlowComments(List<string> bodyLines)
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        for (var i = bodyLines.Count - 1; i >= 0; i--)
+        {
+            var normalized = NormalizeGeneratedFlowComment(bodyLines[i]);
+            if (normalized.Length == 0)
+                continue;
+
+            if (!seen.Add(normalized))
+                bodyLines.RemoveAt(i);
+        }
+    }
+
+    private static void RemoveTrailingGeneratedFlowCommentBlock(List<string> bodyLines)
+    {
+        TrimTrailingBlankLines(bodyLines);
+
+        var startIndex = bodyLines.Count;
+        for (var i = bodyLines.Count - 1; i >= 0; i--)
+        {
+            if (string.IsNullOrWhiteSpace(bodyLines[i]))
+            {
+                startIndex = i;
+                continue;
+            }
+
+            if (NormalizeGeneratedFlowComment(bodyLines[i]).Length == 0)
+                break;
+
+            startIndex = i;
+        }
+
+        if (startIndex >= bodyLines.Count)
+            return;
+
+        bodyLines.RemoveRange(startIndex, bodyLines.Count - startIndex);
+    }
+
+    private static string NormalizeGeneratedFlowComment(string line)
+    {
+        var trimmed = line.TrimStart();
+        if (!trimmed.StartsWith("#", StringComparison.Ordinal))
+            return string.Empty;
+
+        var content = trimmed[1..].TrimStart();
+        if (JumpRegex.IsMatch(content)
+            || CallRegex.IsMatch(content)
+            || ReturnRegex.IsMatch(content)
+            || string.Equals(content, "menu:", StringComparison.Ordinal)
+            || content.StartsWith("\"", StringComparison.Ordinal))
+        {
+            return content.Trim();
+        }
+
+        return string.Empty;
+    }
+
+    private static bool ContainsEquivalentLine(IEnumerable<string> lines, string candidate)
+    {
+        var normalizedCandidate = candidate.Trim();
+        return lines.Any(line => string.Equals(line.Trim(), normalizedCandidate, StringComparison.Ordinal));
+    }
+
+    private static bool FlowLinesEquivalent(IReadOnlyList<string> left, IReadOnlyList<string> right)
+    {
+        var normalizedLeft = left
+            .Where(static line => !string.IsNullOrWhiteSpace(line))
+            .Select(NormalizeFlowLine)
+            .Where(static line => line.Length > 0)
+            .ToList();
+
+        var normalizedRight = right
+            .Where(static line => !string.IsNullOrWhiteSpace(line))
+            .Select(NormalizeFlowLine)
+            .Where(static line => line.Length > 0)
+            .ToList();
+
+        return normalizedLeft.SequenceEqual(normalizedRight, StringComparer.Ordinal);
+    }
+
+    private static HashSet<string> ExtractFlowTargetNames(IEnumerable<string> flowLines)
+    {
+        var targets = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var line in flowLines)
+        {
+            var match = StaticTransferRegex.Match(line);
+            if (match.Success && match.Groups["target"].Success)
+                targets.Add(match.Groups["target"].Value);
+        }
+
+        return targets;
+    }
+
+    private static void CommentRemovedStaticTransfers(List<string> bodyLines, IReadOnlySet<string> newTargetNames)
+    {
+        for (var i = 0; i < bodyLines.Count; i++)
+        {
+            var line = bodyLines[i];
+            if (IsCommentedRenPyLine(line))
+                continue;
+
+            var match = StaticTransferRegex.Match(line);
+            if (!match.Success || !match.Groups["target"].Success)
+                continue;
+
+            var target = match.Groups["target"].Value;
+            if (!newTargetNames.Contains(target))
+                bodyLines[i] = CommentRenPyLine(line);
+        }
+    }
+
+    private static string NormalizeFlowLine(string line)
+    {
+        var trimmed = line.Trim();
+        return trimmed.StartsWith("#", StringComparison.Ordinal)
+            ? string.Empty
+            : trimmed;
+    }
+
+    private static bool HasManagedGraphRegion(LabelOutlineItem label)
+    {
+        var beginIndex = label.BodyLines
+            .ToList()
+            .FindIndex(static line => line.Contains(GraphBeginMarker, StringComparison.Ordinal));
+        if (beginIndex < 0)
+            return false;
+
+        var endIndex = label.BodyLines
+            .ToList()
+            .FindIndex(static line => line.Contains(GraphEndMarker, StringComparison.Ordinal));
+        return endIndex > beginIndex;
+    }
+
+    private static bool HasGraphFlowChanges(
+        string labelName,
+        IReadOnlyCollection<Edge> edgeList,
+        ProjectStructureSnapshot initialSnapshot)
+    {
+        var currentTargets = edgeList
+            .Where(edge => string.Equals(edge.Start.Title, labelName, StringComparison.OrdinalIgnoreCase))
+            .Select(edge => edge.End.Title)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var initialTargets = initialSnapshot.Links
+            .Where(link => string.Equals(link.Source, labelName, StringComparison.OrdinalIgnoreCase))
+            .Where(link => IsExportableStructureLink(link))
+            .Select(link => link.Target)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        return !currentTargets.SetEquals(initialTargets);
+    }
+
+    private static bool IsExportableStructureLink(StructureLinkItem link)
+    {
+        if (string.Equals(link.Kind, "fallthrough", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (!string.IsNullOrWhiteSpace(link.ScreenName) || !string.IsNullOrWhiteSpace(link.MenuName))
+            return false;
+
+        return !string.IsNullOrWhiteSpace(link.Target)
+               && !string.Equals(link.Target, "(inline branch)", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void CommentTrailingFlowBlock(List<string> bodyLines)
     {
         TrimTrailingBlankLines(bodyLines);
         if (bodyLines.Count == 0)
@@ -309,7 +547,7 @@ public static class GraphRpyExporter
         var lastTrimmed = bodyLines[lastIndex].Trim();
         if (JumpRegex.IsMatch(lastTrimmed) || CallRegex.IsMatch(lastTrimmed) || ReturnRegex.IsMatch(lastTrimmed))
         {
-            bodyLines.RemoveAt(lastIndex);
+            bodyLines[lastIndex] = CommentRenPyLine(bodyLines[lastIndex]);
             return;
         }
 
@@ -336,7 +574,13 @@ public static class GraphRpyExporter
                 }
 
                 if (isTerminalMenu)
-                    bodyLines.RemoveRange(i, bodyLines.Count - i);
+                {
+                    for (var j = i; j < bodyLines.Count; j++)
+                    {
+                        if (!string.IsNullOrWhiteSpace(bodyLines[j]))
+                            bodyLines[j] = CommentRenPyLine(bodyLines[j]);
+                    }
+                }
 
                 return;
             }
@@ -349,7 +593,8 @@ public static class GraphRpyExporter
     private static List<string> BuildFlowLines(IReadOnlyList<Node> outgoingNodes)
     {
         var distinctTargets = outgoingNodes
-            .Distinct()
+            .GroupBy(n => n.Title, StringComparer.OrdinalIgnoreCase)
+            .Select(static group => group.First())
             .OrderBy(n => n.Title, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
@@ -424,6 +669,22 @@ public static class GraphRpyExporter
     {
         while (lines.Count > 0 && string.IsNullOrWhiteSpace(lines[^1]))
             lines.RemoveAt(lines.Count - 1);
+    }
+
+    private static string CommentRenPyLine(string line)
+    {
+        var indentLength = GetIndentWidth(line);
+        var indent = line[..indentLength];
+        var content = line[indentLength..];
+        return IsCommentedRenPyLine(line)
+            ? line
+            : $"{indent}# {content}";
+    }
+
+    private static bool IsCommentedRenPyLine(string line)
+    {
+        var indentLength = GetIndentWidth(line);
+        return line[indentLength..].TrimStart().StartsWith("#", StringComparison.Ordinal);
     }
 
     private static int GetIndentWidth(string line)

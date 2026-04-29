@@ -18,21 +18,44 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Views
         public GraphEditorWindow()
         {
             InitializeComponent();
-            Opened += (_, _) => ApplyGraph();
-            DataContextChanged += (_, _) => ApplyGraph();
+            Opened += (_, _) => ApplyGraph(preserveCurrentViewport: false);
+            DataContextChanged += OnDataContextChanged;
             Closing += (_, _) => SaveViewState();
             KeyDown += OnWindowKeyDown;
             GraphCanvas.GraphChanged += (_, _) => UpdateStats();
             AddRouteButton.Click += OnAddRouteClick;
             RoutesListBox.SelectionChanged += (_, _) => OnRouteSelectionChanged();
+            RoutesListBox.DoubleTapped += OnRoutesListBoxDoubleTapped;
         }
 
-        private void ApplyGraph()
+        private GraphEditorWindowViewModel? _subscribedViewModel;
+
+        private void OnDataContextChanged(object? sender, EventArgs e)
+        {
+            if (_subscribedViewModel is not null)
+                _subscribedViewModel.SnapshotRefreshed -= OnSnapshotRefreshed;
+
+            _subscribedViewModel = DataContext as GraphEditorWindowViewModel;
+            if (_subscribedViewModel is not null)
+                _subscribedViewModel.SnapshotRefreshed += OnSnapshotRefreshed;
+
+            ApplyGraph(preserveCurrentViewport: false);
+        }
+
+        private void OnSnapshotRefreshed()
+        {
+            ApplyGraph(preserveCurrentViewport: true);
+        }
+
+        private void ApplyGraph(bool preserveCurrentViewport)
         {
             if (DataContext is not GraphEditorWindowViewModel vm)
                 return;
 
             Title = vm.Title;
+            var currentViewState = preserveCurrentViewport
+                ? GraphCanvas.BuildViewState()
+                : null;
 
             var (nodes, edges) = vm.BuildGraph();
             GraphCanvas.Nodes.Clear();
@@ -48,7 +71,18 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Views
                 GraphCanvas.ApplySavedNodePositions(viewState.NodePositions);
             }
             GraphCanvas.RebuildChildren();
-            GraphCanvas.FocusWorldPoint(new Avalonia.Point(-400, 200));
+            if (currentViewState?.HasViewport == true)
+            {
+                GraphCanvas.ApplyViewport(currentViewState.ViewportOffsetX, currentViewState.ViewportOffsetY, currentViewState.ViewportScale);
+            }
+            else if (viewState.HasViewport)
+            {
+                GraphCanvas.ApplyViewport(viewState.ViewportOffsetX, viewState.ViewportOffsetY, viewState.ViewportScale);
+            }
+            else
+            {
+                GraphCanvas.FocusWorldPoint(new Avalonia.Point(-400, 200));
+            }
             GraphCanvas.NotifyGraphChanged();
             UpdateRoutesPanel();
         }
@@ -73,7 +107,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Views
                 SaveViewState();
                 var result = GraphRpyExporter.SynchronizeGraph(vm.ProjectPath, vm.Snapshot, GraphCanvas.Nodes, GraphCanvas.Edges);
                 await vm.RefreshSnapshotFromProjectAsync();
-                vm.NotifyGraphSaved();
+                vm.NotifyGraphSaved(result.UpdatedFiles);
                 var windows = Locator.Current.GetService<IWindowService>();
                 if (windows != null)
                 {
@@ -152,6 +186,15 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Views
             GraphCanvas.ActiveRouteName = selectedRoute?.Name;
             RouteNodesListBox.ItemsSource = selectedRoute?.NodeTitles?.OrderBy(title => title).ToList()
                 ?? Enumerable.Empty<string>();
+        }
+
+        private void OnRoutesListBoxDoubleTapped(object? sender, TappedEventArgs e)
+        {
+            if (RoutesListBox.SelectedItem is not StoryRoute route)
+                return;
+
+            GraphCanvas.ToggleRouteHighlight(route);
+            e.Handled = true;
         }
 
         private void SaveViewState()

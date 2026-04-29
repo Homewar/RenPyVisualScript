@@ -8,6 +8,7 @@ using RenPyVisualScriptMVVM.Core.Services.Interfaces;
 using RenPyVisualScriptMVVM.Modules.Editors.Services;
 using RenPyVisualScriptMVVM.Modules.Editors.Services.Interfaces;
 using RenPyVisualScriptMVVM.Modules.Editors.ViewModels;
+using RenPyVisualScriptMVVM.Modules.DatabaseLog.ViewModels;
 using RenPyVisualScriptMVVM.Modules.GraphEditor.ViewModels;
 using RenPyVisualScriptMVVM.Modules.Projects.ViewModels;
 using RenPyVisualScriptMVVM.Modules.Settings.Services;
@@ -20,6 +21,7 @@ using RenPyVisualScriptMVVM.Modules.StoryEditor.ViewModels;
 using RenPyVisualScriptMVVM.Infrastructure.StoryStorage.Services;
 using RenPyVisualScriptMVVM.Infrastructure.StoryStorage.Parsers;
 using RenPyVisualScriptMVVM.Infrastructure.StoryStorage.Interfaces;
+using RenPyVisualScriptMVVM.Infrastructure.StoryStorage.Logging;
 using Splat;
 using System;
 using System.IO.Abstractions;
@@ -58,10 +60,13 @@ public partial class App : Application
         loc.RegisterConstant<IFileSystem>(new FileSystem());
         loc.RegisterConstant<IEditorNavigationService>(new EditorNavigationService());
         loc.RegisterConstant<IEditorDialogService>(new EditorDialogService());
+        loc.RegisterLazySingleton<IDatabaseLogService>(() => new DatabaseLogService());
 
         loc.RegisterLazySingleton<IRenPyStoryParser>(() => new RenPyStoryParser());
         loc.RegisterLazySingleton<IStoryStorageService>(() =>
-            new StoryStorageService(Locator.Current.GetService<IRenPyStoryParser>()!));
+            new StoryStorageService(
+                Locator.Current.GetService<IRenPyStoryParser>()!,
+                Locator.Current.GetService<IDatabaseLogService>()!));
 
         loc.RegisterLazySingleton<IProjectStorage>(() =>
             new FileSystemProjectStorage(Locator.Current.GetService<IFileSystem>()!));
@@ -106,7 +111,11 @@ public partial class App : Application
                 Locator.Current.GetService<IEditorNavigationService>()!,
                 Locator.Current.GetService<IStoryStorageService>()!,
                 Locator.Current.GetService<IApplicationDialogService>()!,
+                Locator.Current.GetService<IDatabaseLogService>()!,
                 Locator.Current));
+
+        loc.Register<DatabaseLogWindowViewModel>(() =>
+            new DatabaseLogWindowViewModel(Locator.Current.GetService<IDatabaseLogService>()!));
 
         loc.Register<FileTreeViewModel>(() =>
             new FileTreeViewModel(Locator.Current.GetService<IProjectContext>()!));
@@ -123,7 +132,7 @@ public partial class App : Application
                 Locator.Current.GetService<RenPyVisualScriptMVVM.Core.Models.IDESettings>()!));
 
         loc.Register<GraphEditorWindowViewModel>(() =>
-            new GraphEditorWindowViewModel(Locator.Current.GetService<IStoryStorageService>()!));
+            new GraphEditorWindowViewModel());
         loc.Register<StoryTextEditorWindowViewModel>(() =>
             new StoryTextEditorWindowViewModel(
                 Locator.Current.GetService<IProjectContext>()!,

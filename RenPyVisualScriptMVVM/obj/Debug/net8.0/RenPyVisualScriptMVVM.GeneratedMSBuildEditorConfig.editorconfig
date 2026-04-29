@@ -31,6 +31,9 @@ build_property.EnableCodeStyleSeverity =
 [C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/App.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
+[C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/DatabaseLog/Views/DatabaseLogWindow.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
 [C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/Editors/Views/AvaloniaEdit.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 

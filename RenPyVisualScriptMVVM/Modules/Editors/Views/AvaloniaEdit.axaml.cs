@@ -268,6 +268,13 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
                     return;
                 }
 
+                if (IsToggleCommentShortcut(e))
+                {
+                    ToggleLineComments();
+                    e.Handled = true;
+                    return;
+                }
+
                 if (e.Key == Key.S && e.KeyModifiers.HasFlag(KeyModifiers.Control))
                 {
                     SaveToFile();
@@ -475,6 +482,101 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
             {
                 Debug.WriteLine($"Error reloading file: {ex.Message}");
             }
+        }
+
+        private static bool IsToggleCommentShortcut(KeyEventArgs e)
+        {
+            return e.KeyModifiers.HasFlag(KeyModifiers.Control)
+                   && (e.Key == Key.OemQuestion || e.Key == Key.Oem2 || e.Key == Key.Divide);
+        }
+
+        private void ToggleLineComments()
+        {
+            var document = textEditor.Document;
+            if (document is null || document.LineCount == 0)
+                return;
+
+            var selectionStart = textEditor.SelectionStart;
+            var selectionLength = textEditor.SelectionLength;
+            var selectionEnd = selectionStart + selectionLength;
+            var hasSelection = selectionLength > 0;
+
+            var startLine = document.GetLineByOffset(Math.Clamp(selectionStart, 0, document.TextLength));
+            var endOffset = hasSelection
+                ? Math.Clamp(selectionEnd - 1, 0, document.TextLength)
+                : Math.Clamp(textEditor.TextArea.Caret.Offset, 0, document.TextLength);
+            var endLine = document.GetLineByOffset(endOffset);
+
+            var lineNumbers = Enumerable
+                .Range(startLine.LineNumber, endLine.LineNumber - startLine.LineNumber + 1)
+                .ToList();
+            var shouldUncomment = lineNumbers
+                .Select(lineNumber => document.GetText(document.GetLineByNumber(lineNumber)))
+                .Where(static line => line.Trim().Length > 0)
+                .All(IsCommentedLine);
+
+            using (document.RunUpdate())
+            {
+                for (var i = lineNumbers.Count - 1; i >= 0; i--)
+                {
+                    var line = document.GetLineByNumber(lineNumbers[i]);
+                    var lineText = document.GetText(line);
+                    if (lineText.Trim().Length == 0)
+                        continue;
+
+                    var newText = shouldUncomment
+                        ? UncommentLine(lineText)
+                        : CommentLine(lineText);
+
+                    if (!string.Equals(lineText, newText, StringComparison.Ordinal))
+                        document.Replace(line.Offset, line.Length, newText);
+                }
+            }
+
+            var updatedStartLine = document.GetLineByNumber(Math.Min(startLine.LineNumber, document.LineCount));
+            if (hasSelection)
+            {
+                var updatedEndLine = document.GetLineByNumber(Math.Min(endLine.LineNumber, document.LineCount));
+                textEditor.SelectionStart = updatedStartLine.Offset;
+                textEditor.SelectionLength = updatedEndLine.EndOffset - updatedStartLine.Offset;
+            }
+            else
+            {
+                textEditor.TextArea.Caret.Line = updatedStartLine.LineNumber;
+            }
+        }
+
+        private static bool IsCommentedLine(string line)
+        {
+            return line.TrimStart().StartsWith("#", StringComparison.Ordinal);
+        }
+
+        private static string CommentLine(string line)
+        {
+            var indentLength = GetLeadingWhitespaceLength(line);
+            return line[..indentLength] + "# " + line[indentLength..];
+        }
+
+        private static string UncommentLine(string line)
+        {
+            var indentLength = GetLeadingWhitespaceLength(line);
+            if (indentLength >= line.Length || line[indentLength] != '#')
+                return line;
+
+            var removeLength = 1;
+            if (indentLength + 1 < line.Length && line[indentLength + 1] == ' ')
+                removeLength++;
+
+            return line.Remove(indentLength, removeLength);
+        }
+
+        private static int GetLeadingWhitespaceLength(string line)
+        {
+            var count = 0;
+            while (count < line.Length && char.IsWhiteSpace(line[count]))
+                count++;
+
+            return count;
         }
 
         private void BreakpointGutter_PointerPressed(object? sender, PointerPressedEventArgs e)

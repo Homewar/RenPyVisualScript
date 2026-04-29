@@ -14,9 +14,7 @@ public sealed class StoryDbContext : DbContext
     public DbSet<StoryTextFragmentEntity> Fragments => Set<StoryTextFragmentEntity>();
     public DbSet<StoryWordEntity> Words => Set<StoryWordEntity>();
     public DbSet<StoryWordFormatTagEntity> WordFormatTags => Set<StoryWordFormatTagEntity>();
-    public DbSet<StoryStructureLabelEntity> StructureLabels => Set<StoryStructureLabelEntity>();
     public DbSet<StoryCharacterEntity> Characters => Set<StoryCharacterEntity>();
-    public DbSet<StoryStructureLinkEntity> StructureLinks => Set<StoryStructureLinkEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,15 +29,7 @@ public sealed class StoryDbContext : DbContext
                 .WithOne(x => x.Project)
                 .HasForeignKey(x => x.ProjectId)
                 .OnDelete(DeleteBehavior.Cascade);
-            entity.HasMany(x => x.StructureLabels)
-                .WithOne(x => x.Project)
-                .HasForeignKey(x => x.ProjectId)
-                .OnDelete(DeleteBehavior.Cascade);
             entity.HasMany(x => x.Characters)
-                .WithOne(x => x.Project)
-                .HasForeignKey(x => x.ProjectId)
-                .OnDelete(DeleteBehavior.Cascade);
-            entity.HasMany(x => x.StructureLinks)
                 .WithOne(x => x.Project)
                 .HasForeignKey(x => x.ProjectId)
                 .OnDelete(DeleteBehavior.Cascade);
@@ -121,30 +111,5 @@ public sealed class StoryDbContext : DbContext
             entity.HasIndex(x => new { x.ProjectId, x.Name });
         });
 
-        modelBuilder.Entity<StoryStructureLabelEntity>(entity =>
-        {
-            entity.ToTable("StoryStructureLabels");
-            entity.HasKey(x => x.Id);
-            entity.Property(x => x.Name).IsRequired();
-            entity.Property(x => x.FileName).IsRequired();
-            entity.Property(x => x.FilePath).IsRequired();
-            entity.Property(x => x.BodyText).IsRequired();
-            entity.HasIndex(x => new { x.ProjectId, x.SortOrder });
-            entity.HasIndex(x => new { x.ProjectId, x.Name });
-        });
-
-        modelBuilder.Entity<StoryStructureLinkEntity>(entity =>
-        {
-            entity.ToTable("StoryStructureLinks");
-            entity.HasKey(x => x.Id);
-            entity.Property(x => x.Kind).IsRequired();
-            entity.Property(x => x.Source).IsRequired();
-            entity.Property(x => x.Target).IsRequired();
-            entity.Property(x => x.Description).IsRequired();
-            entity.Property(x => x.FileName).IsRequired();
-            entity.HasIndex(x => new { x.ProjectId, x.SortOrder });
-            entity.HasIndex(x => new { x.ProjectId, x.Source });
-            entity.HasIndex(x => new { x.ProjectId, x.Target });
-        });
     }
 }

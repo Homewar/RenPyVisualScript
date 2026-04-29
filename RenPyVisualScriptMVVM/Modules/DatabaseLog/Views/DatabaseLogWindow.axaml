@@ -1,0 +1,40 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:RenPyVisualScriptMVVM.Modules.DatabaseLog.ViewModels"
+        x:Class="RenPyVisualScriptMVVM.Modules.DatabaseLog.Views.DatabaseLogWindow"
+        x:DataType="vm:DatabaseLogWindowViewModel"
+        Width="980"
+        Height="620"
+        MinWidth="760"
+        MinHeight="420"
+        Background="#1e1e1e"
+        Title="Database Log">
+
+    <Grid RowDefinitions="Auto,*" Margin="12" RowSpacing="10">
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+            <Button Content="Copy All" Click="CopyAll_OnClick"/>
+            <Button Content="Clear" Command="{Binding ClearCmd}"/>
+        </StackPanel>
+
+        <Border Grid.Row="1"
+                Background="#181818"
+                BorderBrush="#3c3c3c"
+                BorderThickness="1">
+            <ListBox x:Name="LogListBox"
+                     ItemsSource="{Binding Entries}"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     FontFamily="Consolas"
+                     FontSize="12">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding DisplayText}"
+                                   Foreground="#d6d6d6"
+                                   TextWrapping="Wrap"
+                                   Margin="6,3"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+    </Grid>
+</Window>

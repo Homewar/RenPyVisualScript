@@ -19,6 +19,7 @@ using RenPyVisualScriptMVVM.Modules.Projects.ViewModels;
 using RenPyVisualScriptMVVM.Core.Models;
 using RenPyVisualScriptMVVM.Modules.Projects.Models;
 using RenPyVisualScriptMVVM.Modules.GraphEditor.ViewModels;
+using RenPyVisualScriptMVVM.Modules.DatabaseLog.ViewModels;
 using RenPyVisualScriptMVVM.Modules.StoryEditor.ViewModels;
 using RenPyVisualScriptMVVM.Modules.Editors.Services;
 using RenPyVisualScriptMVVM.Modules.Editors.Services.Interfaces;
@@ -26,6 +27,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using RenPyVisualScriptMVVM.Infrastructure.StoryStorage.Interfaces;
+using RenPyVisualScriptMVVM.Infrastructure.StoryStorage.Logging;
 using System.Threading.Tasks;
 
 namespace RenPyVisualScriptMVVM.Modules.Editors.ViewModels;
@@ -44,6 +46,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     private readonly IApplicationDialogService _dialogs;
     private readonly RenPyStructureReader _fallbackStructureReader = new();
     private bool _isShowingStoryIndexError;
+    private GraphEditorWindowViewModel? _activeGraphViewModel;
 
     public IRelayCommand SaveCmd { get; }
     public IRelayCommand ShowProjectSetCmd { get; }
@@ -53,6 +56,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     public IRelayCommand RunFromHereCmd { get; }
     public IRelayCommand OpenGraphCmd { get; }
     public IRelayCommand OpenStoryTextEditorCmd { get; }
+    public IRelayCommand OpenDatabaseLogCmd { get; }
     public IRelayCommand RefreshStructureCmd { get; }
 
     public ObservableCollection<TabItemModel> Tabs { get; } = new();
@@ -135,6 +139,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         IEditorNavigationService editorNavigation,
         IStoryStorageService storyStorage,
         IApplicationDialogService dialogs,
+        IDatabaseLogService databaseLog,
         IReadonlyDependencyResolver? loc = null)
     {
         _ctx = ctx;
@@ -156,6 +161,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         RunFromHereCmd = new RelayCommand(RunFromHere);
         OpenGraphCmd = new RelayCommand(OpenGraphWindow);
         OpenStoryTextEditorCmd = new RelayCommand(OpenStoryTextEditorWindow);
+        OpenDatabaseLogCmd = new RelayCommand(OpenDatabaseLogWindow);
         RefreshStructureCmd = new RelayCommand(() => RefreshStructure());
 
         _ctx.PropertyChanged += OnProjectContextChanged;
@@ -191,12 +197,12 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         }
     }
 
-    private void RefreshStructure(bool refreshFileTree = true)
+    private void RefreshStructure(bool refreshFileTree = true, bool rebuildStoryIndex = true, string? refreshReason = null)
     {
-        _ = RefreshStructureAsync(refreshFileTree);
+        _ = RefreshStructureAsync(refreshFileTree, rebuildStoryIndex, refreshReason);
     }
 
-    private async Task RefreshStructureAsync(bool refreshFileTree = true)
+    private async Task RefreshStructureAsync(bool refreshFileTree = true, bool rebuildStoryIndex = true, string? refreshReason = null)
     {
         if (refreshFileTree)
         {
@@ -216,15 +222,26 @@ public sealed class ScriptEditorViewModel : BaseViewModel
 
         if (!string.IsNullOrWhiteSpace(_ctx.ProjectPath))
         {
+            if (rebuildStoryIndex)
+            {
+                try
+                {
+                    await _storyStorage.RebuildProjectIndexAsync(_ctx.ProjectPath, _ctx.ProjectName);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Story index refresh error: {ex}");
+                    await ShowStoryIndexErrorAsync(ex, refreshReason);
+                }
+            }
+
             try
             {
-                await _storyStorage.RebuildProjectIndexAsync(_ctx.ProjectPath, _ctx.ProjectName);
                 snapshot = await _storyStorage.ReadProjectStructureAsync(_ctx.ProjectPath);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Story index refresh error: {ex}");
-                await ShowStoryIndexErrorAsync(ex);
+                Debug.WriteLine($"Project structure refresh error: {ex}");
                 snapshot = _fallbackStructureReader.Read(_ctx.ProjectPath);
             }
         }
@@ -275,7 +292,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         }
     }
 
-    private async Task ShowStoryIndexErrorAsync(Exception ex)
+    private async Task ShowStoryIndexErrorAsync(Exception ex, string? context = null)
     {
         if (_isShowingStoryIndexError)
             return;
@@ -283,9 +300,18 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         try
         {
             _isShowingStoryIndexError = true;
+            var operation = string.IsNullOrWhiteSpace(context)
+                ? "Операция: обновление текстового индекса label/content в SQLite."
+                : $"Операция: {context}";
+
             await _dialogs.ShowErrorAsync(
-                "Ошибка обновления БД",
-                "Индекс истории не был обновлён. Приложение продолжит работу, но данные поиска/аналитики по словам, тегам и label могут быть устаревшими.",
+                "Ошибка обновления индекса сюжета",
+                string.Join(
+                    Environment.NewLine,
+                    operation,
+                    "Граф и файлы проекта уже могут быть сохранены корректно; эта ошибка относится только к обновлению данных для Story Text Editor.",
+                    "Правый блок редактора будет перечитан напрямую из .rpy, но список label/реплик в Story Text Editor может остаться устаревшим.",
+                    $"Причина: {ex.GetType().Name}: {ex.Message}"),
                 ex);
         }
         finally
@@ -974,6 +1000,11 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         _windows.ShowWindow(vm);
     }
 
+    private void OpenDatabaseLogWindow()
+    {
+        _windows.ShowWindow(_loc.GetService<DatabaseLogWindowViewModel>()!);
+    }
+
     private void OnStoryTextSourceFilesChanged(IReadOnlyCollection<string> filePaths)
     {
         var changed = new HashSet<string>(
@@ -983,12 +1014,13 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         foreach (var tab in Tabs.Where(x => changed.Contains(Path.GetFullPath(x.FilePath))).ToArray())
             tab.RequestReload();
 
-        RefreshStructure(refreshFileTree: false);
+        RefreshStructure(refreshFileTree: false, rebuildStoryIndex: false);
     }
 
     private async Task OpenGraphWindowAsync()
     {
         var vm = _loc.GetService<GraphEditorWindowViewModel>()!;
+        _activeGraphViewModel = vm;
         vm.GraphSaved -= OnGraphSaved;
         vm.GraphSaved += OnGraphSaved;
         var snapshot = new ProjectStructureSnapshot(Array.Empty<Character>(), Array.Empty<LabelOutlineItem>(), Array.Empty<StructureLinkItem>());
@@ -1012,9 +1044,26 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         _windows.ShowWindow(vm);
     }
 
-    private void OnGraphSaved()
+    private void OnGraphSaved(IReadOnlyCollection<string> updatedFiles)
     {
-        RefreshStructure();
+        ReloadOpenTabsAfterGraphSave(updatedFiles);
+        RefreshStructure(
+            refreshFileTree: true,
+            rebuildStoryIndex: true,
+            refreshReason: "после сохранения графа обновляется БД label/content для Story Text Editor.");
+    }
+
+    private void ReloadOpenTabsAfterGraphSave(IReadOnlyCollection<string> updatedFiles)
+    {
+        if (updatedFiles.Count == 0 || string.IsNullOrWhiteSpace(_ctx.ProjectPath))
+            return;
+
+        var changedFiles = new HashSet<string>(
+            updatedFiles.Select(path => Path.GetFullPath(Path.Combine(_ctx.ProjectPath!, path.Replace('/', Path.DirectorySeparatorChar)))),
+            StringComparer.OrdinalIgnoreCase);
+
+        foreach (var tab in Tabs.Where(tab => changedFiles.Contains(Path.GetFullPath(tab.FilePath))).ToArray())
+            tab.RequestReload();
     }
 
     private void OnTabFileSaved(TabItemModel tab)
@@ -1023,6 +1072,22 @@ public sealed class ScriptEditorViewModel : BaseViewModel
             return;
 
         RefreshStructure(refreshFileTree: false);
+        _ = RefreshOpenGraphFromProjectAsync();
+    }
+
+    private async Task RefreshOpenGraphFromProjectAsync()
+    {
+        if (_activeGraphViewModel is null)
+            return;
+
+        try
+        {
+            await _activeGraphViewModel.RefreshSnapshotFromProjectAsync();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Graph refresh after .rpy save error: {ex}");
+        }
     }
 
     private void RunProject()

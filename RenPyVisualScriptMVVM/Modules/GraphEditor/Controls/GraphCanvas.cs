@@ -64,6 +64,8 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
         private readonly DispatcherTimer _viewportNavigationTimer;
         private readonly DispatcherTimer _viewportRenderTimer;
         private bool _viewportRebuildPending;
+        private string? _highlightedRouteName;
+        private HashSet<string> _highlightedRouteNodeTitles = new(StringComparer.OrdinalIgnoreCase);
 
         private readonly Dictionary<Edge, (ConnectorPosition start, ConnectorPosition end)> _edgeConnectorMap = new();
         private static readonly Regex ValidLabelRegex = new("^[A-Za-z_][A-Za-z0-9_]*$", RegexOptions.Compiled);
@@ -184,6 +186,13 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             RebuildChildren();
         }
 
+        public void ApplyViewport(double offsetX, double offsetY, double scale)
+        {
+            _viewportOffset = new Point(offsetX, offsetY);
+            _viewportScale = Math.Clamp(scale, 0.25, 3.0);
+            RebuildChildren();
+        }
+
         private void DrawBackgroundImage()
         {
             try
@@ -227,16 +236,20 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
         {
             foreach (var edge in Edges)
             {
+                var isDimmed = IsRouteHighlightActive && (!IsNodeInHighlightedRoute(edge.Start) || !IsNodeInHighlightedRoute(edge.End));
                 var isSelected = edge == _selectedEdge;
                 var edgeBrush = isSelected
                     ? new SolidColorBrush(Color.Parse("#FFD166"))
-                    : GetEdgeBrush(edge.Start);
-                var edgeThickness = isSelected ? 3 : 2;
+                    : isDimmed ? new SolidColorBrush(Color.FromArgb(60, 150, 150, 150)) : GetEdgeBrush(edge.Start);
+                var edgeThickness = isSelected ? 3 : isDimmed ? 1 : 2;
                 var hitThickness = Math.Max(12, edgeThickness * 5);
 
                 if (edge.Start == edge.End)
                 {
                     var loopPoints = GetSelfLoopPoints(edge.Start);
+                    if (loopPoints.Count < 2)
+                        continue;
+
                     AddEdgePath(loopPoints, edge, edgeBrush, edgeThickness, hitThickness);
                     DrawArrow(loopPoints[^1], loopPoints[^2], edgeBrush, edgeThickness);
                     continue;
@@ -246,7 +259,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 var startConnector = hasConnectorPair ? connectorPair.start : ConnectorPosition.Right;
                 var endConnector = hasConnectorPair ? connectorPair.end : ConnectorPosition.Left;
                 var points = GetManhattanPoints(edge, startConnector, endConnector);
-                if (!IsPolylineVisible(points))
+                if (points.Count < 2 || !IsPolylineVisible(points))
                 {
                     continue;
                 }
@@ -359,6 +372,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 return;
             }
 
+            var isDimmed = IsRouteHighlightActive && !IsNodeInHighlightedRoute(node);
             var titleBarHeight = 24 * _viewportScale;
             var cornerRadius = 6 * _viewportScale;
             var screenCenter = ToScreen(node.Position);
@@ -377,7 +391,8 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 RadiusX = cornerRadius,
                 RadiusY = cornerRadius,
                 Stroke = _selectedNodes.Contains(node) ? Brushes.Black : null,
-                StrokeThickness = _selectedNodes.Contains(node) ? 2 : 0
+                StrokeThickness = _selectedNodes.Contains(node) ? 2 : 0,
+                Opacity = isDimmed ? 0.22 : 1
             };
 
             var titleBar = new Rectangle
@@ -387,7 +402,8 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 Fill = titleBarBrush,
                 RadiusX = cornerRadius,
                 RadiusY = cornerRadius,
-                IsHitTestVisible = false
+                IsHitTestVisible = false,
+                Opacity = isDimmed ? 0.35 : 1
             };
 
             var textBlock = new TextBlock
@@ -397,7 +413,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 FontSize = 14 * _viewportScale,
                 FontWeight = FontWeight.Bold,
                 TextAlignment = TextAlignment.Center,
-                Foreground = Brushes.White,
+                Foreground = isDimmed ? new SolidColorBrush(Color.FromArgb(150, 255, 255, 255)) : Brushes.White,
                 IsHitTestVisible = false
             };
 
@@ -2203,13 +2219,43 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                         Height = note.Height,
                         Text = note.Text
                     })
-                    .ToList()
+                    .ToList(),
+                ViewportOffsetX = _viewportOffset.X,
+                ViewportOffsetY = _viewportOffset.Y,
+                ViewportScale = _viewportScale,
+                HasViewport = true
             };
         }
 
         public void SyncRouteNodes()
         {
             RebuildRoutes();
+        }
+
+        public void ToggleRouteHighlight(StoryRoute route)
+        {
+            if (string.Equals(_highlightedRouteName, route.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                _highlightedRouteName = null;
+                _highlightedRouteNodeTitles.Clear();
+            }
+            else
+            {
+                _highlightedRouteName = route.Name;
+                _highlightedRouteNodeTitles = route.NodeTitles.ToHashSet(StringComparer.OrdinalIgnoreCase);
+            }
+
+            RebuildChildren();
+        }
+
+        private bool IsRouteHighlightActive => _highlightedRouteNodeTitles.Count > 0;
+
+        private bool IsNodeInHighlightedRoute(Node node)
+        {
+            if (node.IsScreenConnector || node.IsMenuConnector)
+                return true;
+
+            return _highlightedRouteNodeTitles.Contains(node.Title);
         }
 
         private void AddNewNote(Point point)
@@ -2330,30 +2376,110 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void RebuildRoutes()
         {
-            var existingRouteNames = new HashSet<string>(
-                Routes.Select(route => route.Name),
-                StringComparer.OrdinalIgnoreCase);
+            var generatedRoutes = BuildAutomaticStoryRoutes();
+            Routes.Clear();
 
-            foreach (var routeName in Nodes
-                         .Select(node => node.RouteName)
-                         .Where(routeName => !string.IsNullOrWhiteSpace(routeName))
-                         .Cast<string>())
+            foreach (var route in generatedRoutes)
             {
-                if (!existingRouteNames.Contains(routeName))
+                Routes.Add(route);
+            }
+        }
+
+        private List<StoryRoute> BuildAutomaticStoryRoutes()
+        {
+            var root = FindPrimaryRootNode();
+            if (root is null)
+                return new List<StoryRoute>();
+
+            var routeNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var routes = new List<StoryRoute>();
+            BuildRouteTree(root, new List<Node>(), "main", routes, routeNames, new HashSet<Node>());
+
+            return routes;
+        }
+
+        private void BuildRouteTree(
+            Node start,
+            IReadOnlyList<Node> inheritedPath,
+            string routeName,
+            List<StoryRoute> routes,
+            HashSet<string> routeNames,
+            HashSet<Node> visitedPath)
+        {
+            var path = inheritedPath.ToList();
+            var current = start;
+
+            while (visitedPath.Add(current))
+            {
+                path.Add(current);
+                var children = GetRegularChildren(current);
+                if (children.Count == 0)
+                    break;
+
+                current = children[0];
+                if (children.Count > 1)
                 {
-                    Routes.Add(new StoryRoute { Name = routeName });
-                    existingRouteNames.Add(routeName);
+                    for (var i = 1; i < children.Count; i++)
+                    {
+                        var child = children[i];
+                        var childRouteName = MakeUniqueRouteName($"{routeName}_{i}_{SanitizeRoutePart(child.Title)}", routeNames);
+                        BuildRouteTree(child, path, childRouteName, routes, routeNames, new HashSet<Node>(visitedPath));
+                    }
                 }
             }
 
-            foreach (var route in Routes)
+            AddRoute(routes, routeNames, routeName, path);
+        }
+
+        private List<Node> GetRegularChildren(Node node)
+        {
+            return Edges
+                .Where(edge => edge.Start == node
+                    && edge.End != node
+                    && !edge.End.IsScreenConnector
+                    && !edge.End.IsMenuConnector)
+                .Select(edge => edge.End)
+                .Distinct()
+                .OrderBy(child => child.Y)
+                .ThenBy(child => child.X)
+                .ThenBy(child => child.Title, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        private static void AddRoute(
+            List<StoryRoute> routes,
+            HashSet<string> routeNames,
+            string name,
+            IReadOnlyList<Node> nodes)
+        {
+            var routeName = MakeUniqueRouteName(name, routeNames);
+            routes.Add(new StoryRoute
             {
-                route.NodeTitles = Nodes
-                    .Where(node => string.Equals(node.RouteName, route.Name, StringComparison.OrdinalIgnoreCase))
+                Name = routeName,
+                NodeTitles = nodes
                     .Select(node => node.Title)
-                    .OrderBy(title => title, StringComparer.OrdinalIgnoreCase)
-                    .ToList();
-            }
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList()
+            });
+        }
+
+        private static string MakeUniqueRouteName(string name, HashSet<string> routeNames)
+        {
+            var normalized = string.IsNullOrWhiteSpace(name) ? "route" : name;
+            if (routeNames.Add(normalized))
+                return normalized;
+
+            var suffix = 2;
+            while (!routeNames.Add($"{normalized}_{suffix}"))
+                suffix++;
+
+            return $"{normalized}_{suffix}";
+        }
+
+        private static string SanitizeRoutePart(string value)
+        {
+            var sanitized = Regex.Replace(value, @"[^A-Za-z0-9_]+", "_").Trim('_');
+            return string.IsNullOrWhiteSpace(sanitized) ? "branch" : sanitized;
         }
 
         private void CancelInlineRename()
@@ -2380,6 +2506,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         public void NotifyGraphChanged()
         {
+            RebuildRoutes();
             GraphChanged?.Invoke(this, EventArgs.Empty);
         }
         private List<Point> GetManhattanPoints(Edge edge, ConnectorPosition? forcedStart = null, ConnectorPosition? forcedEnd = null)

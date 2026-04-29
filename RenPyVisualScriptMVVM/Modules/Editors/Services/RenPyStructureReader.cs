@@ -23,7 +23,7 @@ public sealed class RenPyStructureReader
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     private static readonly Regex LabelRegex = new(
-        @"^\s*label\s+([A-Za-z_][A-Za-z0-9_]*)\s*:\s*$",
+        @"^\s*label\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s*\([^)]*\))?\s*:\s*$",
         RegexOptions.Compiled);
 
     private static readonly Regex ScreenRegex = new(
@@ -38,6 +38,10 @@ public sealed class RenPyStructureReader
         @"^\s*call\s+screen\s+([A-Za-z_][A-Za-z0-9_]*)\b",
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
+    private static readonly Regex ShowScreenRegex = new(
+        @"^\s*show\s+screen\s+([A-Za-z_][A-Za-z0-9_]*)\b",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
     private static readonly Regex ScreenCallbackRegex = new(
         @"\b(?:dragged|dropped|clicked|hovered|unhovered|alternate)\s+([A-Za-z_][A-Za-z0-9_]*)\b",
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -50,6 +54,10 @@ public sealed class RenPyStructureReader
         @"^\s*(?:call\s+(?<target>[A-Za-z_][A-Za-z0-9_]*)\b|renpy\.call\(\s*(?:""(?<target_dq>[^""]+)""|'(?<target_sq>[^']+)')\s*\))",
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
+    private static readonly Regex ReturnRegex = new(
+        @"^\s*return\b",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
     private static readonly Regex ScreenActionJumpRegex = new(
         @"\bJump\(\s*(?:""(?<target_dq>[^""]+)""|'(?<target_sq>[^']+)')\s*\)",
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -59,7 +67,7 @@ public sealed class RenPyStructureReader
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     private static readonly Regex MenuChoiceRegex = new(
-        "^\\s*\"([^\"]+)\"\\s*:\\s*$",
+        @"^\s*(?:""(?<text_dq>[^""]+)""|'(?<text_sq>[^']+)')\s*(?<colon>:)?\s*$",
         RegexOptions.Compiled);
 
     private static readonly Regex MenuHeaderRegex = new(
@@ -146,6 +154,10 @@ public sealed class RenPyStructureReader
         if (relativePath.StartsWith("game/tl/", StringComparison.OrdinalIgnoreCase))
             return false;
 
+        if (relativePath.Contains("/cache/", StringComparison.OrdinalIgnoreCase)
+            || relativePath.Contains("/saves/", StringComparison.OrdinalIgnoreCase))
+            return false;
+
         if (relativePath.StartsWith("renpy/", StringComparison.OrdinalIgnoreCase)
             || relativePath.StartsWith("common/", StringComparison.OrdinalIgnoreCase)
             || relativePath.StartsWith("launcher/", StringComparison.OrdinalIgnoreCase))
@@ -171,6 +183,8 @@ public sealed class RenPyStructureReader
         var lines = File.ReadAllLines(filePath);
         var relativePath = Path.GetRelativePath(projectPath, filePath).Replace('\\', '/');
         var fileName = Path.GetFileName(filePath);
+        var localPythonFunctionTargets = BuildPythonFunctionTargets(lines);
+        var localScreenTargets = BuildScreenTargets(lines, localPythonFunctionTargets);
 
         for (var i = 0; i < lines.Length; i++)
         {
@@ -221,7 +235,16 @@ public sealed class RenPyStructureReader
                 bodyLines));
 
             var nextLabelName = GetNextGameLabelName(labelHeaders, i + 1);
-            ParseLinksForLabel(relativePath, labelName, startIndex + 2, endIndex + 1, bodyLines, nextLabelName, screenTargets, links);
+            ParseLinksForLabel(
+                relativePath,
+                labelName,
+                startIndex + 2,
+                endIndex + 1,
+                bodyLines,
+                nextLabelName,
+                screenTargets,
+                localScreenTargets,
+                links);
         }
     }
 
@@ -276,6 +299,9 @@ public sealed class RenPyStructureReader
 
             foreach (var line in body)
             {
+                if (IsCommentLine(line))
+                    continue;
+
                 targets.AddRange(ExtractTargetsFromLine(line));
 
                 foreach (Match callbackMatch in ScreenCallbackRegex.Matches(line))
@@ -338,6 +364,7 @@ public sealed class RenPyStructureReader
         IReadOnlyList<string> bodyLines,
         string? nextLabelName,
         IReadOnlyDictionary<string, IReadOnlyList<(string kind, string target)>> screenTargets,
+        IReadOnlyDictionary<string, IReadOnlyList<(string kind, string target)>> localScreenTargets,
         List<StructureLinkItem> links)
     {
         int? currentMenuLine = null;
@@ -366,6 +393,9 @@ public sealed class RenPyStructureReader
                 currentMenuIndent = -1;
                 currentMenuName = null;
             }
+
+            if (trimmed.Length == 0 || IsCommentLine(line))
+                continue;
 
             if (IfHeaderRegex.IsMatch(line))
             {
@@ -398,9 +428,12 @@ public sealed class RenPyStructureReader
             }
 
             var callScreenMatch = CallScreenRegex.Match(line);
-            if (callScreenMatch.Success)
+            var showScreenMatch = ShowScreenRegex.Match(line);
+            if (callScreenMatch.Success || showScreenMatch.Success)
             {
-                var screenName = callScreenMatch.Groups[1].Value;
+                var screenName = callScreenMatch.Success
+                    ? callScreenMatch.Groups[1].Value
+                    : showScreenMatch.Groups[1].Value;
                 if (screenTargets.TryGetValue(screenName, out var targets))
                 {
                     foreach (var targetInfo in targets)
@@ -463,11 +496,25 @@ public sealed class RenPyStructureReader
                 continue;
             }
 
+            if (ReturnRegex.IsMatch(line))
+            {
+                if (!currentMenuLine.HasValue)
+                    hasExplicitTransfer = true;
+
+                continue;
+            }
+
             var menuChoiceMatch = MenuChoiceRegex.Match(line);
             if (menuChoiceMatch.Success)
             {
-                var choiceText = menuChoiceMatch.Groups[1].Value;
                 var choiceIndent = indent;
+                var hasChoiceBlock = HasIndentedBlock(bodyLines, i + 1, choiceIndent);
+                if (!menuChoiceMatch.Groups["colon"].Success && !hasChoiceBlock)
+                    continue;
+
+                var choiceText = menuChoiceMatch.Groups["text_dq"].Success
+                    ? menuChoiceMatch.Groups["text_dq"].Value
+                    : menuChoiceMatch.Groups["text_sq"].Value;
                 var targets = TryFindMenuTargets(bodyLines, i + 1, choiceIndent);
                 if (targets.Count == 0)
                 {
@@ -486,11 +533,49 @@ public sealed class RenPyStructureReader
 
         if (!hasExplicitTransfer
             && !hasMenu
+            && TryAddSingleLocalScreenFallback(relativePath, currentLabel, bodyEndLine, localScreenTargets, links))
+        {
+            return;
+        }
+
+        if (!hasExplicitTransfer
+            && !hasMenu
             && !string.IsNullOrWhiteSpace(nextLabelName)
             && IsGameLabel(nextLabelName))
         {
             links.Add(new StructureLinkItem("fallthrough", currentLabel, nextLabelName!, $"next → {nextLabelName}", relativePath, bodyEndLine));
         }
+    }
+
+    private static bool TryAddSingleLocalScreenFallback(
+        string relativePath,
+        string currentLabel,
+        int lineNumber,
+        IReadOnlyDictionary<string, IReadOnlyList<(string kind, string target)>> localScreenTargets,
+        List<StructureLinkItem> links)
+    {
+        if (localScreenTargets.Count != 1)
+            return false;
+
+        var screen = localScreenTargets.Single();
+        var added = false;
+        foreach (var targetInfo in screen.Value)
+        {
+            if (!IsGameLabel(targetInfo.target))
+                continue;
+
+            links.Add(new StructureLinkItem(
+                targetInfo.kind,
+                currentLabel,
+                targetInfo.target,
+                $"screen {screen.Key} callback в†’ {targetInfo.target}",
+                relativePath,
+                lineNumber,
+                screenName: screen.Key));
+            added = true;
+        }
+
+        return added;
     }
 
     private static List<string> TryFindMenuTargets(IReadOnlyList<string> bodyLines, int startIndex, int choiceIndent)
@@ -526,6 +611,21 @@ public sealed class RenPyStructureReader
         }
 
         return targets;
+    }
+
+    private static bool HasIndentedBlock(IReadOnlyList<string> bodyLines, int startIndex, int parentIndent)
+    {
+        for (var i = startIndex; i < bodyLines.Count; i++)
+        {
+            var line = bodyLines[i];
+            var trimmed = line.Trim();
+            if (trimmed.Length == 0 || trimmed.StartsWith('#'))
+                continue;
+
+            return GetIndentWidth(line) > parentIndent;
+        }
+
+        return false;
     }
 
     private static bool ShouldExitConditionScope(int conditionIndent, int currentIndent, string trimmedLine)
@@ -611,6 +711,8 @@ public sealed class RenPyStructureReader
     private static List<(string kind, string target)> ExtractTargetsFromLine(string line)
     {
         var targets = new List<(string kind, string target)>();
+        if (IsCommentLine(line))
+            return targets;
 
         foreach (Match jumpActionMatch in ScreenActionJumpRegex.Matches(line))
         {
@@ -657,6 +759,11 @@ public sealed class RenPyStructureReader
             return match.Groups["target_sq"].Value;
 
         return "";
+    }
+
+    private static bool IsCommentLine(string line)
+    {
+        return line.TrimStart().StartsWith('#');
     }
 
     private static int GetIndentWidth(string line)

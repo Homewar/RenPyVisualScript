@@ -12,6 +12,7 @@ using RenPyVisualScriptMVVM.Core.Models;
 using RenPyVisualScriptMVVM.Infrastructure.StoryStorage;
 using RenPyVisualScriptMVVM.Infrastructure.StoryStorage.Entities;
 using RenPyVisualScriptMVVM.Infrastructure.StoryStorage.Interfaces;
+using RenPyVisualScriptMVVM.Infrastructure.StoryStorage.Logging;
 using RenPyVisualScriptMVVM.Infrastructure.StoryStorage.Parsers;
 using RenPyVisualScriptMVVM.Modules.Editors.Models;
 using RenPyVisualScriptMVVM.Modules.Editors.Services;
@@ -24,11 +25,13 @@ public sealed class StoryStorageService : IStoryStorageService
     private static readonly Regex SayLineRegex = new(@"^(?<prefix>\s*(?:(?<speaker>[A-Za-z_][A-Za-z0-9_]*)\s+)?)(?<quote>['""])(?<text>(?:\\.|(?!\k<quote>).)*)(\k<quote>)(?<suffix>.*)$", RegexOptions.Compiled);
     private static readonly SemaphoreSlim IndexGate = new(1, 1);
     private readonly IRenPyStoryParser _parser;
+    private readonly IDatabaseLogService _databaseLog;
     private readonly RenPyStructureReader _structureReader = new();
 
-    public StoryStorageService(IRenPyStoryParser parser)
+    public StoryStorageService(IRenPyStoryParser parser, IDatabaseLogService databaseLog)
     {
         _parser = parser;
+        _databaseLog = databaseLog;
     }
 
     public async Task RebuildProjectIndexAsync(string projectPath, string? projectName = null, CancellationToken cancellationToken = default)
@@ -39,19 +42,29 @@ public sealed class StoryStorageService : IStoryStorageService
             if (string.IsNullOrWhiteSpace(projectPath))
                 return;
 
+            _databaseLog.Info(nameof(RebuildProjectIndexAsync), $"Start. ProjectPath='{projectPath}', ProjectName='{projectName ?? ""}'.");
             var parsedProject = _parser.ParseProject(projectPath, projectName);
-            var structureSnapshot = _structureReader.Read(parsedProject.ProjectPath);
+            var labelCount = parsedProject.Labels.Count;
+            var fragmentCount = parsedProject.Labels.Sum(x => x.Fragments.Count);
+            var wordCount = parsedProject.Labels.Sum(x => x.Fragments.Sum(fragment => fragment.Words.Count));
+            var tagCount = parsedProject.Labels.Sum(x => x.Fragments.Sum(fragment => fragment.Words.Sum(word => word.FormatTags.Count)));
+            _databaseLog.Info(
+                nameof(RebuildProjectIndexAsync),
+                $"Parsed labels={labelCount}, fragments={fragmentCount}, words={wordCount}, tags={tagCount}. Db='{GetDatabasePath(parsedProject.ProjectPath)}'.");
+
             await using var db = CreateDbContext(parsedProject.ProjectPath);
             await db.Database.EnsureCreatedAsync(cancellationToken);
             await EnsureSchemaAsync(db, cancellationToken);
 
             var normalizedPath = parsedProject.ProjectPath;
-            var existingProject = await db.Projects
-                .Include(x => x.Labels)
-                .FirstOrDefaultAsync(x => x.ProjectPath == normalizedPath, cancellationToken);
+            var projectId = await db.Projects
+                .AsNoTracking()
+                .Where(x => x.ProjectPath == normalizedPath)
+                .Select(x => (Guid?)x.Id)
+                .FirstOrDefaultAsync(cancellationToken);
 
             var indexedAtUtc = DateTimeOffset.UtcNow;
-            if (existingProject is null)
+            if (projectId is null)
             {
                 var projectEntity = new StoryProjectEntity
                 {
@@ -61,56 +74,24 @@ public sealed class StoryStorageService : IStoryStorageService
                     ImportedAtUtc = indexedAtUtc,
                     Labels = parsedProject.Labels
                         .Select(label => MapLabel(label, ComputeLabelHash(label), indexedAtUtc))
-                        .ToList(),
-                    StructureLabels = structureSnapshot.Labels.Select(MapStructureLabel).ToList(),
-                    Characters = structureSnapshot.Characters.Select(MapCharacter).ToList(),
-                    StructureLinks = structureSnapshot.Links.Select(MapStructureLink).ToList()
+                        .ToList()
                 };
 
                 db.Projects.Add(projectEntity);
                 await db.SaveChangesAsync(cancellationToken);
+                _databaseLog.Info(nameof(RebuildProjectIndexAsync), "Created new project index.");
                 return;
             }
 
-            existingProject.Name = parsedProject.Name;
-            existingProject.ImportedAtUtc = indexedAtUtc;
-            await ReplaceStructureSnapshotAsync(db, existingProject.Id, structureSnapshot, cancellationToken);
-
-            var existingLabels = existingProject.Labels.ToDictionary(GetLabelKey, StringComparer.OrdinalIgnoreCase);
-            var parsedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (var parsedLabel in parsedProject.Labels)
-            {
-                var labelKey = GetLabelKey(parsedLabel.FilePath, parsedLabel.Name);
-                parsedKeys.Add(labelKey);
-                var contentHash = ComputeLabelHash(parsedLabel);
-
-                if (existingLabels.TryGetValue(labelKey, out var existingLabel))
-                {
-                    existingLabel.StartLine = parsedLabel.StartLine;
-                    existingLabel.EndLine = parsedLabel.EndLine;
-                    existingLabel.SortOrder = parsedLabel.SortOrder;
-                    existingLabel.RawText = parsedLabel.RawText;
-
-                    if (string.Equals(existingLabel.ContentHash, contentHash, StringComparison.Ordinal))
-                        continue;
-
-                    await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM StoryTextFragments WHERE LabelId = {existingLabel.Id}", cancellationToken);
-
-                    existingLabel.ContentHash = contentHash;
-                    existingLabel.IndexedAtUtc = indexedAtUtc;
-                    db.Fragments.AddRange(parsedLabel.Fragments.Select(fragment => MapFragment(fragment, existingLabel.Id)));
-                }
-                else
-                {
-                    existingProject.Labels.Add(MapLabel(parsedLabel, contentHash, indexedAtUtc));
-                }
-            }
-
-            foreach (var removedLabel in existingProject.Labels.Where(label => !parsedKeys.Contains(GetLabelKey(label))).ToArray())
-                db.Labels.Remove(removedLabel);
+            await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+            await ReplaceProjectTextIndexAsync(db, projectId.Value, parsedProject.Labels, indexedAtUtc, _databaseLog, cancellationToken);
+            await db.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE StoryProjects SET Name = {parsedProject.Name}, ImportedAtUtc = {indexedAtUtc} WHERE Id = {projectId.Value}",
+                cancellationToken);
 
             await db.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            _databaseLog.Info(nameof(RebuildProjectIndexAsync), "Completed successfully.");
         }
         catch (OperationCanceledException)
         {
@@ -130,69 +111,17 @@ public sealed class StoryStorageService : IStoryStorageService
         }
     }
 
-    public async Task<ProjectStructureSnapshot> ReadProjectStructureAsync(string projectPath, CancellationToken cancellationToken = default)
+    public Task<ProjectStructureSnapshot> ReadProjectStructureAsync(string projectPath, CancellationToken cancellationToken = default)
     {
         try
         {
             if (string.IsNullOrWhiteSpace(projectPath))
-                return EmptySnapshot();
+                return Task.FromResult(EmptySnapshot());
 
+            cancellationToken.ThrowIfCancellationRequested();
             var normalizedPath = Path.GetFullPath(projectPath);
-            await using var db = CreateDbContext(normalizedPath);
-            await db.Database.EnsureCreatedAsync(cancellationToken);
-            await EnsureSchemaAsync(db, cancellationToken);
-
-            var project = await db.Projects
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.ProjectPath == normalizedPath, cancellationToken);
-
-            if (project is null)
-                return EmptySnapshot();
-
-            var labels = await db.StructureLabels
-                .AsNoTracking()
-                .Where(x => x.ProjectId == project.Id)
-                .OrderBy(x => x.SortOrder)
-                .ToListAsync(cancellationToken);
-
-            var characters = await db.Characters
-                .AsNoTracking()
-                .Where(x => x.ProjectId == project.Id)
-                .OrderBy(x => x.SortOrder)
-                .Select(x => new Character(x.Name, x.Color, x.InGameName, x.FilePath, x.Line))
-                .ToListAsync(cancellationToken);
-
-            var links = await db.StructureLinks
-                .AsNoTracking()
-                .Where(x => x.ProjectId == project.Id)
-                .OrderBy(x => x.SortOrder)
-                .Select(x => new StructureLinkItem(
-                    x.Kind,
-                    x.Source,
-                    x.Target,
-                    x.Description,
-                    x.FileName,
-                    x.Line,
-                    x.GroupLine,
-                    x.ScreenName,
-                    x.MenuName))
-                .ToListAsync(cancellationToken);
-
-            var labelItems = labels.Select(label =>
-            {
-                var bodyLines = SplitLines(label.BodyText);
-
-                return new LabelOutlineItem(
-                    label.Name,
-                    label.FileName,
-                        label.FilePath,
-                        label.StatementCount,
-                        label.Line,
-                        label.EndLine,
-                        bodyLines);
-            }).ToList();
-
-            return new ProjectStructureSnapshot(characters, labelItems, links);
+            _databaseLog.Info(nameof(ReadProjectStructureAsync), $"Read structure from files. ProjectPath='{normalizedPath}'.");
+            return Task.FromResult(_structureReader.Read(normalizedPath));
         }
         catch (OperationCanceledException)
         {
@@ -223,7 +152,7 @@ public sealed class StoryStorageService : IStoryStorageService
             if (project is null)
                 return Array.Empty<StoryTextLabelItem>();
 
-            return await db.Labels
+            var labels = await db.Labels
                 .AsNoTracking()
                 .Where(x => x.ProjectId == project.Id)
                 .OrderBy(x => x.SortOrder)
@@ -234,6 +163,9 @@ public sealed class StoryStorageService : IStoryStorageService
                     x.StartLine,
                     x.Fragments.Count))
                 .ToListAsync(cancellationToken);
+
+            _databaseLog.Info(nameof(ReadStoryTextLabelsAsync), $"Read labels={labels.Count}. Db='{GetDatabasePath(normalizedPath)}'.");
+            return labels;
         }
         catch (OperationCanceledException)
         {
@@ -257,7 +189,7 @@ public sealed class StoryStorageService : IStoryStorageService
             await db.Database.EnsureCreatedAsync(cancellationToken);
             await EnsureSchemaAsync(db, cancellationToken);
 
-            return await db.Fragments
+            var fragments = await db.Fragments
                 .AsNoTracking()
                 .Where(x => x.LabelId == labelId)
                 .OrderBy(x => x.SortOrder)
@@ -269,6 +201,9 @@ public sealed class StoryStorageService : IStoryStorageService
                     x.RawText,
                     x.PlainText))
                 .ToListAsync(cancellationToken);
+
+            _databaseLog.Info(nameof(ReadStoryTextFragmentsAsync), $"Read fragments={fragments.Count} for LabelId={labelId}.");
+            return fragments;
         }
         catch (OperationCanceledException)
         {
@@ -288,6 +223,7 @@ public sealed class StoryStorageService : IStoryStorageService
                 return;
 
             var normalizedPath = Path.GetFullPath(projectPath);
+            _databaseLog.Info(nameof(UpdateStoryTextFragmentAsync), $"Update fragment={fragmentId}.");
             await using var db = CreateDbContext(normalizedPath);
             await db.Database.EnsureCreatedAsync(cancellationToken);
             await EnsureSchemaAsync(db, cancellationToken);
@@ -359,6 +295,9 @@ public sealed class StoryStorageService : IStoryStorageService
                 return;
 
             var normalizedPath = Path.GetFullPath(projectPath);
+            _databaseLog.Info(
+                nameof(ApplyStoryTextFragmentChangesAsync),
+                $"Apply edits={fragmentEdits.Count}, deletes={deletedFragmentIds.Count}.");
             var editMap = fragmentEdits
                 .Where(x => x.FragmentId != Guid.Empty)
                 .ToDictionary(x => x.FragmentId);
@@ -494,23 +433,6 @@ public sealed class StoryStorageService : IStoryStorageService
         await db.Database.ExecuteSqlRawAsync("CREATE INDEX IF NOT EXISTS IX_StoryWords_LabelId ON StoryWords (LabelId);", cancellationToken);
         await db.Database.ExecuteSqlRawAsync("CREATE INDEX IF NOT EXISTS IX_StoryWordFormatTags_LabelId ON StoryWordFormatTags (LabelId);", cancellationToken);
         await db.Database.ExecuteSqlRawAsync("""
-            CREATE TABLE IF NOT EXISTS StoryStructureLabels (
-                Id TEXT NOT NULL CONSTRAINT PK_StoryStructureLabels PRIMARY KEY,
-                ProjectId TEXT NOT NULL,
-                Name TEXT NOT NULL,
-                FileName TEXT NOT NULL,
-                FilePath TEXT NOT NULL,
-                StatementCount INTEGER NOT NULL,
-                Line INTEGER NOT NULL,
-                EndLine INTEGER NOT NULL,
-                BodyText TEXT NOT NULL,
-                SortOrder INTEGER NOT NULL,
-                CONSTRAINT FK_StoryStructureLabels_StoryProjects_ProjectId FOREIGN KEY (ProjectId) REFERENCES StoryProjects (Id) ON DELETE CASCADE
-            );
-            """, cancellationToken);
-        await db.Database.ExecuteSqlRawAsync("CREATE INDEX IF NOT EXISTS IX_StoryStructureLabels_ProjectId_SortOrder ON StoryStructureLabels (ProjectId, SortOrder);", cancellationToken);
-        await db.Database.ExecuteSqlRawAsync("CREATE INDEX IF NOT EXISTS IX_StoryStructureLabels_ProjectId_Name ON StoryStructureLabels (ProjectId, Name);", cancellationToken);
-        await db.Database.ExecuteSqlRawAsync("""
             CREATE TABLE IF NOT EXISTS StoryCharacters (
                 Id TEXT NOT NULL CONSTRAINT PK_StoryCharacters PRIMARY KEY,
                 ProjectId TEXT NOT NULL,
@@ -523,28 +445,44 @@ public sealed class StoryStorageService : IStoryStorageService
                 CONSTRAINT FK_StoryCharacters_StoryProjects_ProjectId FOREIGN KEY (ProjectId) REFERENCES StoryProjects (Id) ON DELETE CASCADE
             );
             """, cancellationToken);
-        await db.Database.ExecuteSqlRawAsync("""
-            CREATE TABLE IF NOT EXISTS StoryStructureLinks (
-                Id TEXT NOT NULL CONSTRAINT PK_StoryStructureLinks PRIMARY KEY,
-                ProjectId TEXT NOT NULL,
-                Kind TEXT NOT NULL,
-                Source TEXT NOT NULL,
-                Target TEXT NOT NULL,
-                Description TEXT NOT NULL,
-                ScreenName TEXT NULL,
-                MenuName TEXT NULL,
-                FileName TEXT NOT NULL,
-                Line INTEGER NOT NULL,
-                GroupLine INTEGER NOT NULL,
-                SortOrder INTEGER NOT NULL,
-                CONSTRAINT FK_StoryStructureLinks_StoryProjects_ProjectId FOREIGN KEY (ProjectId) REFERENCES StoryProjects (Id) ON DELETE CASCADE
-            );
-            """, cancellationToken);
+        if (!await ColumnExistsAsync(db, "StoryCharacters", "Color", cancellationToken))
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE StoryCharacters ADD COLUMN Color TEXT NOT NULL DEFAULT '';", cancellationToken);
+        if (!await ColumnExistsAsync(db, "StoryCharacters", "InGameName", cancellationToken))
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE StoryCharacters ADD COLUMN InGameName TEXT NOT NULL DEFAULT '';", cancellationToken);
         await db.Database.ExecuteSqlRawAsync("CREATE INDEX IF NOT EXISTS IX_StoryCharacters_ProjectId_SortOrder ON StoryCharacters (ProjectId, SortOrder);", cancellationToken);
         await db.Database.ExecuteSqlRawAsync("CREATE INDEX IF NOT EXISTS IX_StoryCharacters_ProjectId_Name ON StoryCharacters (ProjectId, Name);", cancellationToken);
-        await db.Database.ExecuteSqlRawAsync("CREATE INDEX IF NOT EXISTS IX_StoryStructureLinks_ProjectId_SortOrder ON StoryStructureLinks (ProjectId, SortOrder);", cancellationToken);
-        await db.Database.ExecuteSqlRawAsync("CREATE INDEX IF NOT EXISTS IX_StoryStructureLinks_ProjectId_Source ON StoryStructureLinks (ProjectId, Source);", cancellationToken);
-        await db.Database.ExecuteSqlRawAsync("CREATE INDEX IF NOT EXISTS IX_StoryStructureLinks_ProjectId_Target ON StoryStructureLinks (ProjectId, Target);", cancellationToken);
+    }
+
+    private static async Task ReplaceProjectTextIndexAsync(
+        StoryDbContext db,
+        Guid projectId,
+        IReadOnlyList<ParsedLabel> labels,
+        DateTimeOffset indexedAtUtc,
+        IDatabaseLogService databaseLog,
+        CancellationToken cancellationToken)
+    {
+        databaseLog.Info(nameof(ReplaceProjectTextIndexAsync), $"Replacing text index for ProjectId={projectId}.");
+        await db.Database.ExecuteSqlInterpolatedAsync(
+            $"DELETE FROM StoryWordFormatTags WHERE LabelId IN (SELECT Id FROM StoryLabels WHERE ProjectId = {projectId})",
+            cancellationToken);
+        await db.Database.ExecuteSqlInterpolatedAsync(
+            $"DELETE FROM StoryWords WHERE LabelId IN (SELECT Id FROM StoryLabels WHERE ProjectId = {projectId})",
+            cancellationToken);
+        await db.Database.ExecuteSqlInterpolatedAsync(
+            $"DELETE FROM StoryTextFragments WHERE LabelId IN (SELECT Id FROM StoryLabels WHERE ProjectId = {projectId})",
+            cancellationToken);
+        await db.Database.ExecuteSqlInterpolatedAsync(
+            $"DELETE FROM StoryLabels WHERE ProjectId = {projectId}",
+            cancellationToken);
+
+        db.ChangeTracker.Clear();
+        db.Labels.AddRange(labels.Select(label =>
+        {
+            var entity = MapLabel(label, ComputeLabelHash(label), indexedAtUtc);
+            entity.ProjectId = projectId;
+            return entity;
+        }));
+        databaseLog.Info(nameof(ReplaceProjectTextIndexAsync), $"Queued fresh labels={labels.Count}.");
     }
 
     private static async Task<bool> ColumnExistsAsync(StoryDbContext db, string tableName, string columnName, CancellationToken cancellationToken)
@@ -637,29 +575,6 @@ public sealed class StoryStorageService : IStoryStorageService
         };
     }
 
-    private static StoryStructureLabelEntity MapStructureLabel(LabelOutlineItem label, int sortOrder)
-    {
-        return new StoryStructureLabelEntity
-        {
-            Id = Guid.NewGuid(),
-            SortOrder = sortOrder,
-            Name = label.Name,
-            FileName = label.FileName,
-            FilePath = label.FilePath,
-            StatementCount = label.StatementCount,
-            Line = label.Line,
-            EndLine = label.EndLine,
-            BodyText = string.Join(Environment.NewLine, label.BodyLines)
-        };
-    }
-
-    private static StoryStructureLabelEntity MapStructureLabel(LabelOutlineItem label, int sortOrder, Guid projectId)
-    {
-        var entity = MapStructureLabel(label, sortOrder);
-        entity.ProjectId = projectId;
-        return entity;
-    }
-
     private static StoryCharacterEntity MapCharacter(Character character, int sortOrder)
     {
         return new StoryCharacterEntity
@@ -679,42 +594,6 @@ public sealed class StoryStorageService : IStoryStorageService
         var entity = MapCharacter(character, sortOrder);
         entity.ProjectId = projectId;
         return entity;
-    }
-
-    private static StoryStructureLinkEntity MapStructureLink(StructureLinkItem link, int sortOrder)
-    {
-        return new StoryStructureLinkEntity
-        {
-            Id = Guid.NewGuid(),
-            SortOrder = sortOrder,
-            Kind = link.Kind,
-            Source = link.Source,
-            Target = link.Target,
-            Description = link.Description,
-            ScreenName = link.ScreenName,
-            MenuName = link.MenuName,
-            FileName = link.FileName,
-            Line = link.Line,
-            GroupLine = link.GroupLine
-        };
-    }
-
-    private static StoryStructureLinkEntity MapStructureLink(StructureLinkItem link, int sortOrder, Guid projectId)
-    {
-        var entity = MapStructureLink(link, sortOrder);
-        entity.ProjectId = projectId;
-        return entity;
-    }
-
-    private static async Task ReplaceStructureSnapshotAsync(StoryDbContext db, Guid projectId, ProjectStructureSnapshot snapshot, CancellationToken cancellationToken)
-    {
-        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM StoryStructureLinks WHERE ProjectId = {projectId}", cancellationToken);
-        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM StoryCharacters WHERE ProjectId = {projectId}", cancellationToken);
-        await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM StoryStructureLabels WHERE ProjectId = {projectId}", cancellationToken);
-
-        db.StructureLabels.AddRange(snapshot.Labels.Select((label, index) => MapStructureLabel(label, index, projectId)));
-        db.Characters.AddRange(snapshot.Characters.Select((character, index) => MapCharacter(character, index, projectId)));
-        db.StructureLinks.AddRange(snapshot.Links.Select((link, index) => MapStructureLink(link, index, projectId)));
     }
 
     private static ProjectStructureSnapshot EmptySnapshot()
@@ -841,7 +720,4 @@ public sealed class StoryStorageService : IStoryStorageService
         return Convert.ToHexString(bytes);
     }
 
-    private static string GetLabelKey(StoryLabelEntity label) => GetLabelKey(label.FilePath, label.Name);
-
-    private static string GetLabelKey(string filePath, string name) => string.Concat(filePath, '\u001f', name);
 }

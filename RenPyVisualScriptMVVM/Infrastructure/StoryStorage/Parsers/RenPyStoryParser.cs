@@ -10,9 +10,53 @@ namespace RenPyVisualScriptMVVM.Infrastructure.StoryStorage.Parsers;
 
 public sealed class RenPyStoryParser : IRenPyStoryParser
 {
-    private static readonly Regex LabelRegex = new(@"^\s*label\s+(?<name>[A-Za-z_][A-Za-z0-9_\.]*)\s*:\s*$", RegexOptions.Compiled);
-    private static readonly Regex SayRegex = new(@"^\s*(?:(?<speaker>[A-Za-z_][A-Za-z0-9_]*)\s+)?(?<quote>['\""])(?<text>(?:\\.|(?!\k<quote>).)*)\k<quote>", RegexOptions.Compiled);
+    private static readonly Regex LabelRegex = new(@"^\s*label\s+(?<name>[A-Za-z_][A-Za-z0-9_\.]*)(?:\s*\([^)]*\))?\s*:\s*$", RegexOptions.Compiled);
+    private static readonly Regex SayRegex = new(@"^\s*(?:(?<speaker>[A-Za-z_][A-Za-z0-9_]*)\s+)?(?<quote>['\""])(?<text>(?:\\.|(?!\k<quote>).)*)\k<quote>\s*(?:#.*)?$", RegexOptions.Compiled);
     private static readonly Regex TokenRegex = new(@"(?<space>\s*)(?<word>\S+)(?<tail>\s*)", RegexOptions.Compiled);
+    private static readonly HashSet<string> ExcludedFileNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "options.rpy",
+        "gui.rpy",
+        "common.rpy",
+        "definitions.rpy",
+        "style.rpy",
+        "styles.rpy",
+        "compat.rpy",
+        "audio.rpy",
+        "updater.rpy",
+        "testcases.rpy",
+        "screens.rpy"
+    };
+
+    private static readonly HashSet<string> ExcludedLabelNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "splashscreen",
+        "before_main_menu",
+        "main_menu",
+        "navigation",
+        "after_load"
+    };
+
+    private static readonly HashSet<string> NonSpeakerKeywords = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "call",
+        "define",
+        "default",
+        "extend",
+        "hide",
+        "image",
+        "jump",
+        "menu",
+        "play",
+        "queue",
+        "return",
+        "scene",
+        "show",
+        "stop",
+        "voice",
+        "window",
+        "with"
+    };
 
     public ParsedStoryProject ParseProject(string projectPath, string? projectName = null)
     {
@@ -26,6 +70,7 @@ public sealed class RenPyStoryParser : IRenPyStoryParser
         var labelSort = 0;
 
         foreach (var filePath in Directory.EnumerateFiles(projectPath, "*.rpy", SearchOption.AllDirectories)
+                     .Where(path => IsGameScriptFile(projectPath, path))
                      .OrderBy(path => path, StringComparer.OrdinalIgnoreCase))
         {
             var relativePath = Path.GetRelativePath(projectPath, filePath).Replace('\\', '/');
@@ -39,23 +84,68 @@ public sealed class RenPyStoryParser : IRenPyStoryParser
     private static void ParseFile(string filePath, string relativePath, ref int labelSort, ICollection<ParsedLabel> labels)
     {
         var lines = File.ReadAllLines(filePath);
-        var headers = new List<(string Name, int Index)>();
+        var headers = new List<(string Name, int Index, bool Include)>();
         for (var i = 0; i < lines.Length; i++)
         {
             var match = LabelRegex.Match(lines[i]);
             if (match.Success)
-                headers.Add((match.Groups["name"].Value, i));
+            {
+                var labelName = match.Groups["name"].Value;
+                headers.Add((labelName, i, IsGameLabel(labelName)));
+            }
         }
 
         for (var i = 0; i < headers.Count; i++)
         {
-            var (name, startIndex) = headers[i];
+            var (name, startIndex, include) = headers[i];
+            if (!include)
+                continue;
+
             var endIndex = i + 1 < headers.Count ? headers[i + 1].Index - 1 : lines.Length - 1;
             var bodyLines = lines.Skip(startIndex + 1).Take(Math.Max(0, endIndex - startIndex)).ToArray();
             var rawText = string.Join(Environment.NewLine, bodyLines);
             var fragments = ParseFragments(bodyLines, startIndex + 2);
+            if (fragments.Count == 0)
+                continue;
+
             labels.Add(new ParsedLabel(name, relativePath, startIndex + 1, endIndex + 1, labelSort++, rawText, fragments));
         }
+    }
+
+    private static bool IsGameScriptFile(string projectPath, string filePath)
+    {
+        var fileName = Path.GetFileName(filePath);
+        if (ExcludedFileNames.Contains(fileName))
+            return false;
+
+        var normalizedProject = Path.GetFullPath(projectPath)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var relativePath = Path.GetRelativePath(normalizedProject, Path.GetFullPath(filePath))
+            .Replace('\\', '/');
+
+        if (relativePath.StartsWith("game/tl/", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (relativePath.Contains("/cache/", StringComparison.OrdinalIgnoreCase)
+            || relativePath.Contains("/saves/", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (relativePath.StartsWith("renpy/", StringComparison.OrdinalIgnoreCase)
+            || relativePath.StartsWith("common/", StringComparison.OrdinalIgnoreCase)
+            || relativePath.StartsWith("launcher/", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        var segments = relativePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        return !segments.Any(s => s.Equals("testcases", StringComparison.OrdinalIgnoreCase)
+                                  || s.Equals("tests", StringComparison.OrdinalIgnoreCase)
+                                  || s.Equals("test", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static bool IsGameLabel(string labelName)
+    {
+        return !string.IsNullOrWhiteSpace(labelName)
+               && !ExcludedLabelNames.Contains(labelName)
+               && !labelName.StartsWith("_", StringComparison.Ordinal);
     }
 
     private static IReadOnlyList<ParsedTextFragment> ParseFragments(IReadOnlyList<string> bodyLines, int sourceLineStart)
@@ -73,6 +163,9 @@ public sealed class RenPyStoryParser : IRenPyStoryParser
                 continue;
 
             var speaker = sayMatch.Groups["speaker"].Success ? sayMatch.Groups["speaker"].Value : null;
+            if (!IsValidSpeakerCode(speaker))
+                continue;
+
             var text = Regex.Unescape(sayMatch.Groups["text"].Value);
             var tagsAndText = ParseWords(text);
             var plainText = string.Concat(tagsAndText.Select(x => x.LeadingTrivia + x.PlainText + x.TrailingTrivia));
@@ -87,6 +180,12 @@ public sealed class RenPyStoryParser : IRenPyStoryParser
         }
 
         return fragments;
+    }
+
+    private static bool IsValidSpeakerCode(string? speaker)
+    {
+        return string.IsNullOrWhiteSpace(speaker)
+               || !NonSpeakerKeywords.Contains(speaker);
     }
 
     private static IReadOnlyList<ParsedWord> ParseWords(string text)

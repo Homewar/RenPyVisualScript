@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace RenPyVisualScriptMVVM.Modules.StoryEditor.Models;
@@ -14,6 +16,7 @@ public sealed class StoryTextFragmentItem : ObservableObject
     public string OriginalSpeakerCode { get; }
     public string RawText { get; }
     public string PlainText { get; }
+    public List<string> SegmentSpeakerCodes { get; } = new();
 
     public string SpeakerCode
     {
@@ -37,7 +40,14 @@ public sealed class StoryTextFragmentItem : ObservableObject
 
     public bool IsModified =>
         !string.Equals(RawText, EditedPlainText, StringComparison.Ordinal)
-        || !string.Equals(OriginalSpeakerCode, SpeakerCode, StringComparison.Ordinal);
+        || !string.Equals(OriginalSpeakerCode, SpeakerCode, StringComparison.Ordinal)
+        || SegmentSpeakerCodes.Count != 1
+        || SegmentSpeakerCodes.Any(x => !string.Equals(OriginalSpeakerCode, x, StringComparison.Ordinal));
+
+    public void NotifySegmentSpeakersChanged()
+    {
+        OnPropertyChanged(nameof(IsModified));
+    }
 
     public StoryTextFragmentItem(Guid id, Guid labelId, int sourceLine, string? speakerCode, string rawText, string plainText)
     {
@@ -46,6 +56,7 @@ public sealed class StoryTextFragmentItem : ObservableObject
         SourceLine = sourceLine;
         OriginalSpeakerCode = speakerCode ?? string.Empty;
         _speakerCode = OriginalSpeakerCode;
+        SegmentSpeakerCodes.Add(OriginalSpeakerCode);
         RawText = rawText;
         PlainText = plainText;
         _editedPlainText = rawText;

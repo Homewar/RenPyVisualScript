@@ -31,7 +31,9 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
     private bool _isLoadingDocument;
     private string _statusText = "Ready";
     private StoryTextFragmentItem? _activeFragment;
+    private int _activeSegmentIndex;
     private string _activeSpeakerCode = "Narrator";
+    private bool _isChangingLabelSelection;
 
     public ObservableCollection<StoryTextLabelItem> Labels { get; } = new();
     public ObservableCollection<StoryTextFragmentItem> Fragments { get; } = new();
@@ -46,7 +48,7 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
         get => _selectedLabel;
         set
         {
-            if (SetProperty(ref _selectedLabel, value))
+            if (SetProperty(ref _selectedLabel, value) && !_isChangingLabelSelection)
                 _ = LoadFragmentsAsync();
         }
     }
@@ -105,7 +107,7 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
                 return;
 
             CaptureEditedFragmentTexts();
-            _activeFragment.SpeakerCode = normalized == "Narrator" ? string.Empty : normalized;
+            SetFragmentSegmentSpeaker(_activeFragment, _activeSegmentIndex, normalized == "Narrator" ? string.Empty : normalized);
             BuildDocument();
             OnPropertyChanged(nameof(IsDocumentModified));
         }
@@ -128,7 +130,7 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
         _storyStorage = storyStorage;
         _dialogs = dialogs;
 
-        RefreshCmd = new AsyncRelayCommand(LoadLabelsAsync);
+        RefreshCmd = new AsyncRelayCommand(() => LoadLabelsAsync());
         SaveAllCmd = new AsyncRelayCommand(SaveAllAsync);
     }
 
@@ -141,7 +143,7 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
             ? null
             : Fragments.FirstOrDefault(x => x.Id == range.FragmentId);
 
-        SetActiveFragment(fragment);
+        SetActiveFragment(fragment, range?.SegmentIndex ?? 0);
     }
 
     public int InsertDialogueBreakAtOffset(int offset)
@@ -159,9 +161,12 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
         var currentText = fragment.EditedPlainText ?? string.Empty;
         localOffset = Math.Clamp(localOffset, 0, currentText.Length);
         fragment.EditedPlainText = currentText.Insert(localOffset, Environment.NewLine);
+        EnsureSegmentSpeakers(fragment, SplitEditorLines(fragment.EditedPlainText).Count);
+        var inheritedSpeaker = GetFragmentSegmentSpeaker(fragment, range.SegmentIndex);
+        fragment.SegmentSpeakerCodes.Insert(Math.Min(range.SegmentIndex + 1, fragment.SegmentSpeakerCodes.Count), inheritedSpeaker);
 
         BuildDocument();
-        SetActiveFragment(fragment);
+        SetActiveFragment(fragment, range.SegmentIndex + 1);
 
         var nextSegment = _fragmentRanges
             .Where(x => x.FragmentId == fragment.Id && x.SegmentIndex > range.SegmentIndex)
@@ -213,9 +218,10 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
             lines[previousIndex] += lines[range.SegmentIndex];
             lines.RemoveAt(range.SegmentIndex);
             fragment.EditedPlainText = string.Join(Environment.NewLine, lines);
+            RemoveFragmentSegmentSpeaker(fragment, range.SegmentIndex);
 
             BuildDocument();
-            SetActiveFragment(fragment);
+            SetActiveFragment(fragment, previousIndex);
             caretOffset = FindSegmentOffset(fragment.Id, previousIndex, caretInMergedSegment);
         }
         else
@@ -228,9 +234,10 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
             lines[range.SegmentIndex] += lines[nextIndex];
             lines.RemoveAt(nextIndex);
             fragment.EditedPlainText = string.Join(Environment.NewLine, lines);
+            RemoveFragmentSegmentSpeaker(fragment, nextIndex);
 
             BuildDocument();
-            SetActiveFragment(fragment);
+            SetActiveFragment(fragment, range.SegmentIndex);
             caretOffset = FindSegmentOffset(fragment.Id, range.SegmentIndex, caretInMergedSegment);
         }
 
@@ -286,7 +293,7 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
         var activeFragment = activeRange is null
             ? null
             : Fragments.FirstOrDefault(x => x.Id == activeRange.FragmentId);
-        SetActiveFragment(activeFragment);
+        SetActiveFragment(activeFragment, activeRange?.SegmentIndex ?? 0);
 
         caretOffset = activeRange?.Start ?? 0;
         OnPropertyChanged(nameof(IsDocumentModified));
@@ -305,15 +312,18 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
         return _fragmentRanges.Any(range => start >= range.Start && end <= range.Start + range.Length);
     }
 
-    private async Task LoadLabelsAsync()
+    private async Task LoadLabelsAsync(bool rebuildIndex = true, StoryTextLabelItem? preferredLabel = null)
     {
         if (string.IsNullOrWhiteSpace(_ctx.ProjectPath))
             return;
 
         try
         {
-            StatusText = "Updating index...";
-            await _storyStorage.RebuildProjectIndexAsync(_ctx.ProjectPath, _ctx.ProjectName);
+            preferredLabel ??= SelectedLabel;
+            StatusText = rebuildIndex ? "Updating index..." : "Loading labels...";
+            if (rebuildIndex)
+                await _storyStorage.RebuildProjectIndexAsync(_ctx.ProjectPath, _ctx.ProjectName);
+
             await LoadSpeakerCodesAsync();
             var labels = await _storyStorage.ReadStoryTextLabelsAsync(_ctx.ProjectPath);
 
@@ -321,7 +331,17 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
             foreach (var label in labels)
                 Labels.Add(label);
 
-            SelectedLabel = Labels.FirstOrDefault();
+            _isChangingLabelSelection = true;
+            try
+            {
+                SelectedLabel = FindReplacementLabel(preferredLabel) ?? Labels.FirstOrDefault();
+            }
+            finally
+            {
+                _isChangingLabelSelection = false;
+            }
+
+            await LoadFragmentsAsync();
             StatusText = $"Labels: {Labels.Count}";
         }
         catch (Exception ex)
@@ -381,7 +401,7 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
             }
 
             BuildDocument();
-            SetActiveFragment(Fragments.FirstOrDefault());
+            SetActiveFragment(Fragments.FirstOrDefault(), 0);
             StatusText = $"{SelectedLabel.Name}: {Fragments.Count} lines";
         }
         catch (Exception ex)
@@ -401,7 +421,11 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
 
         var modified = Fragments
             .Where(fragment => fragment.IsModified)
-            .Select(fragment => new StoryTextFragmentEdit(fragment.Id, fragment.SpeakerCode, fragment.EditedPlainText))
+            .Select(fragment => new StoryTextFragmentEdit(
+                fragment.Id,
+                GetFragmentSegmentSpeaker(fragment, 0),
+                fragment.EditedPlainText,
+                SegmentSpeakerCodes: GetNormalizedSegmentSpeakerCodes(fragment)))
             .ToList();
 
         if (modified.Count > 0 || _deletedFragmentIds.Count > 0)
@@ -417,7 +441,7 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
                     _ctx.ProjectName);
                 StatusText = "Saved";
                 RaiseSourceFilesChanged();
-                await LoadFragmentsAsync();
+                await LoadLabelsAsync(rebuildIndex: false, preferredLabel: SelectedLabel);
             }
             catch (Exception ex)
             {
@@ -481,6 +505,7 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
             }
 
             var fragmentLines = SplitEditorLines(fragment.EditedPlainText);
+            EnsureSegmentSpeakers(fragment, fragmentLines.Count);
             for (var segmentIndex = 0; segmentIndex < fragmentLines.Count; segmentIndex++)
             {
                 if (segmentIndex > 0)
@@ -507,10 +532,11 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
             rawBuilder.Append("line ");
             rawBuilder.Append(fragment.SourceLine);
 
-            if (!string.IsNullOrWhiteSpace(fragment.SpeakerCode))
+            var firstSpeaker = GetFragmentSegmentSpeaker(fragment, 0);
+            if (!string.IsNullOrWhiteSpace(firstSpeaker))
             {
                 rawBuilder.Append(" | ");
-                rawBuilder.Append(fragment.SpeakerCode);
+                rawBuilder.Append(firstSpeaker);
             }
 
             rawBuilder.Append(": ");
@@ -523,9 +549,10 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
     private static string BuildFragmentSeparator(StoryTextFragmentItem fragment, int segmentIndex = 0)
     {
         var builder = new StringBuilder();
-        builder.Append(string.IsNullOrWhiteSpace(fragment.SpeakerCode)
+        var speakerCode = GetFragmentSegmentSpeaker(fragment, segmentIndex);
+        builder.Append(string.IsNullOrWhiteSpace(speakerCode)
             ? "Narrator"
-            : fragment.SpeakerCode);
+            : speakerCode);
 
         if (segmentIndex == 0)
         {
@@ -684,18 +711,90 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
         foreach (var fragment in Fragments)
         {
             if (TryReadRangeText(fragment.Id, out var text))
+            {
                 fragment.EditedPlainText = text;
+                EnsureSegmentSpeakers(fragment, SplitEditorLines(text).Count);
+            }
         }
     }
 
-    private void SetActiveFragment(StoryTextFragmentItem? fragment)
+    private void SetActiveFragment(StoryTextFragmentItem? fragment, int segmentIndex)
     {
-        if (ReferenceEquals(_activeFragment, fragment))
+        segmentIndex = Math.Max(0, segmentIndex);
+        if (ReferenceEquals(_activeFragment, fragment) && _activeSegmentIndex == segmentIndex)
             return;
 
         _activeFragment = fragment;
-        _activeSpeakerCode = NormalizeSpeakerCode(fragment?.SpeakerCode);
+        _activeSegmentIndex = segmentIndex;
+        _activeSpeakerCode = NormalizeSpeakerCode(fragment is null ? null : GetFragmentSegmentSpeaker(fragment, segmentIndex));
         OnPropertyChanged(nameof(ActiveSpeakerCode));
+    }
+
+    private StoryTextLabelItem? FindReplacementLabel(StoryTextLabelItem? preferredLabel)
+    {
+        if (preferredLabel is null)
+            return null;
+
+        return Labels.FirstOrDefault(x =>
+                   string.Equals(x.FilePath, preferredLabel.FilePath, StringComparison.OrdinalIgnoreCase)
+                   && string.Equals(x.Name, preferredLabel.Name, StringComparison.OrdinalIgnoreCase))
+               ?? Labels.FirstOrDefault(x =>
+                   string.Equals(x.Name, preferredLabel.Name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static IReadOnlyList<string> GetNormalizedSegmentSpeakerCodes(StoryTextFragmentItem fragment)
+    {
+        var lineCount = SplitEditorLines(fragment.EditedPlainText).Count;
+        EnsureSegmentSpeakers(fragment, lineCount);
+        return fragment.SegmentSpeakerCodes
+            .Take(lineCount)
+            .Select(x => x ?? string.Empty)
+            .ToArray();
+    }
+
+    private static void EnsureSegmentSpeakers(StoryTextFragmentItem fragment, int segmentCount)
+    {
+        segmentCount = Math.Max(1, segmentCount);
+        var fallback = fragment.SegmentSpeakerCodes.Count > 0
+            ? fragment.SegmentSpeakerCodes[^1]
+            : fragment.SpeakerCode;
+
+        while (fragment.SegmentSpeakerCodes.Count < segmentCount)
+            fragment.SegmentSpeakerCodes.Add(fallback ?? string.Empty);
+
+        while (fragment.SegmentSpeakerCodes.Count > segmentCount)
+            fragment.SegmentSpeakerCodes.RemoveAt(fragment.SegmentSpeakerCodes.Count - 1);
+
+        fragment.SpeakerCode = fragment.SegmentSpeakerCodes.Count > 0
+            ? fragment.SegmentSpeakerCodes[0]
+            : string.Empty;
+    }
+
+    private static string GetFragmentSegmentSpeaker(StoryTextFragmentItem fragment, int segmentIndex)
+    {
+        EnsureSegmentSpeakers(fragment, SplitEditorLines(fragment.EditedPlainText).Count);
+        if (segmentIndex >= 0 && segmentIndex < fragment.SegmentSpeakerCodes.Count)
+            return fragment.SegmentSpeakerCodes[segmentIndex] ?? string.Empty;
+
+        return fragment.SpeakerCode ?? string.Empty;
+    }
+
+    private static void SetFragmentSegmentSpeaker(StoryTextFragmentItem fragment, int segmentIndex, string speakerCode)
+    {
+        EnsureSegmentSpeakers(fragment, SplitEditorLines(fragment.EditedPlainText).Count);
+        segmentIndex = Math.Clamp(segmentIndex, 0, fragment.SegmentSpeakerCodes.Count - 1);
+        fragment.SegmentSpeakerCodes[segmentIndex] = speakerCode ?? string.Empty;
+        fragment.SpeakerCode = fragment.SegmentSpeakerCodes[0];
+        fragment.NotifySegmentSpeakersChanged();
+    }
+
+    private static void RemoveFragmentSegmentSpeaker(StoryTextFragmentItem fragment, int segmentIndex)
+    {
+        EnsureSegmentSpeakers(fragment, SplitEditorLines(fragment.EditedPlainText).Count + 1);
+        if (segmentIndex >= 0 && segmentIndex < fragment.SegmentSpeakerCodes.Count)
+            fragment.SegmentSpeakerCodes.RemoveAt(segmentIndex);
+
+        EnsureSegmentSpeakers(fragment, SplitEditorLines(fragment.EditedPlainText).Count);
     }
 
     private static string NormalizeSpeakerCode(string? speakerCode)

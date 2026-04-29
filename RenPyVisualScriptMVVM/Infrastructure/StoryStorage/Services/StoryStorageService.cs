@@ -351,7 +351,7 @@ public sealed class StoryStorageService : IStoryStorageService
                         var speakerCode = edit.UpdatesSpeaker
                             ? edit.SpeakerCode
                             : fragment.SpeakerCode ?? string.Empty;
-                        var replacementLines = BuildSayReplacementLines(lines[lineIndex], speakerCode, edit.Text);
+                        var replacementLines = BuildSayReplacementLines(lines[lineIndex], speakerCode, edit.Text, edit.SegmentSpeakerCodes);
                         lines = lines
                             .Take(lineIndex)
                             .Concat(replacementLines)
@@ -666,7 +666,11 @@ public sealed class StoryStorageService : IStoryStorageService
         return string.Equals(lineText, fragment.RawText, StringComparison.Ordinal);
     }
 
-    private static IReadOnlyList<string> BuildSayReplacementLines(string line, string speakerCode, string plainText)
+    private static IReadOnlyList<string> BuildSayReplacementLines(
+        string line,
+        string speakerCode,
+        string plainText,
+        IReadOnlyList<string>? segmentSpeakerCodes = null)
     {
         var match = SayLineRegex.Match(line);
         if (!match.Success)
@@ -683,7 +687,10 @@ public sealed class StoryStorageService : IStoryStorageService
         for (var i = 0; i < split.Count; i++)
         {
             var lineSuffix = i == 0 ? suffix : string.Empty;
-            result.Add(BuildSayLine(indent, speakerCode, quote, split[i], lineSuffix));
+            var lineSpeaker = segmentSpeakerCodes is not null && i < segmentSpeakerCodes.Count
+                ? segmentSpeakerCodes[i]
+                : speakerCode;
+            result.Add(BuildSayLine(indent, lineSpeaker, quote, split[i], lineSuffix));
         }
 
         return result;

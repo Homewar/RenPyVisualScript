@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
 using RenPyVisualScriptMVVM.Core.Services.Interfaces;
+using RenPyVisualScriptMVVM.Modules.GraphEditor.Models;
+using RenPyVisualScriptMVVM.Modules.GraphEditor.Services;
 using RenPyVisualScriptMVVM.Infrastructure.StoryStorage.Interfaces;
 using RenPyVisualScriptMVVM.Modules.Shell.Services.Interfaces;
 using RenPyVisualScriptMVVM.Modules.Shell.ViewModels;
@@ -20,6 +22,7 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
     private readonly IProjectContext _ctx;
     private readonly IStoryStorageService _storyStorage;
     private readonly IApplicationDialogService _dialogs;
+    private readonly List<StoryTextLabelItem> _allLabels = new();
     private readonly List<FragmentTextRange> _fragmentRanges = new();
     private readonly List<ProtectedTextRange> _protectedRanges = new();
     private readonly HashSet<Guid> _deletedFragmentIds = new();
@@ -34,7 +37,9 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
     private int _activeSegmentIndex;
     private string _activeSpeakerCode = "Narrator";
     private bool _isChangingLabelSelection;
+    private StoryRoute? _selectedRoute;
 
+    public ObservableCollection<StoryRoute> Routes { get; } = new();
     public ObservableCollection<StoryTextLabelItem> Labels { get; } = new();
     public ObservableCollection<StoryTextFragmentItem> Fragments { get; } = new();
     public ObservableCollection<string> SpeakerCodes { get; } = new();
@@ -50,6 +55,16 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
         {
             if (SetProperty(ref _selectedLabel, value) && !_isChangingLabelSelection)
                 _ = LoadFragmentsAsync();
+        }
+    }
+
+    public StoryRoute? SelectedRoute
+    {
+        get => _selectedRoute;
+        set
+        {
+            if (SetProperty(ref _selectedRoute, value))
+                ApplySelectedRoute();
         }
     }
 
@@ -135,6 +150,11 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
     }
 
     public Task InitializeAsync() => LoadLabelsAsync();
+
+    public Task RefreshAfterGraphSavedAsync()
+    {
+        return LoadLabelsAsync(rebuildIndex: true, preferredLabel: SelectedLabel);
+    }
 
     public void SetActiveTextOffset(int offset)
     {
@@ -327,22 +347,13 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
             await LoadSpeakerCodesAsync();
             var labels = await _storyStorage.ReadStoryTextLabelsAsync(_ctx.ProjectPath);
 
-            Labels.Clear();
-            foreach (var label in labels)
-                Labels.Add(label);
+            _allLabels.Clear();
+            _allLabels.AddRange(labels);
 
-            _isChangingLabelSelection = true;
-            try
-            {
-                SelectedLabel = FindReplacementLabel(preferredLabel) ?? Labels.FirstOrDefault();
-            }
-            finally
-            {
-                _isChangingLabelSelection = false;
-            }
+            LoadRoutes();
+            ApplySelectedRoute(preferredLabel);
 
-            await LoadFragmentsAsync();
-            StatusText = $"Labels: {Labels.Count}";
+            StatusText = $"Routes: {Routes.Count}, labels: {Labels.Count}";
         }
         catch (Exception ex)
         {
@@ -410,6 +421,93 @@ public sealed class StoryTextEditorWindowViewModel : BaseViewModel
             StatusText = "Load failed";
             await _dialogs.ShowErrorAsync("Story text editor", "Не удалось загрузить реплики label.", ex);
         }
+    }
+
+    private void LoadRoutes()
+    {
+        Routes.Clear();
+
+        var viewState = GraphViewStateStore.Load(_ctx.ProjectPath);
+        foreach (var route in viewState.Routes
+                     .Where(route => route.NodeTitles.Count > 0))
+        {
+            Routes.Add(new StoryRoute
+            {
+                Name = route.Name,
+                NodeTitles = route.NodeTitles.ToList()
+            });
+        }
+
+        if (Routes.Count == 0 && _allLabels.Count > 0)
+        {
+            Routes.Add(new StoryRoute
+            {
+                Name = "main",
+                NodeTitles = _allLabels
+                    .OrderBy(label => label.FilePath, StringComparer.OrdinalIgnoreCase)
+                    .ThenBy(label => label.Line)
+                    .Select(label => label.Name)
+                    .ToList()
+            });
+        }
+
+        if (SelectedRoute is not null)
+        {
+            var replacement = Routes.FirstOrDefault(route =>
+                string.Equals(route.Name, SelectedRoute.Name, StringComparison.OrdinalIgnoreCase));
+            if (replacement is not null)
+            {
+                _selectedRoute = replacement;
+                OnPropertyChanged(nameof(SelectedRoute));
+                return;
+            }
+        }
+
+        _selectedRoute = Routes.FirstOrDefault();
+        OnPropertyChanged(nameof(SelectedRoute));
+    }
+
+    private void ApplySelectedRoute(StoryTextLabelItem? preferredLabel = null)
+    {
+        Labels.Clear();
+        var routeLabels = BuildLabelsForSelectedRoute();
+        foreach (var label in routeLabels)
+            Labels.Add(label);
+
+        _isChangingLabelSelection = true;
+        try
+        {
+            SelectedLabel = FindReplacementLabel(preferredLabel) ?? Labels.FirstOrDefault();
+        }
+        finally
+        {
+            _isChangingLabelSelection = false;
+        }
+
+        _ = LoadFragmentsAsync();
+    }
+
+    private IReadOnlyList<StoryTextLabelItem> BuildLabelsForSelectedRoute()
+    {
+        if (SelectedRoute is null)
+            return Array.Empty<StoryTextLabelItem>();
+
+        var labelsByName = _allLabels
+            .GroupBy(label => label.Name, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.OrderBy(label => label.FilePath, StringComparer.OrdinalIgnoreCase).ThenBy(label => label.Line).First(), StringComparer.OrdinalIgnoreCase);
+
+        var routeLabels = new List<StoryTextLabelItem>();
+        var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var title in SelectedRoute.NodeTitles)
+        {
+            if (string.IsNullOrWhiteSpace(title) || !used.Add(title))
+                continue;
+
+            if (labelsByName.TryGetValue(title, out var label))
+                routeLabels.Add(label);
+        }
+
+        return routeLabels;
     }
 
     private async Task SaveAllAsync()

@@ -75,6 +75,7 @@
                 <DockPanel>
                     <Menu DockPanel.Dock="Top">
                         <MenuItem Header="File">
+                            <MenuItem Header="Open Project" Click="OpenProject_OnClick"/>
                             <MenuItem Header="Save Project" Command="{Binding SaveCmd}"/>
                         </MenuItem>
                         <MenuItem Header="Menu"/>
@@ -175,13 +176,13 @@
                       Background="{StaticResource AccentBrush}"/>
 
         <Grid Grid.Row="1" Grid.Column="3">
-            <TabControl Background="#171717">
+            <TabControl Background="#171717" Padding="12,0,0,0">
                 <TabItem Header="source" FontSize="16">
                     <Grid Margin="0">
                         <ScrollViewer Margin="0,8,0,0"
                                       Padding="0,0,12,0"
                                       >
-                            <StackPanel Spacing="8" HorizontalAlignment="Stretch">
+                            <StackPanel Spacing="8" HorizontalAlignment="Stretch" Margin="0,0,4,0">
                                 <Expander IsExpanded="True" Background="#252526" BorderBrush="#3c3c3c" BorderThickness="1" HorizontalAlignment="Stretch" Padding="0,16,0,16">
                                 <Expander.Header>
                                     <DockPanel Margin="8,6">
@@ -197,9 +198,20 @@
                                     <ListBox.ItemTemplate>
                                         <DataTemplate x:DataType="core:Character">
                                             <Grid ColumnDefinitions="16,*,Auto" Margin="8,4">
-                                                <Border Width="12" Height="12" CornerRadius="6"
-                                                        Background="{Binding Color, Converter={StaticResource StrToBrush}}"
-                                                        VerticalAlignment="Center"/>
+                                                <Border Width="32"
+                                                        Height="32"
+                                                        Background="#3a3a3a"
+                                                        CornerRadius="16"
+                                                        Margin="0,0,8,0"
+                                                        >
+                                                    
+                                                    <PathIcon Width="20"
+                                                            Height="20"
+                                                            HorizontalAlignment="Center"
+                                                            VerticalAlignment="Center"
+                                                            Foreground="{Binding Color, Converter={StaticResource StrToBrush}}"
+                                                            Data="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z M4 21C4 16.5817 7.58172 13 12 13C16.4183 13 20 16.5817 20 21C20 21.5523 19.5523 22 19 22H5C4.44772 22 4 21.5523 4 21Z"/>
+                                                </Border>
                                                 <StackPanel Grid.Column="1" Margin="8,0,0,0">
                                                     <TextBlock Text="{Binding Name}" FontSize="14"/>
                                                     <TextBlock Text="{Binding InGameName}" Foreground="#9cdcfe" FontSize="12"/>
@@ -470,7 +482,8 @@
 
         <TabControl Grid.Row="1" Grid.Column="1"
                     ItemsSource="{Binding Tabs}"
-                    SelectedItem="{Binding SelectedTab, Mode=TwoWay}">
+                    SelectedItem="{Binding SelectedTab, Mode=TwoWay}"
+                    Padding="0">
 
             <TabControl.ItemTemplate>
                 <DataTemplate x:DataType="models:TabItemModel">
@@ -478,6 +491,11 @@
                         <TextBlock Text="{Binding Header}"
                                    VerticalAlignment="Center"
                                    Margin="4,0"
+                                   DockPanel.Dock="Left"/>
+                        <TextBlock Text="*"
+                                   IsVisible="{Binding IsModified}"
+                                   Foreground="#f0c674"
+                                   VerticalAlignment="Center"
                                    DockPanel.Dock="Left"/>
                         <Button Content="✕" BorderThickness="0,-7,0,0"
                                 VerticalAlignment="Center"
@@ -492,6 +510,7 @@
             <TabControl.ContentTemplate>
                 <DataTemplate x:DataType="models:TabItemModel">
                     <local:AvaloniaEdit FilePath="{Binding FilePath}"
+                                        ScriptText="{Binding ScriptText, Mode=TwoWay}"
                                         TargetLine="{Binding TargetLine}"
                                         NavigationRequestId="{Binding NavigationRequestId}"
                                         ReloadRequestId="{Binding ReloadRequestId}"

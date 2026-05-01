@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
@@ -8,7 +9,9 @@ using RenPyVisualScriptMVVM.Modules.Editors.Models;
 using RenPyVisualScriptMVVM.Modules.Editors.Services;
 using RenPyVisualScriptMVVM.Modules.Editors.Services.Interfaces;
 using RenPyVisualScriptMVVM.Modules.Editors.ViewModels;
+using RenPyVisualScriptMVVM.Modules.GraphEditor.Views;
 using RenPyVisualScriptMVVM.Modules.Projects.Models;
+using RenPyVisualScriptMVVM.Modules.StoryEditor.Views;
 using Splat;
 using System;
 using System.Collections.Generic;
@@ -24,6 +27,8 @@ public partial class ScriptEditor : Window
     private readonly IEditorDialogService _dialogService;
     private Point? _fileDragStartPoint;
     private FileNode? _fileDragNode;
+    private bool _isCloseConfirmed;
+    private bool _isClosePromptOpen;
 
     public ScriptEditor()
     {
@@ -36,10 +41,96 @@ public partial class ScriptEditor : Window
             "avares://RenPyVisualScriptMVVM/Assets/Icons/activity-graph.png",
             "avares://RenPyVisualScriptMVVM/Assets/Icons/graph.png",
             "avares://RenPyVisualScriptMVVM/Assets/Icons/graph_editor.png");
-        Closing += (_, _) => _audioPreviewPlayer.Dispose();
+        Closing += OnClosing;
+        Closed += (_, _) =>
+        {
+            CloseLinkedEditorWindows();
+            _audioPreviewPlayer.Dispose();
+        };
     }
 
     private ScriptEditorViewModel? ViewModel => DataContext as ScriptEditorViewModel;
+
+    private async void OnClosing(object? sender, WindowClosingEventArgs e)
+    {
+        if (_isCloseConfirmed || ViewModel is not { HasUnsavedChanges: true } vm)
+            return;
+
+        e.Cancel = true;
+        if (_isClosePromptOpen)
+            return;
+
+        if (!await ConfirmSaveChangesAsync(vm))
+            return;
+
+        _isCloseConfirmed = true;
+        Close();
+    }
+
+    private async void OpenProject_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (ViewModel is not { } vm)
+            return;
+
+        if (!await ConfirmSaveChangesAsync(vm))
+            return;
+
+        if (!await vm.OpenProjectFromMenuAsync())
+            return;
+
+        CloseLinkedEditorWindows();
+    }
+
+    private async System.Threading.Tasks.Task<bool> ConfirmSaveChangesAsync(ScriptEditorViewModel vm)
+    {
+        if (!vm.HasUnsavedChanges)
+            return true;
+
+        SaveChangesDialogResult? result;
+        try
+        {
+            _isClosePromptOpen = true;
+            var dialog = new SaveChangesDialog(vm.UnsavedTabCount);
+            result = await dialog.ShowDialog<SaveChangesDialogResult?>(this);
+        }
+        finally
+        {
+            _isClosePromptOpen = false;
+        }
+
+        if (result is null or SaveChangesDialogResult.Cancel)
+            return false;
+
+        if (result == SaveChangesDialogResult.Save)
+        {
+            try
+            {
+                vm.SaveModifiedTabs();
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowMessageAsync(this, "Save failed", ex.Message);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void CloseLinkedEditorWindows()
+    {
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime lifetime)
+            return;
+
+        foreach (var window in lifetime.Windows.ToArray())
+        {
+            if (ReferenceEquals(window, this))
+                continue;
+
+            if (window is GraphEditorWindow or StoryTextEditorWindow)
+                window.Close();
+        }
+    }
 
     private void CharacterList_OnDoubleTapped(object? sender, TappedEventArgs e)
     {

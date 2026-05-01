@@ -226,7 +226,10 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
                     {
                         var content = ReadFileAsTextSafe(path);
                         textEditor.Text = content;
-                        ScriptText = content;
+                        if (DataContext is TabItemModel tab)
+                            tab.SetScriptTextFromFile(content);
+                        else
+                            ScriptText = content;
                         LanguageExtension = System.IO.Path.GetExtension(path);
                         NavigateToTargetLine();
                     }
@@ -473,7 +476,10 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
             {
                 var content = ReadFileAsTextSafe(path);
                 textEditor.Text = content;
-                ScriptText = content;
+                if (DataContext is TabItemModel tab)
+                    tab.SetScriptTextFromFile(content);
+                else
+                    ScriptText = content;
                 _characterColorizer.UpdateText(content);
                 textEditor.TextArea.TextView.Redraw();
                 NavigateToTargetLine();

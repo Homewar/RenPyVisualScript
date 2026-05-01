@@ -104,34 +104,37 @@
                     BorderBrush="#3C3C3C"
                     BorderThickness="1,0,0,0"
                     Padding="12">
-                <StackPanel Spacing="10">
-                    <TextBlock Text="Routes"
-                               FontSize="16"
-                               FontWeight="SemiBold"
-                               Foreground="#E6E6E6"/>
-
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                        <TextBox x:Name="RouteNameTextBox"
-                                 Classes="route-input"
-                                 Watermark="Новая ветка сюжета"
-                                 Foreground="#ffffff"
-                                 CaretBrush="#0f0f0f"
-                                 Background="#1E1E1E"/>
+                <Grid RowDefinitions="Auto,*,Auto,*" RowSpacing="10">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <TextBlock Text="Routes"
+                                   VerticalAlignment="Center"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="#E6E6E6"/>
                         <Button Grid.Column="1"
-                                x:Name="AddRouteButton"
-                                Content="Add"
-                                Background="#EA592A"/>
+                                Content="Clear"
+                                Click="OnClearRouteHighlightClick"/>
                     </Grid>
 
                     <ListBox x:Name="RoutesListBox"
+                             Grid.Row="1"
                              Background="#1E1E1E"
                              Foreground="#F3F3F3"
                              BorderBrush="#3C3C3C"
                              BorderThickness="1"
-                             MinHeight="120">
+                             MinHeight="120"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="models:StoryRoute">
-                                <Grid ColumnDefinitions="*,Auto" Margin="6,4">
+                                <Grid ColumnDefinitions="*,Auto" Margin="6,4" Background="Transparent">
+                                    <Grid.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="Rename"
+                                                      CommandParameter="{Binding}"
+                                                      Click="OnRenameRouteMenuItemClick"/>
+                                        </ContextMenu>
+                                    </Grid.ContextMenu>
                                     <TextBlock Text="{Binding Name}"
                                                Foreground="#F3F3F3"/>
                                     <TextBlock Grid.Column="1"
@@ -143,15 +146,19 @@
                     </ListBox>
 
                     <TextBlock Text="Labels In Selected Route"
+                               Grid.Row="2"
                                Margin="0,6,0,0"
                                Foreground="#E6E6E6"
                                FontWeight="SemiBold"/>
                     <ListBox x:Name="RouteNodesListBox"
+                             Grid.Row="3"
                              Background="#1E1E1E"
                              Foreground="#F3F3F3"
                              BorderBrush="#3C3C3C"
                              BorderThickness="1"
-                             MinHeight="120">
+                             MinHeight="120"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding}"
@@ -160,7 +167,7 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                </StackPanel>
+                </Grid>
             </Border>
         </Grid>
     </DockPanel>

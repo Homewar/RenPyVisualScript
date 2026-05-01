@@ -43,7 +43,9 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
         private GraphNote? _selectedNote;
         private Node? _renamingNode;
         private TextBox? _renameTextBox;
+        private TextBlock? _renameValidationTextBlock;
         private string _renameText = string.Empty;
+        private string _renameValidationMessage = string.Empty;
         private GraphNote? _editingNote;
         private TextBox? _noteTextBox;
         private string _noteEditText = string.Empty;
@@ -464,6 +466,11 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 var renameTextBox = CreateRenameTextBox(node, nodeWidth, nodeTop, nodeLeft);
                 Children.Add(renameTextBox);
                 _renameTextBox = renameTextBox;
+
+                var validationTextBlock = CreateRenameValidationTextBlock(nodeWidth, nodeTop, nodeLeft);
+                Children.Add(validationTextBlock);
+                _renameValidationTextBlock = validationTextBlock;
+                UpdateRenameValidationState(renameTextBox, node);
             }
             else
             {
@@ -1570,6 +1577,14 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 return;
             }
 
+            if (e.Key == Key.R && e.KeyModifiers.HasFlag(KeyModifiers.Control))
+            {
+                if (TryBeginRenameSelectedNode())
+                    e.Handled = true;
+
+                return;
+            }
+
             if (e.Key != Key.Delete)
             {
                 return;
@@ -2039,9 +2054,12 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 VerticalContentAlignment = Avalonia.Layout.VerticalAlignment.Center
             };
 
+            UpdateRenameValidationState(textBox, node);
+
             textBox.TextChanged += (_, _) =>
             {
                 _renameText = textBox.Text ?? string.Empty;
+                UpdateRenameValidationState(textBox, node);
             };
             textBox.KeyDown += OnRenameTextBoxKeyDown;
             textBox.LostFocus += OnRenameTextBoxLostFocus;
@@ -2061,17 +2079,76 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             return textBox;
         }
 
+        private TextBlock CreateRenameValidationTextBlock(double nodeWidth, double nodeTop, double nodeLeft)
+        {
+            var textBlock = new TextBlock
+            {
+                Text = _renameValidationMessage,
+                Width = Math.Max(80, nodeWidth - 16 * _viewportScale),
+                FontSize = Math.Max(10, 11 * _viewportScale),
+                TextWrapping = TextWrapping.Wrap,
+                TextAlignment = TextAlignment.Center,
+                Foreground = new SolidColorBrush(Color.Parse("#ff6b6b")),
+                Background = new SolidColorBrush(Color.FromArgb(210, 45, 20, 20)),
+                Padding = new Thickness(4, 2),
+                IsVisible = !string.IsNullOrWhiteSpace(_renameValidationMessage),
+                IsHitTestVisible = false
+            };
+
+            SetLeft(textBlock, nodeLeft + 8 * _viewportScale);
+            SetTop(textBlock, nodeTop + 26 * _viewportScale);
+            return textBlock;
+        }
+
+        private void UpdateRenameValidationState(TextBox textBox, Node node)
+        {
+            _renameValidationMessage = GetRenameValidationMessage(node, _renameText);
+            var isValid = string.IsNullOrWhiteSpace(_renameValidationMessage);
+            textBox.BorderBrush = isValid
+                ? new SolidColorBrush(Color.Parse("#777777"))
+                : new SolidColorBrush(Color.Parse("#ff6b6b"));
+            textBox.BorderThickness = new Thickness(isValid ? 1 : 2);
+            ToolTip.SetTip(textBox, isValid ? null : _renameValidationMessage);
+
+            if (_renameValidationTextBlock is not null)
+            {
+                _renameValidationTextBlock.Text = _renameValidationMessage;
+                _renameValidationTextBlock.IsVisible = !isValid;
+            }
+        }
+
         private void BeginInlineRename(Node node)
         {
             _renamingNode = node;
             _renameText = node.Title;
+            _renameValidationMessage = string.Empty;
             SelectedNode = node;
+        }
+
+        public bool TryBeginRenameSelectedNode()
+        {
+            var node = SelectedNode;
+            if (node is null || IsDerivedNode(node))
+                return false;
+
+            BeginInlineRename(node);
+            RebuildChildren();
+            return true;
         }
 
         private void OnRenameTextBoxKeyDown(object? sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
+                if (_renamingNode is not null && !CanRenameNode(_renamingNode, (_renameText ?? string.Empty).Trim()))
+                {
+                    if (sender is TextBox textBox)
+                        UpdateRenameValidationState(textBox, _renamingNode);
+
+                    e.Handled = true;
+                    return;
+                }
+
                 EndInlineRename(commitChanges: true);
                 e.Handled = true;
                 return;
@@ -2105,7 +2182,9 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
             _renamingNode = null;
             _renameTextBox = null;
+            _renameValidationTextBlock = null;
             _renameText = string.Empty;
+            _renameValidationMessage = string.Empty;
 
             if (shouldCommit && !string.Equals(node.Title, newTitle, StringComparison.Ordinal))
             {
@@ -2115,28 +2194,6 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             }
 
             RebuildChildren();
-        }
-
-        public bool CreateRoute(string? routeName)
-        {
-            var normalizedName = (routeName ?? string.Empty).Trim();
-            if (string.IsNullOrWhiteSpace(normalizedName))
-            {
-                return false;
-            }
-
-            if (Routes.Any(route => string.Equals(route.Name, normalizedName, StringComparison.OrdinalIgnoreCase)))
-            {
-                ActiveRouteName = Routes.First(route => string.Equals(route.Name, normalizedName, StringComparison.OrdinalIgnoreCase)).Name;
-                NotifyGraphChanged();
-                return false;
-            }
-
-            Routes.Add(new StoryRoute { Name = normalizedName });
-            ActiveRouteName = normalizedName;
-            RebuildRoutes();
-            NotifyGraphChanged();
-            return true;
         }
 
         public void LoadRoutes(IEnumerable<StoryRoute> routes)
@@ -2236,8 +2293,8 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
         {
             if (string.Equals(_highlightedRouteName, route.Name, StringComparison.OrdinalIgnoreCase))
             {
-                _highlightedRouteName = null;
-                _highlightedRouteNodeTitles.Clear();
+                ClearRouteHighlight();
+                return;
             }
             else
             {
@@ -2245,6 +2302,16 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 _highlightedRouteNodeTitles = route.NodeTitles.ToHashSet(StringComparer.OrdinalIgnoreCase);
             }
 
+            RebuildChildren();
+        }
+
+        public void ClearRouteHighlight()
+        {
+            if (!IsRouteHighlightActive && string.IsNullOrWhiteSpace(_highlightedRouteName))
+                return;
+
+            _highlightedRouteName = null;
+            _highlightedRouteNodeTitles.Clear();
             RebuildChildren();
         }
 
@@ -2376,7 +2443,26 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void RebuildRoutes()
         {
+            var previousRouteNames = Routes
+                .GroupBy(GetRouteSignature, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(group => group.Key, group => group.First().Name, StringComparer.OrdinalIgnoreCase);
             var generatedRoutes = BuildAutomaticStoryRoutes();
+            var usedRouteNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var route in generatedRoutes)
+            {
+                var signature = GetRouteSignature(route);
+                if (previousRouteNames.TryGetValue(signature, out var previousName)
+                    && !string.IsNullOrWhiteSpace(previousName))
+                {
+                    route.Name = MakeUniqueRouteName(previousName, usedRouteNames);
+                }
+                else
+                {
+                    route.Name = MakeUniqueRouteName(route.Name, usedRouteNames);
+                }
+            }
+
             Routes.Clear();
 
             foreach (var route in generatedRoutes)
@@ -2393,9 +2479,47 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
             var routeNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var routes = new List<StoryRoute>();
-            BuildRouteTree(root, new List<Node>(), "main", routes, routeNames, new HashSet<Node>());
+            var cycleGroups = BuildRouteCycleGroups();
+            BuildRouteTree(root, new List<Node>(), "main", routes, routeNames, new HashSet<Node>(), cycleGroups);
 
             return routes;
+        }
+
+        public bool RenameRoute(StoryRoute route, string? newName)
+        {
+            var normalizedName = (newName ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(normalizedName))
+                return false;
+
+            var targetRoute = Routes.FirstOrDefault(candidate =>
+                ReferenceEquals(candidate, route)
+                || string.Equals(candidate.Name, route.Name, StringComparison.OrdinalIgnoreCase)
+                && RouteNodeTitlesEqual(candidate, route));
+
+            if (targetRoute is null)
+                return false;
+
+            if (Routes.Any(candidate =>
+                    !ReferenceEquals(candidate, targetRoute)
+                    && string.Equals(candidate.Name, normalizedName, StringComparison.OrdinalIgnoreCase)))
+            {
+                return false;
+            }
+
+            var oldName = targetRoute.Name;
+            targetRoute.Name = normalizedName;
+
+            foreach (var node in Nodes.Where(node => string.Equals(node.RouteName, oldName, StringComparison.OrdinalIgnoreCase)))
+                node.RouteName = normalizedName;
+
+            if (string.Equals(ActiveRouteName, oldName, StringComparison.OrdinalIgnoreCase))
+                ActiveRouteName = normalizedName;
+
+            if (string.Equals(_highlightedRouteName, oldName, StringComparison.OrdinalIgnoreCase))
+                _highlightedRouteName = normalizedName;
+
+            NotifyGraphChanged();
+            return true;
         }
 
         private void BuildRouteTree(
@@ -2404,17 +2528,58 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             string routeName,
             List<StoryRoute> routes,
             HashSet<string> routeNames,
-            HashSet<Node> visitedPath)
+            HashSet<Node> visitedPath,
+            IReadOnlyDictionary<Node, RouteCycleGroup> cycleGroups)
         {
             var path = inheritedPath.ToList();
             var current = start;
 
-            while (visitedPath.Add(current))
+            while (true)
             {
-                path.Add(current);
-                var children = GetRegularChildren(current);
+                if (cycleGroups.TryGetValue(current, out var cycleGroup))
+                {
+                    if (cycleGroup.Nodes.Any(visitedPath.Contains))
+                        return;
+
+                    foreach (var node in cycleGroup.Nodes)
+                    {
+                        visitedPath.Add(node);
+                        path.Add(node);
+                    }
+
+                    var cycleChildren = cycleGroup.Exits;
+                    if (cycleGroup.HasEnd)
+                        AddRoute(routes, routeNames, routeName, path);
+
+                    if (cycleChildren.Count == 0)
+                        return;
+
+                    current = cycleChildren[0];
+                    if (cycleChildren.Count > 1)
+                    {
+                        for (var i = 1; i < cycleChildren.Count; i++)
+                        {
+                            var child = cycleChildren[i];
+                            var childRouteName = MakeUniqueRouteName($"{routeName}_{i}_{SanitizeRoutePart(child.Title)}", routeNames);
+                            BuildRouteTree(child, path, childRouteName, routes, routeNames, new HashSet<Node>(visitedPath), cycleGroups);
+                        }
+                    }
+
+                    continue;
+                }
+
+                if (!visitedPath.Add(current))
+                    return;
+
+                if (IsRouteLabelNode(current))
+                    path.Add(current);
+
+                var children = GetRouteChildren(current);
+                if (IsRouteEndNode(current, children))
+                    AddRoute(routes, routeNames, routeName, path);
+
                 if (children.Count == 0)
-                    break;
+                    return;
 
                 current = children[0];
                 if (children.Count > 1)
@@ -2423,21 +2588,140 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                     {
                         var child = children[i];
                         var childRouteName = MakeUniqueRouteName($"{routeName}_{i}_{SanitizeRoutePart(child.Title)}", routeNames);
-                        BuildRouteTree(child, path, childRouteName, routes, routeNames, new HashSet<Node>(visitedPath));
+                        BuildRouteTree(child, path, childRouteName, routes, routeNames, new HashSet<Node>(visitedPath), cycleGroups);
                     }
                 }
             }
-
-            AddRoute(routes, routeNames, routeName, path);
         }
 
-        private List<Node> GetRegularChildren(Node node)
+        private Dictionary<Node, RouteCycleGroup> BuildRouteCycleGroups()
+        {
+            var index = 0;
+            var stack = new Stack<Node>();
+            var indexes = new Dictionary<Node, int>();
+            var lowLinks = new Dictionary<Node, int>();
+            var onStack = new HashSet<Node>();
+            var groups = new Dictionary<Node, RouteCycleGroup>();
+
+            foreach (var node in Nodes.Where(IsRouteLabelNode))
+            {
+                if (!indexes.ContainsKey(node))
+                    StrongConnect(node);
+            }
+
+            return groups;
+
+            void StrongConnect(Node node)
+            {
+                indexes[node] = index;
+                lowLinks[node] = index;
+                index++;
+                stack.Push(node);
+                onStack.Add(node);
+
+                foreach (var child in GetRouteChildren(node).Where(IsRouteLabelNode))
+                {
+                    if (!indexes.ContainsKey(child))
+                    {
+                        StrongConnect(child);
+                        lowLinks[node] = Math.Min(lowLinks[node], lowLinks[child]);
+                    }
+                    else if (onStack.Contains(child))
+                    {
+                        lowLinks[node] = Math.Min(lowLinks[node], indexes[child]);
+                    }
+                }
+
+                if (lowLinks[node] != indexes[node])
+                    return;
+
+                var component = new List<Node>();
+                Node current;
+                do
+                {
+                    current = stack.Pop();
+                    onStack.Remove(current);
+                    component.Add(current);
+                }
+                while (current != node);
+
+                if (!IsCyclicRouteComponent(component))
+                    return;
+
+                var componentSet = component.ToHashSet();
+                var orderedNodes = component
+                    .OrderBy(item => item.SourceStartLine <= 0 ? int.MaxValue : item.SourceStartLine)
+                    .ThenBy(item => item.Y)
+                    .ThenBy(item => item.X)
+                    .ThenBy(item => item.Title, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                var exits = component
+                    .SelectMany(GetRouteChildren)
+                    .Where(child => !componentSet.Contains(child))
+                    .Distinct()
+                    .OrderBy(child => child.Y)
+                    .ThenBy(child => child.X)
+                    .ThenBy(child => child.Title, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                var hasExplicitEnd = component.Any(item => _loopNodesWithEndBranch.Contains(item));
+                var group = new RouteCycleGroup(orderedNodes, exits, hasExplicitEnd);
+                foreach (var item in component)
+                    groups[item] = group;
+            }
+        }
+
+        private bool IsCyclicRouteComponent(IReadOnlyCollection<Node> component)
+        {
+            return component.Count > 1
+                   || component.Any(node => Edges.Any(edge => edge.Start == node && edge.End == node));
+        }
+
+        private sealed record RouteCycleGroup(
+            IReadOnlyList<Node> Nodes,
+            IReadOnlyList<Node> Exits,
+            bool HasEnd);
+
+        private List<Node> GetRouteChildren(Node node)
+        {
+            var children = new List<Node>();
+            var visitedConnectors = new HashSet<Node> { node };
+
+            foreach (var child in GetOrderedOutgoingNodes(node))
+                AddRouteChildThroughConnectors(child, children, visitedConnectors);
+
+            return children
+                .Distinct()
+                .OrderBy(child => child.Y)
+                .ThenBy(child => child.X)
+                .ThenBy(child => child.Title, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        private void AddRouteChildThroughConnectors(
+            Node candidate,
+            List<Node> children,
+            HashSet<Node> visitedConnectors)
+        {
+            if (candidate.IsScreenConnector || candidate.IsMenuConnector)
+            {
+                if (!visitedConnectors.Add(candidate))
+                    return;
+
+                foreach (var child in GetOrderedOutgoingNodes(candidate))
+                    AddRouteChildThroughConnectors(child, children, visitedConnectors);
+
+                return;
+            }
+
+            children.Add(candidate);
+        }
+
+        private List<Node> GetOrderedOutgoingNodes(Node node)
         {
             return Edges
-                .Where(edge => edge.Start == node
-                    && edge.End != node
-                    && !edge.End.IsScreenConnector
-                    && !edge.End.IsMenuConnector)
+                .Where(edge => edge.Start == node && edge.End != node)
                 .Select(edge => edge.End)
                 .Distinct()
                 .OrderBy(child => child.Y)
@@ -2446,12 +2730,32 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 .ToList();
         }
 
+        private static bool IsRouteLabelNode(Node node)
+        {
+            return !node.IsScreenConnector && !node.IsMenuConnector;
+        }
+
+        private bool IsRouteEndNode(Node node, IReadOnlyCollection<Node> routeChildren)
+        {
+            if (!IsRouteLabelNode(node))
+                return false;
+
+            if (_loopNodesWithEndBranch.Contains(node))
+                return true;
+
+            var hasSelfLoop = Edges.Any(edge => edge.Start == node && edge.End == node);
+            return !hasSelfLoop && routeChildren.Count == 0;
+        }
+
         private static void AddRoute(
             List<StoryRoute> routes,
             HashSet<string> routeNames,
             string name,
             IReadOnlyList<Node> nodes)
         {
+            if (nodes.Count == 0)
+                return;
+
             var routeName = MakeUniqueRouteName(name, routeNames);
             routes.Add(new StoryRoute
             {
@@ -2476,6 +2780,21 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
             return $"{normalized}_{suffix}";
         }
 
+        private static string GetRouteSignature(StoryRoute route)
+        {
+            return string.Join(
+                "\n",
+                route.NodeTitles
+                    .Where(title => !string.IsNullOrWhiteSpace(title))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(title => title, StringComparer.OrdinalIgnoreCase));
+        }
+
+        private static bool RouteNodeTitlesEqual(StoryRoute left, StoryRoute right)
+        {
+            return string.Equals(GetRouteSignature(left), GetRouteSignature(right), StringComparison.OrdinalIgnoreCase);
+        }
+
         private static string SanitizeRoutePart(string value)
         {
             var sanitized = Regex.Replace(value, @"[^A-Za-z0-9_]+", "_").Trim('_');
@@ -2489,19 +2808,28 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private bool CanRenameNode(Node node, string candidate)
         {
+            return string.IsNullOrWhiteSpace(GetRenameValidationMessage(node, candidate));
+        }
+
+        private string GetRenameValidationMessage(Node node, string candidate)
+        {
             if (string.IsNullOrWhiteSpace(candidate))
             {
-                return false;
+                return "Label name cannot be empty.";
             }
 
             if (!ValidLabelRegex.IsMatch(candidate))
             {
-                return false;
+                return "Use letters, digits and '_'. First character must be a letter or '_'.";
             }
 
-            return Nodes
+            var alreadyExists = Nodes
                 .Where(existingNode => existingNode != node)
-                .All(existingNode => !string.Equals(existingNode.Title, candidate, StringComparison.OrdinalIgnoreCase));
+                .Any(existingNode => string.Equals(existingNode.Title, candidate, StringComparison.OrdinalIgnoreCase));
+
+            return alreadyExists
+                ? "A label with this name already exists."
+                : string.Empty;
         }
 
         public void NotifyGraphChanged()

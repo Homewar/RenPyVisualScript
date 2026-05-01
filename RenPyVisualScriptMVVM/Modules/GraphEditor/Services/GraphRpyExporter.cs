@@ -53,13 +53,19 @@ public static class GraphRpyExporter
             .Where(edge => exportableNodes.Contains(edge.Start) && exportableNodes.Contains(edge.End))
             .ToList();
         var renamedNodeMap = NormalizeManualNodeTitles(nodeList, initialSnapshot, currentSnapshot);
+        var renamedExistingLabels = DetectRenamedExistingLabels(nodeList, initialSnapshot, currentSnapshot, normalizedProjectPath);
+        foreach (var pair in renamedExistingLabels)
+        {
+            if (!renamedNodeMap.ContainsKey(pair.Key))
+                renamedNodeMap[pair.Key] = pair.Value;
+        }
 
         var initialLabelNames = new HashSet<string>(initialSnapshot.Labels.Select(l => l.Name), StringComparer.OrdinalIgnoreCase);
         var currentNodeNames = new HashSet<string>(nodeList.Select(n => n.Title), StringComparer.OrdinalIgnoreCase);
         var deletedLabelNames = new HashSet<string>(
             initialSnapshot.Labels
                 .Select(l => l.Name)
-                .Where(name => !currentNodeNames.Contains(name)),
+                .Where(name => !currentNodeNames.Contains(name) && !renamedExistingLabels.ContainsKey(name)),
             StringComparer.OrdinalIgnoreCase);
 
         var labelByName = currentSnapshot.Labels.ToDictionary(l => l.Name, StringComparer.OrdinalIgnoreCase);
@@ -107,10 +113,14 @@ public static class GraphRpyExporter
                     continue;
                 }
 
-                if (renderedBlockByLabel.TryGetValue(label.Name, out var renderedBlock)
-                    && targetFileByNode.TryGetValue(label.Name, out var targetFile)
+                var renderLabelName = renamedExistingLabels.TryGetValue(label.Name, out var renamedLabel)
+                    ? renamedLabel
+                    : label.Name;
+
+                if (renderedBlockByLabel.TryGetValue(renderLabelName, out var renderedBlock)
+                    && targetFileByNode.TryGetValue(renderLabelName, out var targetFile)
                     && string.Equals(targetFile, relativeFilePath, StringComparison.OrdinalIgnoreCase)
-                    && (isManagedLabel || hasGraphFlowChanges))
+                    && (isManagedLabel || hasGraphFlowChanges || renamedExistingLabels.ContainsKey(label.Name)))
                 {
                     outputLines.AddRange(renderedBlock);
                 }
@@ -126,6 +136,8 @@ public static class GraphRpyExporter
 
             var newNodesForFile = nodeList
                 .Where(n => !labelByName.ContainsKey(n.Title))
+                .Where(n => !renamedExistingLabels.Values.Any(renamedName =>
+                    string.Equals(renamedName, n.Title, StringComparison.OrdinalIgnoreCase)))
                 .Where(n => targetFileByNode.TryGetValue(n.Title, out var targetFile)
                             && string.Equals(targetFile, relativeFilePath, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(n => n.Title, StringComparer.OrdinalIgnoreCase)
@@ -189,6 +201,55 @@ public static class GraphRpyExporter
         }
 
         return renamedNodeMap;
+    }
+
+    private static Dictionary<string, string> DetectRenamedExistingLabels(
+        IReadOnlyCollection<Node> nodeList,
+        ProjectStructureSnapshot initialSnapshot,
+        ProjectStructureSnapshot currentSnapshot,
+        string projectPath)
+    {
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var currentLabelsBySource = currentSnapshot.Labels
+            .GroupBy(label => BuildSourceKey(projectPath, label.FilePath, label.Line), StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+        var initialLabelsBySource = initialSnapshot.Labels
+            .GroupBy(label => BuildSourceKey(projectPath, label.FilePath, label.Line), StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+
+        foreach (var node in nodeList.Where(node =>
+                     !node.IsGeneratedManually
+                     && !node.IsScreenConnector
+                     && !node.IsMenuConnector
+                     && !string.IsNullOrWhiteSpace(node.SourceFilePath)
+                     && node.SourceStartLine > 0))
+        {
+            var sourceKey = BuildSourceKey(projectPath, node.SourceFilePath!, node.SourceStartLine);
+            var originalLabel = currentLabelsBySource.TryGetValue(sourceKey, out var currentLabel)
+                ? currentLabel
+                : initialLabelsBySource.TryGetValue(sourceKey, out var initialLabel)
+                    ? initialLabel
+                    : null;
+
+            if (originalLabel is null
+                || string.Equals(originalLabel.Name, node.Title, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            result[originalLabel.Name] = node.Title;
+        }
+
+        return result;
+    }
+
+    private static string BuildSourceKey(string projectPath, string filePath, int line)
+    {
+        var relativePath = Path.IsPathRooted(filePath)
+            ? NormalizeProjectRelativePath(projectPath, filePath)
+            : filePath.Replace('\\', '/');
+
+        return $"{relativePath}:{line}";
     }
 
     private static Dictionary<string, string> ResolveTargetFiles(

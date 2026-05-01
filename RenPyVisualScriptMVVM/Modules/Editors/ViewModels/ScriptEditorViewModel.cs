@@ -47,6 +47,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     private readonly RenPyStructureReader _fallbackStructureReader = new();
     private bool _isShowingStoryIndexError;
     private GraphEditorWindowViewModel? _activeGraphViewModel;
+    private StoryTextEditorWindowViewModel? _activeStoryTextEditorViewModel;
 
     public IRelayCommand SaveCmd { get; }
     public IRelayCommand ShowProjectSetCmd { get; }
@@ -130,6 +131,10 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     public string? ProjectPath => _ctx.ProjectPath;
 
     public IReadOnlyList<ResourceFileItem> AvailableCharacterImages => ImageResources;
+
+    public bool HasUnsavedChanges => Tabs.Any(tab => tab.IsModified);
+
+    public int UnsavedTabCount => Tabs.Count(tab => tab.IsModified);
 
     public ScriptEditorViewModel(
         IProjectContext ctx,
@@ -969,6 +974,77 @@ public sealed class ScriptEditorViewModel : BaseViewModel
             new JsonSerializerOptions { WriteIndented = true }));
     }
 
+    public void SaveModifiedTabs()
+    {
+        var savedRpy = false;
+
+        foreach (var tab in Tabs.Where(tab => tab.IsModified).ToArray())
+        {
+            if (string.IsNullOrWhiteSpace(tab.FilePath))
+                continue;
+
+            File.WriteAllText(tab.FilePath, tab.ScriptText);
+            tab.MarkSaved();
+
+            if (Path.GetExtension(tab.FilePath).Equals(".rpy", StringComparison.OrdinalIgnoreCase))
+                savedRpy = true;
+        }
+
+        if (!savedRpy)
+            return;
+
+        RefreshStructure(refreshFileTree: false);
+        _ = RefreshOpenGraphFromProjectAsync();
+    }
+
+    public async Task<bool> OpenProjectFromMenuAsync()
+    {
+        try
+        {
+            var selector = _loc.GetService<ProjectSelectorViewModel>()
+                ?? throw new InvalidOperationException("Project selector is not registered.");
+
+            var ok = await _windows.ShowDialogAsync(selector);
+            if (ok != true || selector.SelectedProject is null)
+                return false;
+
+            var projects = _loc.GetService<IProjectApplicationService>()
+                ?? throw new InvalidOperationException("Project application service is not registered.");
+
+            var model = projects.OpenExisting(selector.SelectedProject.FolderPath);
+            SwitchProject(model);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Open project from editor error: {ex}");
+            await _dialogs.ShowErrorAsync("Open project failed", ex.Message, ex);
+            return false;
+        }
+    }
+
+    private void SwitchProject(ProjectFiles model)
+    {
+        SelectedTab = null;
+        Tabs.Clear();
+        _activeGraphViewModel = null;
+        _activeStoryTextEditorViewModel = null;
+
+        _ctx.ProjectName = model.ProjectName;
+        _ctx.ProjectPath = model.RootFolder;
+
+        _settings.Settings.ProjectName = model.ProjectName;
+        _settings.Settings.ProjectPath = model.RootFolder;
+        _settings.Save();
+
+        OnPropertyChanged(nameof(ProjectName));
+        OnPropertyChanged(nameof(ProjectPath));
+        OnPropertyChanged(nameof(RunButtonText));
+        OnPropertyChanged(nameof(StartPointText));
+
+        RefreshStructure();
+    }
+
     private void OpenProjectSettings()
     {
         var vm = _loc.GetService<ProjectSettingsViewModel>()!;
@@ -995,6 +1071,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     private void OpenStoryTextEditorWindow()
     {
         var vm = _loc.GetService<StoryTextEditorWindowViewModel>()!;
+        _activeStoryTextEditorViewModel = vm;
         vm.SourceFilesChanged -= OnStoryTextSourceFilesChanged;
         vm.SourceFilesChanged += OnStoryTextSourceFilesChanged;
         _windows.ShowWindow(vm);
@@ -1051,6 +1128,22 @@ public sealed class ScriptEditorViewModel : BaseViewModel
             refreshFileTree: true,
             rebuildStoryIndex: true,
             refreshReason: "после сохранения графа обновляется БД label/content для Story Text Editor.");
+        _ = RefreshOpenStoryTextEditorAfterGraphSaveAsync();
+    }
+
+    private async Task RefreshOpenStoryTextEditorAfterGraphSaveAsync()
+    {
+        if (_activeStoryTextEditorViewModel is null)
+            return;
+
+        try
+        {
+            await _activeStoryTextEditorViewModel.RefreshAfterGraphSavedAsync();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Story text editor refresh after graph save error: {ex}");
+        }
     }
 
     private void ReloadOpenTabsAfterGraphSave(IReadOnlyCollection<string> updatedFiles)
@@ -1068,6 +1161,8 @@ public sealed class ScriptEditorViewModel : BaseViewModel
 
     private void OnTabFileSaved(TabItemModel tab)
     {
+        tab.MarkSaved();
+
         if (!Path.GetExtension(tab.FilePath).Equals(".rpy", StringComparison.OrdinalIgnoreCase))
             return;
 

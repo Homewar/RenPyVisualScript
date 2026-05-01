@@ -68,6 +68,9 @@ public class FileTreeViewModel : BaseViewModel
         if (!ShowSystemResources && IsSystemGeneratedFile(normalizedPath))
             return null;
 
+        if (IsDotPrefixedFileSystemName(normalizedPath))
+            return null;
+
         var parentNode = FindNode(parentPath);
         if (parentNode is null)
         {
@@ -114,6 +117,7 @@ public class FileTreeViewModel : BaseViewModel
         try
         {
             var directories = Directory.GetDirectories(parentNode.FullPath)
+                .Where(path => !IsDotPrefixedFileSystemName(path))
                 .OrderBy(path => path, StringComparer.OrdinalIgnoreCase);
             foreach (var directory in directories)
             {
@@ -123,6 +127,7 @@ public class FileTreeViewModel : BaseViewModel
             }
 
             var files = Directory.GetFiles(parentNode.FullPath)
+                .Where(path => !IsDotPrefixedFileSystemName(path))
                 .OrderBy(path => path, StringComparer.OrdinalIgnoreCase);
             foreach (var file in files)
             {
@@ -205,5 +210,12 @@ public class FileTreeViewModel : BaseViewModel
             System.IO.Path.GetExtension(path),
             ".rpyc",
             StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsDotPrefixedFileSystemName(string path)
+    {
+        var name = System.IO.Path.GetFileName(path);
+        return !string.IsNullOrEmpty(name)
+               && name.StartsWith(".", StringComparison.Ordinal);
     }
 }

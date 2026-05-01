@@ -23,11 +23,28 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Models
         }
 
         private string _scriptText = string.Empty;
+        private string _savedScriptText = string.Empty;
+        private bool _hasSavedScriptText;
         public string ScriptText
         {
             get => _scriptText;
-            set => SetProperty(ref _scriptText, value);
+            set
+            {
+                if (!SetProperty(ref _scriptText, value))
+                    return;
+
+                if (!_hasSavedScriptText)
+                {
+                    _savedScriptText = value;
+                    _hasSavedScriptText = true;
+                }
+
+                OnPropertyChanged(nameof(IsModified));
+            }
         }
+
+        public bool IsModified => _hasSavedScriptText
+            && !string.Equals(_scriptText, _savedScriptText, StringComparison.Ordinal);
 
         private int? _targetLine;
         public int? TargetLine
@@ -96,6 +113,22 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Models
 
             ReloadRequestId++;
             NavigationRequestId++;
+        }
+
+        public void SetScriptTextFromFile(string text)
+        {
+            _scriptText = text;
+            _savedScriptText = text;
+            _hasSavedScriptText = true;
+            OnPropertyChanged(nameof(ScriptText));
+            OnPropertyChanged(nameof(IsModified));
+        }
+
+        public void MarkSaved()
+        {
+            _savedScriptText = _scriptText;
+            _hasSavedScriptText = true;
+            OnPropertyChanged(nameof(IsModified));
         }
 
         public bool HasBreakpoint(int line) => _breakpoints.Contains(line);

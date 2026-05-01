@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
 using RenPyVisualScriptMVVM.Core.Models;
+using RenPyVisualScriptMVVM.Modules.Editors.Services.Interfaces;
 using RenPyVisualScriptMVVM.Modules.GraphEditor.Models;
 using RenPyVisualScriptMVVM.Modules.GraphEditor.Services;
 using RenPyVisualScriptMVVM.Modules.GraphEditor.ViewModels;
@@ -23,7 +24,6 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Views
             Closing += (_, _) => SaveViewState();
             KeyDown += OnWindowKeyDown;
             GraphCanvas.GraphChanged += (_, _) => UpdateStats();
-            AddRouteButton.Click += OnAddRouteClick;
             RoutesListBox.SelectionChanged += (_, _) => OnRouteSelectionChanged();
             RoutesListBox.DoubleTapped += OnRoutesListBoxDoubleTapped;
         }
@@ -89,6 +89,22 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Views
 
         private async void OnWindowKeyDown(object? sender, KeyEventArgs e)
         {
+            if (e.Source is TextBox)
+                return;
+
+            if (e.Key == Key.Escape)
+            {
+                GraphCanvas.ClearRouteHighlight();
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.R && e.KeyModifiers.HasFlag(KeyModifiers.Control))
+            {
+                e.Handled = GraphCanvas.TryBeginRenameSelectedNode();
+                return;
+            }
+
             if (e.Key == Key.S && e.KeyModifiers.HasFlag(KeyModifiers.Control))
             {
                 await SaveGraphAsync();
@@ -165,21 +181,6 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Views
             OnRouteSelectionChanged();
         }
 
-        private void OnAddRouteClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        {
-            var routeName = RouteNameTextBox.Text?.Trim();
-            if (!GraphCanvas.CreateRoute(routeName))
-            {
-                return;
-            }
-
-            RouteNameTextBox.Text = string.Empty;
-            UpdateRoutesPanel();
-            RoutesListBox.SelectedItem = GraphCanvas.Routes
-                .FirstOrDefault(route => string.Equals(route.Name, routeName, StringComparison.OrdinalIgnoreCase));
-            OnRouteSelectionChanged();
-        }
-
         private void OnRouteSelectionChanged()
         {
             var selectedRoute = RoutesListBox.SelectedItem as StoryRoute;
@@ -195,6 +196,48 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Views
 
             GraphCanvas.ToggleRouteHighlight(route);
             e.Handled = true;
+        }
+
+        private void OnClearRouteHighlightClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        {
+            GraphCanvas.ClearRouteHighlight();
+            e.Handled = true;
+        }
+
+        private async void OnRenameRouteMenuItemClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        {
+            if (sender is not MenuItem { CommandParameter: StoryRoute route })
+                return;
+
+            RoutesListBox.SelectedItem = route;
+            await RenameRouteAsync(route);
+            e.Handled = true;
+        }
+
+        private async Task RenameRouteAsync(StoryRoute route)
+        {
+            var dialogs = Locator.Current.GetService<IEditorDialogService>();
+            if (dialogs is null)
+                return;
+
+            var newName = await dialogs.ShowTextInputDialogAsync(this, "Переименовать route", "Новое имя", route.Name);
+            if (string.IsNullOrWhiteSpace(newName)
+                || string.Equals(route.Name, newName.Trim(), StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            if (!GraphCanvas.RenameRoute(route, newName))
+            {
+                await dialogs.ShowMessageAsync(this, "Переименовать route", "Не удалось переименовать route. Проверь, что имя не пустое и не повторяется.");
+                return;
+            }
+
+            SaveViewState();
+            UpdateRoutesPanel();
+            RoutesListBox.SelectedItem = GraphCanvas.Routes.FirstOrDefault(candidate =>
+                string.Equals(candidate.Name, newName.Trim(), StringComparison.OrdinalIgnoreCase));
+            OnRouteSelectionChanged();
         }
 
         private void SaveViewState()

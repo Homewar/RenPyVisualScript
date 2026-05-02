@@ -1070,6 +1070,9 @@ public sealed class ScriptEditorViewModel : BaseViewModel
 
     private void OpenStoryTextEditorWindow()
     {
+        if (_windows.ActivateWindow<StoryTextEditorWindowViewModel>())
+            return;
+
         var vm = _loc.GetService<StoryTextEditorWindowViewModel>()!;
         _activeStoryTextEditorViewModel = vm;
         vm.SourceFilesChanged -= OnStoryTextSourceFilesChanged;
@@ -1079,6 +1082,9 @@ public sealed class ScriptEditorViewModel : BaseViewModel
 
     private void OpenDatabaseLogWindow()
     {
+        if (_windows.ActivateWindow<DatabaseLogWindowViewModel>())
+            return;
+
         _windows.ShowWindow(_loc.GetService<DatabaseLogWindowViewModel>()!);
     }
 
@@ -1096,6 +1102,9 @@ public sealed class ScriptEditorViewModel : BaseViewModel
 
     private async Task OpenGraphWindowAsync()
     {
+        if (_windows.ActivateWindow<GraphEditorWindowViewModel>())
+            return;
+
         var vm = _loc.GetService<GraphEditorWindowViewModel>()!;
         _activeGraphViewModel = vm;
         vm.GraphSaved -= OnGraphSaved;

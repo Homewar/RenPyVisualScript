@@ -8,7 +8,7 @@
     <Grid ColumnDefinitions="28,*">
         <Border Name="BreakpointGutter"
                 Grid.Column="0"
-                Background="#252526">
+                Background="#121314">
             <Canvas Name="BreakpointCanvas"
                     ClipToBounds="True">
             </Canvas>
@@ -20,7 +20,7 @@
             FontFamily="Consolas"
             FontSize="14"
             ShowLineNumbers="True"
-            Background="#1e1e1e"
+            Background="#121314"
             Foreground="#d4d4d4"/>
     </Grid>
 </UserControl>

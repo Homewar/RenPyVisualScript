@@ -9,7 +9,9 @@ namespace RenPyVisualScriptMVVM.Modules.Shell.Services.Interfaces
 {
     public interface IWindowService
     {
+        bool ActivateWindow<TVm>() where TVm : BaseViewModel;
         Task<bool?> ShowDialogAsync<TVm>(TVm vm) where TVm : BaseViewModel;
+        Task<string?> SelectFolderAsync(string title);
         void ShowWindow<TVm>(TVm vm) where TVm : BaseViewModel;
     }
 }

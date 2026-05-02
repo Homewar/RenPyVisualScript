@@ -1,0 +1,44 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:RenPyVisualScriptMVVM.Modules.Shell.ViewModels"
+        xmlns:views="clr-namespace:RenPyVisualScriptMVVM.Modules.Shell.Views"
+        x:Class="RenPyVisualScriptMVVM.Modules.Shell.Views.ConfirmDialog"
+        x:DataType="vm:ConfirmDialogViewModel"
+        Title="{Binding Title}"
+        RequestedThemeVariant="Dark"
+        WindowStartupLocation="CenterOwner"
+        Width="560"
+        Height="320"
+        MinWidth="520"
+        MinHeight="280"
+        CanResize="False"
+        Background="#1e1e1e">
+
+    <DockPanel>
+        <views:CustomTitleBar DockPanel.Dock="Top"/>
+
+        <Grid RowDefinitions="*,Auto" Margin="18" RowSpacing="14">
+            <TextBlock Grid.Row="0"
+                       Text="{Binding Message}"
+                       TextWrapping="Wrap"
+                       Foreground="#E8EAED"
+                       FontSize="14"/>
+
+            <StackPanel Grid.Row="1"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="8">
+                <Button Content="{Binding CancelText}"
+                        Command="{Binding CancelCmd}"
+                        MinWidth="100"/>
+
+                <Button Content="{Binding ConfirmText}"
+                        Command="{Binding ConfirmCmd}"
+                        MinWidth="130"
+                        Background="#5A2C30"
+                        Foreground="White"
+                        BorderBrush="#7A3A40"/>
+            </StackPanel>
+        </Grid>
+    </DockPanel>
+</Window>

@@ -61,6 +61,9 @@ build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 [C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/GraphEditor/Views/GraphEditorWindow.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
+[C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/Projects/Views/ImportProjectDialog.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
 [C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/Projects/Views/NewProjectDialog.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
@@ -74,6 +77,9 @@ build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
 [C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/Settings/Views/SettingsGUI.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/Shell/Views/ConfirmDialog.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
 [C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/Shell/Views/CustomTitleBar.axaml]

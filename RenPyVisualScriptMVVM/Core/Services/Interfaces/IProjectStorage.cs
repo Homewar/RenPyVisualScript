@@ -10,6 +10,8 @@ namespace RenPyVisualScriptMVVM.Core.Services.Interfaces
     public interface IProjectStorage
     {
         ProjectFiles Create(string ProjectName);
+        ProjectFiles CopyExisting(string rootFolder);
+        ProjectFiles ImportExisting(string rootFolder);
         ProjectFiles Load(string rootFolder);
     }
 }

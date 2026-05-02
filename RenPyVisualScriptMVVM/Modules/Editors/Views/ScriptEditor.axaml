@@ -22,7 +22,6 @@
         ExtendClientAreaToDecorationsHint="True">
 
     <Window.Resources>
-        <SolidColorBrush x:Key="EditorBackgroundBrush" Color="#1e1e1e"/>
         <SolidColorBrush x:Key="ActivityBarBackgroundBrush" Color="#181818"/>
         <SolidColorBrush x:Key="PanelBackgroundBrush" Color="#252526"/>
         <SolidColorBrush x:Key="PanelRaisedBrush" Color="#2d2d30"/>
@@ -708,6 +707,7 @@
                         Grid.Column="1"
                         ItemsSource="{Binding Tabs}"
                         SelectedItem="{Binding SelectedTab, Mode=TwoWay}"
+                        Background="#121314"
                         Padding="0">
 
                 <TabControl.ItemTemplate>
@@ -741,6 +741,7 @@
                         <local:AvaloniaEdit FilePath="{Binding FilePath}"
                                             ScriptText="{Binding ScriptText, Mode=TwoWay}"
                                             TargetLine="{Binding TargetLine}"
+                                            Background="#121314"
                                             NavigationRequestId="{Binding NavigationRequestId}"
                                             ReloadRequestId="{Binding ReloadRequestId}"
                                             FileSavedCommand="{Binding FileSavedCommand}"/>

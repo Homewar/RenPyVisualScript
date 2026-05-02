@@ -42,6 +42,11 @@
                         <TextBlock LetterSpacing="2" Text="Open Project"/>
                     </StackPanel>
                 </Button>
+                <Button Command="{Binding ImportProjectCmd}" Background="#191a1b" FontSize="24" Margin="5" BorderThickness="0" HorizontalAlignment="Stretch">
+                    <StackPanel>
+                        <TextBlock LetterSpacing="2" Text="Import Ren'Py Project"/>
+                    </StackPanel>
+                </Button>
                 <Button Background="#191a1b" FontSize="24" Margin="5" BorderThickness="0" HorizontalAlignment="Stretch">
                     <StackPanel Orientation="Horizontal">
                         <Image Source="avares://RenPyVisualScriptMVVM/Assets/github-mark-white.png" Width="20" Height="20"/>

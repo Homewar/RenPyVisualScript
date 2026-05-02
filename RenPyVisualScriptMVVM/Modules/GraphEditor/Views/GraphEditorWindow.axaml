@@ -5,177 +5,382 @@
         xmlns:controls="using:RenPyVisualScriptMVVM.Modules.GraphEditor.Controls"
         xmlns:models="using:RenPyVisualScriptMVVM.Modules.GraphEditor.Models"
         xmlns:views="clr-namespace:RenPyVisualScriptMVVM.Modules.Shell.Views"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d"
+        d:DesignWidth="1280"
+        d:DesignHeight="780"
         x:Class="RenPyVisualScriptMVVM.Modules.GraphEditor.Views.GraphEditorWindow"
         RequestedThemeVariant="Dark"
+        Width="1280"
+        Height="780"
+        MinWidth="960"
+        MinHeight="600"
         Title="Graph Editor">
+
     <Window.Styles>
+
+        <!-- Buttons -->
+        <Style Selector="Button">
+            <Setter Property="MinWidth" Value="78"/>
+            <Setter Property="Padding" Value="12,7"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Background" Value="#2A2D33"/>
+            <Setter Property="Foreground" Value="#E8EAED"/>
+            <Setter Property="BorderBrush" Value="#3A3D44"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="#343842"/>
+        </Style>
+
+        <Style Selector="Button:pressed">
+            <Setter Property="Background" Value="#202329"/>
+        </Style>
+
+        <Style Selector="Button.clear">
+            <Setter Property="Background" Value="#3A2426"/>
+            <Setter Property="Foreground" Value="#FFB4B4"/>
+            <Setter Property="BorderBrush" Value="#5A3033"/>
+        </Style>
+
+        <Style Selector="Button.clear:pointerover">
+            <Setter Property="Background" Value="#5A2C30"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+        <!-- Route input -->
         <Style Selector="TextBox.route-input">
-            <Setter Property="Background" Value="#1E1E1E"/>
+            <Setter Property="Background" Value="#15171B"/>
             <Setter Property="Foreground" Value="#F3F3F3"/>
             <Setter Property="CaretBrush" Value="#F3F3F3"/>
-            <Setter Property="BorderBrush" Value="#3C3C3C"/>
+            <Setter Property="BorderBrush" Value="#2D323C"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="10,7"/>
         </Style>
+
         <Style Selector="TextBox.route-input /template/ Border#borderElement">
-            <Setter Property="Background" Value="#1E1E1E"/>
-            <Setter Property="BorderBrush" Value="#3C3C3C"/>
+            <Setter Property="Background" Value="#15171B"/>
+            <Setter Property="BorderBrush" Value="#2D323C"/>
         </Style>
+
         <Style Selector="TextBox.route-input:pointerover">
-            <Setter Property="Background" Value="#1E1E1E"/>
-            <Setter Property="BorderBrush" Value="#4A4A4A"/>
+            <Setter Property="Background" Value="#15171B"/>
+            <Setter Property="BorderBrush" Value="#3A4250"/>
         </Style>
+
         <Style Selector="TextBox.route-input:pointerover /template/ Border#borderElement">
-            <Setter Property="Background" Value="#1E1E1E"/>
-            <Setter Property="BorderBrush" Value="#4A4A4A"/>
+            <Setter Property="Background" Value="#15171B"/>
+            <Setter Property="BorderBrush" Value="#3A4250"/>
         </Style>
+
         <Style Selector="TextBox.route-input:focus">
-            <Setter Property="Background" Value="#1E1E1E"/>
-            <Setter Property="BorderBrush" Value="#EA592A"/>
+            <Setter Property="Background" Value="#15171B"/>
+            <Setter Property="BorderBrush" Value="#8AB4F8"/>
         </Style>
+
         <Style Selector="TextBox.route-input:focus /template/ Border#borderElement">
-            <Setter Property="Background" Value="#1E1E1E"/>
-            <Setter Property="BorderBrush" Value="#EA592A"/>
+            <Setter Property="Background" Value="#15171B"/>
+            <Setter Property="BorderBrush" Value="#8AB4F8"/>
         </Style>
-        <Style Selector="ListBoxItem">
-            <Setter Property="Background" Value="#1E1E1E"/>
-            <Setter Property="Foreground" Value="#F3F3F3"/>
-        </Style>
-        <Style Selector="ListBoxItem:selected">
-            <Setter Property="Background" Value="#2D2D30"/>
-            <Setter Property="Foreground" Value="#F3F3F3"/>
-        </Style>
-        <Style Selector="ListBoxItem:pointerover">
-            <Setter Property="Background" Value="#252526"/>
-        </Style>
+
         <Style Selector="TextBox.route-input:focus-within /template/ Border#PART_BorderElement">
-			<Setter Property="Background">
-                <SolidColorBrush Color="#1e1e1e"/>
+            <Setter Property="Background">
+                <SolidColorBrush Color="#15171B"/>
             </Setter>
         </Style>
+
+        <!-- Notes -->
         <Style Selector="TextBox.note-editor">
             <Setter Property="Background" Value="#F3D36B"/>
             <Setter Property="Foreground" Value="Black"/>
             <Setter Property="CaretBrush" Value="Black"/>
             <Setter Property="BorderBrush" Value="#8F6A00"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="10,7"/>
         </Style>
+
         <Style Selector="TextBox.note-editor /template/ Border#borderElement">
             <Setter Property="Background" Value="#F3D36B"/>
             <Setter Property="BorderBrush" Value="#8F6A00"/>
         </Style>
+
         <Style Selector="TextBox.note-editor:pointerover">
             <Setter Property="Background" Value="#F3D36B"/>
             <Setter Property="BorderBrush" Value="#8F6A00"/>
         </Style>
+
         <Style Selector="TextBox.note-editor:pointerover /template/ Border#borderElement">
             <Setter Property="Background" Value="#F3D36B"/>
             <Setter Property="BorderBrush" Value="#8F6A00"/>
         </Style>
+
         <Style Selector="TextBox.note-editor:focus">
             <Setter Property="Background" Value="#F3D36B"/>
             <Setter Property="BorderBrush" Value="#6F5200"/>
         </Style>
+
         <Style Selector="TextBox.note-editor:focus /template/ Border#borderElement">
             <Setter Property="Background" Value="#F3D36B"/>
             <Setter Property="BorderBrush" Value="#6F5200"/>
         </Style>
+
         <Style Selector="TextBox.note-editor:focus-within /template/ Border#PART_BorderElement">
-			<Setter Property="Background">
+            <Setter Property="Background">
                 <SolidColorBrush Color="#F3D36B"/>
             </Setter>
         </Style>
+
+        <!-- Lists -->
+        <Style Selector="ListBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#F3F3F3"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <Style Selector="ListBoxItem">
+            <Setter Property="Margin" Value="0,3"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Background" Value="#1B1D22"/>
+            <Setter Property="Foreground" Value="#F3F3F3"/>
+        </Style>
+
+        <Style Selector="ListBoxItem:pointerover">
+            <Setter Property="Background" Value="#252934"/>
+        </Style>
+
+        <Style Selector="ListBoxItem:selected">
+            <Setter Property="Background" Value="#2E405C"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
     </Window.Styles>
 
     <DockPanel>
+
         <views:CustomTitleBar DockPanel.Dock="Top">
             <views:CustomTitleBar.LeftContent>
-                <Border DockPanel.Dock="Top" Background="#252526" Padding="12,8">
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
-                        <TextBlock x:Name="StatsTextBlock" Grid.Column="1" VerticalAlignment="Center" Foreground="#E6E6E6" FontWeight="SemiBold"/>
+                <Border Background="#191A1B"
+                        Padding="14,8">
+
+                    <Grid ColumnDefinitions="Auto,*,Auto"
+                          ColumnSpacing="14">
+
+                        <TextBlock Text="Graph Editor"
+                                   Foreground="White"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+
+                        <TextBlock Grid.Column="2"
+                                   x:Name="StatsTextBlock"
+                                   VerticalAlignment="Center"
+                                   Foreground="#9CDCFE"
+                                   FontWeight="SemiBold"/>
+
                     </Grid>
+
                 </Border>
             </views:CustomTitleBar.LeftContent>
         </views:CustomTitleBar>
-    <DockPanel>
-        <Grid ColumnDefinitions="*,Auto,280">
-            <controls:GraphCanvas x:Name="GraphCanvas" Grid.Column="0" Margin="0" />
 
-            <GridSplitter Grid.Column="1"
-                          Width="4"
-                          ResizeDirection="Columns"
-                          ResizeBehavior="PreviousAndNext"
-                          Background="#EA592A"/>
+        <Grid Background="#121314">
 
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="400"/>
+                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="310" MinWidth="260"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Graph editor background -->
+            <Border Grid.Column="0"
+                    Background="#121314"
+                    ClipToBounds="True">
+
+                <controls:GraphCanvas x:Name="GraphCanvas"
+                                      Margin="0"/>
+
+            </Border>
+
+            <!-- Splitter -->
+            <GridSplitter Width="8"
+                Grid.Column="1"
+                ResizeDirection="Columns"
+                ResizeBehavior="PreviousAndNext"
+                Background="Transparent"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"/>
+
+            <!-- Right sidebar -->
             <Border Grid.Column="2"
-                    Background="#252526"
-                    BorderBrush="#3C3C3C"
+                    Background="#15171B"
+                    BorderBrush="#252932"
                     BorderThickness="1,0,0,0"
-                    Padding="12">
-                <Grid RowDefinitions="Auto,*,Auto,*" RowSpacing="10">
-                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                        <TextBlock Text="Routes"
-                                   VerticalAlignment="Center"
-                                   FontSize="16"
-                                   FontWeight="SemiBold"
-                                   Foreground="#E6E6E6"/>
+                    Padding="14">
+
+                <Grid RowDefinitions="Auto,* ,Auto,*"
+                      RowSpacing="14">
+
+                    <!-- Routes header -->
+                    <Grid Grid.Row="0"
+                          ColumnDefinitions="*,Auto"
+                          ColumnSpacing="8">
+
+                        <StackPanel Spacing="3"
+                                    VerticalAlignment="Center">
+
+                            <TextBlock Text="Routes"
+                                       FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Foreground="White"/>
+
+                            <TextBlock Text="Story paths found in graph"
+                                       FontSize="10"
+                                       Foreground="#8B929E"/>
+
+                        </StackPanel>
+
                         <Button Grid.Column="1"
                                 Content="Clear"
+                                Classes="clear"
                                 Click="OnClearRouteHighlightClick"/>
+
                     </Grid>
 
-                    <ListBox x:Name="RoutesListBox"
-                             Grid.Row="1"
-                             Background="#1E1E1E"
-                             Foreground="#F3F3F3"
-                             BorderBrush="#3C3C3C"
-                             BorderThickness="1"
-                             MinHeight="120"
-                             ScrollViewer.VerticalScrollBarVisibility="Auto"
-                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate x:DataType="models:StoryRoute">
-                                <Grid ColumnDefinitions="*,Auto" Margin="6,4" Background="Transparent">
-                                    <Grid.ContextMenu>
-                                        <ContextMenu>
-                                            <MenuItem Header="Rename"
-                                                      CommandParameter="{Binding}"
-                                                      Click="OnRenameRouteMenuItemClick"/>
-                                        </ContextMenu>
-                                    </Grid.ContextMenu>
-                                    <TextBlock Text="{Binding Name}"
-                                               Foreground="#F3F3F3"/>
-                                    <TextBlock Grid.Column="1"
-                                               Text="{Binding NodeTitles.Count, StringFormat='{}{0} labels'}"
-                                               Foreground="#AFAFAF"/>
-                                </Grid>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+                    <!-- Routes list -->
+                    <Border Grid.Row="1"
+                            Background="#101113"
+                            BorderBrush="#252932"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="6"
+                            MinHeight="120">
 
-                    <TextBlock Text="Labels In Selected Route"
-                               Grid.Row="2"
-                               Margin="0,6,0,0"
-                               Foreground="#E6E6E6"
-                               FontWeight="SemiBold"/>
-                    <ListBox x:Name="RouteNodesListBox"
-                             Grid.Row="3"
-                             Background="#1E1E1E"
-                             Foreground="#F3F3F3"
-                             BorderBrush="#3C3C3C"
-                             BorderThickness="1"
-                             MinHeight="120"
-                             ScrollViewer.VerticalScrollBarVisibility="Auto"
-                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding}"
-                                           Margin="6,4"
-                                           Foreground="#F3F3F3"/>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+                        <ListBox x:Name="RoutesListBox"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="models:StoryRoute">
+
+                                    <Grid ColumnDefinitions="*,Auto"
+                                          ColumnSpacing="8">
+
+                                        <Grid.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Header="Rename"
+                                                          CommandParameter="{Binding}"
+                                                          Click="OnRenameRouteMenuItemClick"/>
+                                            </ContextMenu>
+                                        </Grid.ContextMenu>
+
+                                        <StackPanel Spacing="2">
+
+                                            <TextBlock Text="{Binding Name}"
+                                                       Foreground="#F3F3F3"
+                                                       FontSize="14"
+                                                       FontWeight="SemiBold"
+                                                       TextTrimming="CharacterEllipsis"/>
+
+                                            <TextBlock Text="Route"
+                                                       Foreground="#8B929E"
+                                                       FontSize="11"/>
+
+                                        </StackPanel>
+
+                                        <Border Grid.Column="1"
+                                                Background="#26354A"
+                                                CornerRadius="999"
+                                                Padding="8,3"
+                                                VerticalAlignment="Center">
+
+                                            <TextBlock Text="{Binding NodeTitles.Count, StringFormat='{}{0} labels'}"
+                                                       Foreground="#8AB4F8"
+                                                       FontSize="12"
+                                                       FontWeight="SemiBold"/>
+
+                                        </Border>
+
+                                    </Grid>
+
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+
+                        </ListBox>
+
+                    </Border>
+
+                    <!-- Labels header -->
+                    <StackPanel Grid.Row="2"
+                                Spacing="3"
+                                Margin="0,4,0,0">
+
+                        <TextBlock Text="Labels In Selected Route"
+                                   Foreground="White"
+                                   FontSize="15"
+                                   FontWeight="SemiBold"/>
+
+                    </StackPanel>
+
+                    <!-- Labels list -->
+                    <Border Grid.Row="3"
+                            Background="#101113"
+                            BorderBrush="#252932"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="6"
+                            MinHeight="120">
+
+                        <ListBox x:Name="RouteNodesListBox"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+
+                                    <Grid ColumnDefinitions="Auto,*"
+                                          ColumnSpacing="8">
+
+                                        <Border Width="22"
+                                                Height="22"
+                                                CornerRadius="6"
+                                                Background="#26354A"
+                                                VerticalAlignment="Center">
+
+                                            <TextBlock Text="#"
+                                                       Foreground="#8AB4F8"
+                                                       FontSize="12"
+                                                       FontWeight="Bold"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"/>
+
+                                        </Border>
+
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding}"
+                                                   Foreground="#F3F3F3"
+                                                   FontSize="14"
+                                                   VerticalAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis"/>
+
+                                    </Grid>
+
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+
+                        </ListBox>
+
+                    </Border>
+
                 </Grid>
+
             </Border>
+
         </Grid>
+
     </DockPanel>
-    </DockPanel>
+
 </Window>

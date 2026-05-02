@@ -25,6 +25,7 @@ public sealed class MainWindowViewModel : BaseViewModel
 
     public IAsyncRelayCommand NewProjectCmd { get; }
     public IAsyncRelayCommand OpenProjectCmd { get; }
+    public IAsyncRelayCommand ImportProjectCmd { get; }
     public IRelayCommand CloneProjectCmd { get; }
 
     public MainWindowViewModel(
@@ -49,6 +50,7 @@ public sealed class MainWindowViewModel : BaseViewModel
 
         NewProjectCmd = new AsyncRelayCommand(NewProjectAsync);
         OpenProjectCmd = new AsyncRelayCommand(OpenProjectAsync);
+        ImportProjectCmd = new AsyncRelayCommand(ImportProjectAsync);
         CloneProjectCmd = new RelayCommand(() => { /* TODO */ });
 
         //TryRestoreLastProject();
@@ -105,6 +107,55 @@ public sealed class MainWindowViewModel : BaseViewModel
             await _windows.ShowDialogAsync(new MessageDialogViewModel(
                 "Open project failed",
                 ex.ToString()));
+        }
+    }
+
+    private async Task ImportProjectAsync()
+    {
+        try
+        {
+            var folderPath = await _windows.SelectFolderAsync("Select Ren'Py project folder");
+            if (string.IsNullOrWhiteSpace(folderPath))
+                return;
+
+            var importVm = new ImportProjectDialogViewModel(folderPath);
+            var importOk = await _windows.ShowDialogAsync(importVm);
+            if (importOk != true)
+                return;
+
+            if (!importVm.CopyToIdeDirectory)
+            {
+                var warningVm = new ConfirmDialogViewModel(
+                    "Editing original project",
+                    string.Join(
+                        Environment.NewLine,
+                        "This mode writes directly into the selected Ren'Py project folder.",
+                        "",
+                        "The IDE is still experimental, so it can accidentally damage project files.",
+                        "Before continuing, make a Git commit, create a backup, or copy the project manually.",
+                        "",
+                        "Continue only if you are ready to edit the original files."),
+                    "Edit original",
+                    "Cancel");
+
+                var confirmed = await _windows.ShowDialogAsync(warningVm);
+                if (confirmed != true)
+                    return;
+            }
+
+            var model = importVm.CopyToIdeDirectory
+                ? _projects.CopyExisting(folderPath)
+                : _projects.ImportExisting(folderPath);
+
+            UpdateContextAndSettings(model);
+            OpenEditorAndCloseMain();
+        }
+        catch (Exception ex)
+        {
+            LogError(ex);
+            await _windows.ShowDialogAsync(new MessageDialogViewModel(
+                "Import project failed",
+                ex.Message));
         }
     }
 

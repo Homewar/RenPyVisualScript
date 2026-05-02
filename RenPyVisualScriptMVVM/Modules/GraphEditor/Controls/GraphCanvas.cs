@@ -110,7 +110,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         public GraphCanvas()
         {
-            Background = new SolidColorBrush(Color.Parse("#1e1e1e"));
+            Background = new SolidColorBrush(Color.Parse("#121314"));
             PointerPressed += OnPointerPressed;
             PointerMoved += OnPointerMoved;
             PointerReleased += OnPointerReleased;

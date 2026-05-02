@@ -19,6 +19,12 @@ namespace RenPyVisualScriptMVVM.Core.Services
         public Task<ProjectFiles> CreateNewAsync(VisualNovellProjectData data)
             => _creator.CreateAsync(data);
 
+        public ProjectFiles CopyExisting(string folderPath)
+            => _storage.CopyExisting(folderPath);
+
+        public ProjectFiles ImportExisting(string folderPath)
+            => _storage.ImportExisting(folderPath);
+
         public ProjectFiles OpenExisting(string folderPath)
             => _storage.Load(folderPath);
     }

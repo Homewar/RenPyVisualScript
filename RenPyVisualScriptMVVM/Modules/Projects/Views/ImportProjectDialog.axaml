@@ -1,0 +1,124 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:RenPyVisualScriptMVVM.Modules.Projects.ViewModels"
+        xmlns:views="clr-namespace:RenPyVisualScriptMVVM.Modules.Shell.Views"
+        mc:Ignorable="d"
+        d:DesignWidth="580"
+        d:DesignHeight="360"
+        x:Class="RenPyVisualScriptMVVM.Modules.Projects.Views.ImportProjectDialog"
+        x:DataType="vm:ImportProjectDialogViewModel"
+        Title="Import Ren'Py Project"
+        RequestedThemeVariant="Dark"
+        WindowStartupLocation="CenterOwner"
+        Width="580"
+        Height="360"
+        MinWidth="540"
+        MinHeight="320"
+        CanResize="False">
+
+    <Window.Styles>
+        <Style Selector="Button">
+            <Setter Property="MinWidth" Value="96"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Background" Value="#2A2D33"/>
+            <Setter Property="Foreground" Value="#E8EAED"/>
+            <Setter Property="BorderBrush" Value="#3A3D44"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#5FCB64"/>
+        </Style>
+    </Window.Styles>
+
+    <DockPanel>
+        <views:CustomTitleBar DockPanel.Dock="Top"/>
+
+        <Border Padding="18"
+                Background="#191a1b">
+            <Grid RowDefinitions="Auto,*,Auto"
+                  RowSpacing="16">
+
+                <StackPanel Grid.Row="0"
+                            Spacing="4">
+                    <TextBlock Text="Import Ren'Py Project"
+                               FontSize="22"
+                               FontWeight="Bold"
+                               Foreground="White"/>
+
+                    <TextBlock Text="Choose how the IDE should open this project."
+                               FontSize="13"
+                               Foreground="#A8ADB7"/>
+                </StackPanel>
+
+                <Border Grid.Row="1"
+                        Background="#15171B"
+                        BorderBrush="#252932"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        Padding="14">
+
+                    <StackPanel Spacing="16">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Selected folder"
+                                       Foreground="White"
+                                       FontSize="13"
+                                       FontWeight="SemiBold"/>
+
+                            <TextBlock Text="{Binding SourceFolderPath}"
+                                       TextWrapping="Wrap"
+                                       Foreground="#A8ADB7"
+                                       FontSize="12"/>
+                        </StackPanel>
+
+                        <Grid ColumnDefinitions="*,Auto"
+                              ColumnSpacing="14">
+                            <StackPanel Grid.Column="0"
+                                        Spacing="4"
+                                        VerticalAlignment="Center">
+                                <TextBlock Text="Copy into IDE projects"
+                                           Foreground="White"
+                                           FontSize="14"
+                                           FontWeight="SemiBold"/>
+
+                                <TextBlock Text="Recommended while the IDE is still experimental."
+                                           Foreground="#8B929E"
+                                           FontSize="12"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+
+                            <ToggleSwitch Grid.Column="1"
+                                          IsChecked="{Binding CopyToIdeDirectory}"
+                                          VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <TextBlock Text="When this is off, the IDE edits the original files in the selected folder."
+                                   Foreground="#FFB4B4"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Grid.Row="2"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Spacing="8">
+                    <Button Content="Cancel"
+                            Command="{Binding CancelCmd}"/>
+
+                    <Button Content="Import"
+                            Command="{Binding ImportCmd}"
+                            Classes="primary"
+                            MinWidth="110"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </DockPanel>
+</Window>

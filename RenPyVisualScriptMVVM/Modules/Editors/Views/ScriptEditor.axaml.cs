@@ -4,6 +4,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using Avalonia.Threading;
 using RenPyVisualScriptMVVM.Core.Models;
 using RenPyVisualScriptMVVM.Modules.Editors.Models;
 using RenPyVisualScriptMVVM.Modules.Editors.Services;
@@ -136,6 +137,16 @@ public partial class ScriptEditor : Window
     {
         if (sender is ListBox { SelectedItem: Character character })
             ViewModel?.NavigateToFile(character.FilePath, character.Line);
+    }
+
+    private void CharacterList_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (ViewModel?.IsStoryTabVisible != true)
+            return;
+
+        Dispatcher.UIThread.Post(
+            () => StoryTextEditorHost.FocusStoryTextEditor(),
+            DispatcherPriority.Input);
     }
 
     private void LabelList_OnDoubleTapped(object? sender, TappedEventArgs e)

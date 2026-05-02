@@ -7,6 +7,7 @@
         xmlns:conv="using:RenPyVisualScriptMVVM.Modules.Editors.ViewModels"
         xmlns:core="using:RenPyVisualScriptMVVM.Core.Models"
         xmlns:local="clr-namespace:RenPyVisualScriptMVVM.Modules.Editors.Views"
+        xmlns:storyViews="clr-namespace:RenPyVisualScriptMVVM.Modules.StoryEditor.Views"
         xmlns:editConv="using:RenPyVisualScriptMVVM.Modules.Editors.Converters"
         xmlns:editCtrl="using:RenPyVisualScriptMVVM.Modules.Editors.Controls"
         xmlns:views="clr-namespace:RenPyVisualScriptMVVM.Modules.Shell.Views"
@@ -243,8 +244,10 @@
                                         </Expander.Header>
 
                                         <ListBox ItemsSource="{Binding CharacterList}"
+                                                 SelectedItem="{Binding SelectedCharacter, Mode=TwoWay}"
                                                  Background="Transparent"
                                                  BorderThickness="0"
+                                                 SelectionChanged="CharacterList_OnSelectionChanged"
                                                  DoubleTapped="CharacterList_OnDoubleTapped"
                                                  HorizontalAlignment="Stretch">
 
@@ -707,6 +710,7 @@
                         Grid.Column="1"
                         ItemsSource="{Binding Tabs}"
                         SelectedItem="{Binding SelectedTab, Mode=TwoWay}"
+                        IsVisible="{Binding IsScriptsTabVisible}"
                         Background="#121314"
                         Padding="0">
 
@@ -748,6 +752,13 @@
                     </DataTemplate>
                 </TabControl.ContentTemplate>
             </TabControl>
+
+            <Border Grid.Row="0"
+                    Grid.Column="1"
+                    IsVisible="{Binding IsStoryTabVisible}">
+                <storyViews:StoryTextEditorView x:Name="StoryTextEditorHost"
+                                                DataContext="{Binding StoryTextEditorVm}"/>
+            </Border>
         </Grid>
     </DockPanel>
 </Window>

@@ -47,7 +47,8 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     private readonly RenPyStructureReader _fallbackStructureReader = new();
     private bool _isShowingStoryIndexError;
     private GraphEditorWindowViewModel? _activeGraphViewModel;
-    private StoryTextEditorWindowViewModel? _activeStoryTextEditorViewModel;
+    private int _mainEditorSelectedIndex;
+    private Character? _selectedCharacter;
 
     public IRelayCommand SaveCmd { get; }
     public IRelayCommand ShowProjectSetCmd { get; }
@@ -69,6 +70,36 @@ public sealed class ScriptEditorViewModel : BaseViewModel
     public ObservableCollection<ResourceFileItem> AudioResources { get; } = new();
     public ObservableCollection<ResourceFileItem> VideoResources { get; } = new();
     public ObservableCollection<ResourceFileItem> FontResources { get; } = new();
+
+    public StoryTextEditorWindowViewModel StoryTextEditorVm { get; }
+
+    public Character? SelectedCharacter
+    {
+        get => _selectedCharacter;
+        set
+        {
+            if (!SetProperty(ref _selectedCharacter, value))
+                return;
+
+            StoryTextEditorVm.ActiveSpeakerCode = value?.Name ?? "Narrator";
+        }
+    }
+
+    public int MainEditorSelectedIndex
+    {
+        get => _mainEditorSelectedIndex;
+        set
+        {
+            if (SetProperty(ref _mainEditorSelectedIndex, value))
+            {
+                OnPropertyChanged(nameof(IsScriptsTabVisible));
+                OnPropertyChanged(nameof(IsStoryTabVisible));
+            }
+        }
+    }
+
+    public bool IsScriptsTabVisible => MainEditorSelectedIndex == 0;
+    public bool IsStoryTabVisible => MainEditorSelectedIndex == 1;
 
     private string _structureSummary = "Проект ещё не разобран";
     public string StructureSummary
@@ -157,6 +188,8 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         _loc = loc ?? Locator.Current;
 
         FileTreeVm = new FileTreeViewModel(_ctx, _ide.ShowSystemResources);
+        StoryTextEditorVm = new StoryTextEditorWindowViewModel(_ctx, _storyStorage, _dialogs);
+        StoryTextEditorVm.SourceFilesChanged += OnStoryTextSourceFilesChanged;
 
         SaveCmd = new RelayCommand(SaveProject);
         ShowProjectSetCmd = new RelayCommand(OpenProjectSettings);
@@ -263,8 +296,14 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         StructureLinks.Clear();
         TransitionItems.Clear();
 
+        var selectedCharacterName = SelectedCharacter?.Name;
         foreach (var character in snapshot.Characters)
             CharacterList.Add(character);
+
+        SelectedCharacter = string.IsNullOrWhiteSpace(selectedCharacterName)
+            ? null
+            : CharacterList.FirstOrDefault(character =>
+                string.Equals(character.Name, selectedCharacterName, StringComparison.OrdinalIgnoreCase));
 
         foreach (var label in snapshot.Labels)
             LabelList.Add(label);
@@ -712,6 +751,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
             var existing = Tabs.FirstOrDefault(t => t.FilePath == filePath);
             if (existing != null)
             {
+                MainEditorSelectedIndex = 0;
                 existing.RequestNavigation(line);
                 SelectedTab = existing;
                 Debug.WriteLine($"Activated existing tab: {existing.FilePath}");
@@ -727,6 +767,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
             tab.RequestNavigation(line);
             Tabs.Add(tab);
             SelectedTab = tab;
+            MainEditorSelectedIndex = 0;
             Debug.WriteLine($"Opened new tab for: {filePath}");
         }
         catch (Exception ex)
@@ -1028,7 +1069,7 @@ public sealed class ScriptEditorViewModel : BaseViewModel
         SelectedTab = null;
         Tabs.Clear();
         _activeGraphViewModel = null;
-        _activeStoryTextEditorViewModel = null;
+        MainEditorSelectedIndex = 0;
 
         _ctx.ProjectName = model.ProjectName;
         _ctx.ProjectPath = model.RootFolder;
@@ -1070,14 +1111,8 @@ public sealed class ScriptEditorViewModel : BaseViewModel
 
     private void OpenStoryTextEditorWindow()
     {
-        if (_windows.ActivateWindow<StoryTextEditorWindowViewModel>())
-            return;
-
-        var vm = _loc.GetService<StoryTextEditorWindowViewModel>()!;
-        _activeStoryTextEditorViewModel = vm;
-        vm.SourceFilesChanged -= OnStoryTextSourceFilesChanged;
-        vm.SourceFilesChanged += OnStoryTextSourceFilesChanged;
-        _windows.ShowWindow(vm);
+        MainEditorSelectedIndex = 1;
+        _ = StoryTextEditorVm.InitializeAsync();
     }
 
     private void OpenDatabaseLogWindow()
@@ -1142,12 +1177,9 @@ public sealed class ScriptEditorViewModel : BaseViewModel
 
     private async Task RefreshOpenStoryTextEditorAfterGraphSaveAsync()
     {
-        if (_activeStoryTextEditorViewModel is null)
-            return;
-
         try
         {
-            await _activeStoryTextEditorViewModel.RefreshAfterGraphSavedAsync();
+            await StoryTextEditorVm.RefreshAfterGraphSavedAsync();
         }
         catch (Exception ex)
         {

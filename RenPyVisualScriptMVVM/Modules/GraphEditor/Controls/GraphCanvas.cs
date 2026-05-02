@@ -2448,18 +2448,20 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 .ToDictionary(group => group.Key, group => group.First().Name, StringComparer.OrdinalIgnoreCase);
             var generatedRoutes = BuildAutomaticStoryRoutes();
             var usedRouteNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var nextAutomaticRouteNumber = 1;
 
             foreach (var route in generatedRoutes)
             {
                 var signature = GetRouteSignature(route);
                 if (previousRouteNames.TryGetValue(signature, out var previousName)
-                    && !string.IsNullOrWhiteSpace(previousName))
+                    && !string.IsNullOrWhiteSpace(previousName)
+                    && !IsAutomaticRouteName(previousName))
                 {
                     route.Name = MakeUniqueRouteName(previousName, usedRouteNames);
                 }
                 else
                 {
-                    route.Name = MakeUniqueRouteName(route.Name, usedRouteNames);
+                    route.Name = MakeNextAutomaticRouteName(usedRouteNames, ref nextAutomaticRouteNumber);
                 }
             }
 
@@ -2778,6 +2780,29 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
                 suffix++;
 
             return $"{normalized}_{suffix}";
+        }
+
+        private static string MakeNextAutomaticRouteName(HashSet<string> routeNames, ref int nextRouteNumber)
+        {
+            while (true)
+            {
+                var candidate = $"route {nextRouteNumber}";
+                nextRouteNumber++;
+
+                if (routeNames.Add(candidate))
+                    return candidate;
+            }
+        }
+
+        private static bool IsAutomaticRouteName(string? name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return true;
+
+            var normalized = name.Trim();
+            return normalized.Equals("main", StringComparison.OrdinalIgnoreCase)
+                   || Regex.IsMatch(normalized, @"^route \d+$", RegexOptions.IgnoreCase)
+                   || Regex.IsMatch(normalized, @"^main(?:_\d+(?:_.+)?)?$", RegexOptions.IgnoreCase);
         }
 
         private static string GetRouteSignature(StoryRoute route)

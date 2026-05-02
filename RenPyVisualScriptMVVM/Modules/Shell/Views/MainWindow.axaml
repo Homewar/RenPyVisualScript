@@ -4,48 +4,55 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:skp="clr-namespace:Avalonia.Controls.Skia;assembly=Avalonia.Controls.Skia"
+        xmlns:views="clr-namespace:RenPyVisualScriptMVVM.Modules.Shell.Views"
         mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
         x:Class="RenPyVisualScriptMVVM.Modules.Shell.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
         Title="RenPyVisualScriptMVVM"
-		Background="#1e1e1e"
-		RequestedThemeVariant="Dark"
-		Width=  "1920"
-		Height= "1080"
-		>
-	<Window.Resources>
-		<SolidColorBrush x:Key="Border-color" Color="#6fc3df"/>
-	</Window.Resources>
-	<Grid>
-		<Grid.RowDefinitions>
-			<RowDefinition Height="*" />
-			<RowDefinition Height="*" />
-			<RowDefinition Height="*" />
-		</Grid.RowDefinitions>
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="*" MaxWidth="600"/>
-			<ColumnDefinition Width="*" MaxWidth="600"/>
-			<ColumnDefinition Width="*" MaxWidth="600"/>
-		</Grid.ColumnDefinitions>
-		<StackPanel Grid.Column="2" Margin="50" Grid.Row="1">
-			<Button Command="{Binding NewProjectCmd}" Background="#1e1e1e" FontSize="24" Margin="5" BorderThickness="0" HorizontalAlignment="Stretch" >
-				<StackPanel>
-					<TextBlock LetterSpacing="2" Text="New Project"/>
-				</StackPanel>
-			</Button>
-			<Button Command="{Binding OpenProjectCmd}" Background="#1e1e1e" FontSize="24" Margin="5" BorderThickness="0" HorizontalAlignment="Stretch" >
-				<StackPanel>
-					<TextBlock LetterSpacing="2" Text="Open Project"/>
-				</StackPanel>
-			</Button>
-			<Button Background="#1e1e1e" FontSize="24" Margin="5" BorderThickness="0" HorizontalAlignment="Stretch" >
-				<StackPanel Orientation="Horizontal">
-					<Image Source="avares://RenPyVisualScriptMVVM/Assets/github-mark-white.png" Width="20" Height="20" />
-					<TextBlock LetterSpacing="2" VerticalAlignment="Center" Text=" Clone Project"/>
-				</StackPanel>
-			</Button>
-		</StackPanel>
-		<Svg Margin="50" Path="/Assets/renpy.svg" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Grid.RowSpan="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-	</Grid>
+        RequestedThemeVariant="Dark"
+        Width="1920"
+        Height="1080">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="Border-color" Color="#6fc3df"/>
+    </Window.Resources>
+
+    <DockPanel>
+        <views:CustomTitleBar DockPanel.Dock="Top"/>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MaxWidth="600"/>
+                <ColumnDefinition Width="*" MaxWidth="600"/>
+                <ColumnDefinition Width="*" MaxWidth="600"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="2" Margin="50" Grid.Row="1">
+                <Button Command="{Binding NewProjectCmd}" Background="#191a1b" FontSize="24" Margin="5" BorderThickness="0" HorizontalAlignment="Stretch">
+                    <StackPanel>
+                        <TextBlock LetterSpacing="2" Text="New Project"/>
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding OpenProjectCmd}" Background="#191a1b" FontSize="24" Margin="5" BorderThickness="0" HorizontalAlignment="Stretch">
+                    <StackPanel>
+                        <TextBlock LetterSpacing="2" Text="Open Project"/>
+                    </StackPanel>
+                </Button>
+                <Button Background="#191a1b" FontSize="24" Margin="5" BorderThickness="0" HorizontalAlignment="Stretch">
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="avares://RenPyVisualScriptMVVM/Assets/github-mark-white.png" Width="20" Height="20"/>
+                        <TextBlock LetterSpacing="2" VerticalAlignment="Center" Text=" Clone Project"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+            <Svg Margin="50" Path="/Assets/renpy.svg"
+                 Grid.Column="0" Grid.ColumnSpan="2"
+                 Grid.Row="0" Grid.RowSpan="3"
+                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+        </Grid>
+    </DockPanel>
 </Window>

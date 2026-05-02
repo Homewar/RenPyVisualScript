@@ -1,0 +1,102 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="RenPyVisualScriptMVVM.Modules.Shell.Views.CustomTitleBar"
+             x:Name="Root"
+             Height="40"
+             >
+
+    <Border
+            BorderBrush="#ea592a"
+            BorderThickness="0,0,0,1">
+
+        <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
+            <!-- Slot for Menu -->
+            <ContentControl Grid.Column="1"
+                            Content="{Binding LeftContent, ElementName=Root}"
+                            VerticalAlignment="Center"/>
+
+            <!-- Drag area -->
+            <Border Grid.Column="2"
+                    Background="Transparent"
+                    PointerPressed="DragArea_OnPointerPressed"/>
+
+            <!-- Slot for right status text -->
+            <ContentControl Grid.Column="3"
+                            Content="{Binding RightContent, ElementName=Root}"
+                            VerticalAlignment="Center"
+                            Margin="12,0"/>
+
+            <!-- Window buttons -->
+            <StackPanel Grid.Column="4"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Stretch">
+
+                <Button Width="46"
+                        Height="40"
+                        Padding="0"
+                        Margin="0"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        CornerRadius="0"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        Click="MinimizeButton_OnClick">
+                    <TextBlock Text="&#xE921;"
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="10"
+                            Foreground="#CCCCCC"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            TextAlignment="Center"/>
+                </Button>
+
+                <Button Width="46"
+                        Height="40"
+                        Padding="0"
+                        Margin="0"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        CornerRadius="0"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        Click="MaximizeButton_OnClick">
+                    <TextBlock Text="&#xE922;"
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="10"
+                            Foreground="#CCCCCC"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            TextAlignment="Center"/>
+                </Button>
+
+                <Button Width="46"
+                        Height="40"
+                        Padding="0"
+                        Margin="0"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        CornerRadius="0"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        Click="CloseButton_OnClick">
+                    <TextBlock Text="&#xE8BB;"
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="10"
+                            Foreground="#CCCCCC"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            TextAlignment="Center"/>
+                </Button>
+
+            </StackPanel>
+
+        </Grid>
+    </Border>
+</UserControl>

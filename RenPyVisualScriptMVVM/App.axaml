@@ -2,28 +2,40 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="RenPyVisualScriptMVVM.App"
              xmlns:local="using:RenPyVisualScriptMVVM"
+             xmlns:native="using:RenPyVisualScriptMVVM.Core.Native"
              RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
     <Application.DataTemplates>
         <local:ViewLocator/>
     </Application.DataTemplates>
-  
+
     <Application.Styles>
-        <FluentTheme />
-		<StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
-		<StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Fluent/Fluent.xaml" />
-		<StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Simple/Simple.xaml" />
-		<Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
-			<Setter Property="Background" Value="Red"/>
-			<Setter Property="MaxHeight" Value="10"/>
-		</Style>
+        <FluentTheme>
+            <FluentTheme.Palettes>
+                <ColorPaletteResources x:Key="Dark"
+                                       RegionColor="#191a1b"
+                                       Accent="#121314"/>
+            </FluentTheme.Palettes>
+        </FluentTheme>
 
-	</Application.Styles>
+        <Style Selector=":is(Window)">
+            <Setter Property="SystemDecorations" Value="BorderOnly"/>
+            <Setter Property="ExtendClientAreaChromeHints" Value="NoChrome"/>
+            <Setter Property="ExtendClientAreaTitleBarHeightHint" Value="-1"/>
+            <Setter Property="ExtendClientAreaToDecorationsHint" Value="True"/>
+            <Setter Property="native:DwmShadowBehavior.IsEnabled" Value="True"/>
+            <Setter Property="CanResize" Value="True"/>
+        </Style>
 
-	<Application.Styles>
-		<FluentTheme/>
-		<StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
-	</Application.Styles>
-	
+        <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml"/>
+        <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Fluent/Fluent.xaml"/>
+        <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Simple/Simple.xaml"/>
+        <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+
+        <Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
+            <Setter Property="Background" Value="Red"/>
+            <Setter Property="MaxHeight" Value="10"/>
+        </Style>
+    </Application.Styles>
+
 </Application>

@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:RenPyVisualScriptMVVM.Modules.Shell.ViewModels"
+        xmlns:views="clr-namespace:RenPyVisualScriptMVVM.Modules.Shell.Views"
         mc:Ignorable="d"
         d:DesignWidth="720" d:DesignHeight="260"
         Width="720" Height="260"
@@ -12,7 +13,8 @@
         x:Class="RenPyVisualScriptMVVM.SDKrequest"
         x:DataType="vm:SDKrequestViewModel"
         Title="Ren'Py SDK">
-
+  <DockPanel>
+        <views:CustomTitleBar DockPanel.Dock="Top"/>
   <Grid Margin="16" RowDefinitions="Auto,Auto,Auto,Auto,*" ColumnDefinitions="*,Auto">
     
     <TextBlock Grid.Row="0" Grid.ColumnSpan="2"
@@ -55,4 +57,5 @@
     </StackPanel>
 
   </Grid>
+  </DockPanel>
 </Window>

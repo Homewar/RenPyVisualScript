@@ -3,73 +3,250 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:RenPyVisualScriptMVVM.Modules.Projects.ViewModels"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:views="clr-namespace:RenPyVisualScriptMVVM.Modules.Shell.Views"
+        mc:Ignorable="d"
+        d:DesignWidth="520"
+        d:DesignHeight="500"
         x:Class="RenPyVisualScriptMVVM.Modules.Projects.Views.NewProjectDialog"
-        Title="NewProjectDialog"
         x:DataType="vm:NewProjectDialogViewModel"
-        Background="#1e1e1e">
+        Title="Create Project"
+        RequestedThemeVariant="Dark"
+        WindowStartupLocation="CenterScreen"
+        Width="520"
+        MinWidth="480"
+        SizeToContent="Height"
+        CanResize="False">
 
-  <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto"
-        ColumnDefinitions="*,Auto"
-        Margin="20"
-        RowSpacing="10">
+    <Window.Styles>
 
-    <!-- Project name -->
-    <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
-      <TextBlock Foreground="White" Margin="0 4">Project name:</TextBlock>
-      <TextBox Text="{Binding ProjectName, UpdateSourceTrigger=PropertyChanged}"
-               Watermark="Enter project name"/>
-      <TextBlock FontSize="11" Foreground="Gray" Margin="4 0">
-        Это не имя новеллы, а проекта
-      </TextBlock>
-    </StackPanel>
+        <!-- TextBox -->
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="#15171B"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#2D323C"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
 
-    <!-- Resolution -->
-    <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
-      <TextBlock Foreground="White" Margin="0 4">Resolution:</TextBlock>
-      <ComboBox ItemsSource="{Binding Resolutions}"
-                SelectedItem="{Binding SelectedResolution}"
-                HorizontalAlignment="Stretch"/>
-    </StackPanel>
+        <Style Selector="TextBox:pointerover">
+            <Setter Property="BorderBrush" Value="#3A4250"/>
+        </Style>
 
-    <!-- Accent Color -->
-    <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
-      <TextBlock Foreground="White" Margin="0 4">Accent color:</TextBlock>
-      <StackPanel Orientation="Horizontal" Spacing="8">
-        <ComboBox Width="220"
-                  ItemsSource="{Binding AccentColors}"
-                  SelectedItem="{Binding SelectedAccentColor}"/>
-        <!-- превью цвета -->
-        <Border Width="24" Height="24"
-                CornerRadius="4"
-                BorderBrush="#444" BorderThickness="1"
-                Background="{Binding SelectedAccentColorBrush}"/>
-      </StackPanel>
-      <TextBlock FontSize="11" Foreground="Gray" Margin="4 0">
-        Используется для --accent (hex)
-      </TextBlock>
-    </StackPanel>
+        <Style Selector="TextBox:focus">
+            <Setter Property="BorderBrush" Value="#8AB4F8"/>
+        </Style>
 
-    <!-- Language -->
-    <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2">
-      <TextBlock Foreground="White" Margin="0 4">Language:</TextBlock>
-      <ComboBox ItemsSource="{Binding Languages}"
-                SelectedItem="{Binding SelectedLanguage}"
-                HorizontalAlignment="Stretch"/>
-    </StackPanel>
+        <!-- ComboBox -->
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="#15171B"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#2D323C"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="10,7"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="MinHeight" Value="38"/>
+        </Style>
 
-    <!-- Buttons -->
-    <StackPanel Grid.Row="4" Grid.Column="1"
-                Orientation="Horizontal"
-                Spacing="6"
-                HorizontalAlignment="Right">
-      <Button Content="Create"
-              Command="{Binding OkCmd}"
-              Background="Orange"/>
-      <Button Content="Cancel"
-              Command="{Binding CancelCmd}"
-              Background="Red"/>
-    </StackPanel>
+        <Style Selector="ComboBox:pointerover">
+            <Setter Property="BorderBrush" Value="#3A4250"/>
+        </Style>
 
-  </Grid>
+        <!-- Buttons -->
+        <Style Selector="Button">
+            <Setter Property="MinWidth" Value="88"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Background" Value="#2A2D33"/>
+            <Setter Property="Foreground" Value="#E8EAED"/>
+            <Setter Property="BorderBrush" Value="#3A3D44"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="#343842"/>
+        </Style>
+
+        <Style Selector="Button:pressed">
+            <Setter Property="Background" Value="#202329"/>
+        </Style>
+
+        <Style Selector="Button:disabled">
+            <Setter Property="Opacity" Value="0.45"/>
+        </Style>
+
+        <!-- Primary button -->
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#5FCB64"/>
+        </Style>
+
+        <Style Selector="Button.primary:pointerover">
+            <Setter Property="Background" Value="#5CCB61"/>
+        </Style>
+
+        <Style Selector="Button.primary:pressed">
+            <Setter Property="Background" Value="#3F9E43"/>
+        </Style>
+
+    </Window.Styles>
+
+  <DockPanel>
+
+    <views:CustomTitleBar DockPanel.Dock="Top"/>
+
+    <Border Padding="18"
+            Background="#191a1b">
+
+          <Grid RowDefinitions="Auto,Auto,Auto"
+                RowSpacing="16"
+                VerticalAlignment="Top">
+
+              <!-- Header -->
+              <StackPanel Grid.Row="0"
+                          Spacing="4">
+
+                  <TextBlock Text="Create Project"
+                            FontSize="22"
+                            FontWeight="Bold"
+                            Foreground="White"/>
+
+                  <TextBlock Text="Set up a new Ren'Py project."
+                            FontSize="13"
+                            Foreground="#A8ADB7"/>
+
+              </StackPanel>
+
+              <!-- Form -->
+              <Border Grid.Row="1"
+                      Background="#15171B"
+                      BorderBrush="#252932"
+                      BorderThickness="1"
+                      CornerRadius="10"
+                      Padding="14"
+                      VerticalAlignment="Top">
+
+                  <Grid RowDefinitions="Auto,Auto,Auto,Auto"
+                        RowSpacing="14">
+
+                      <!-- Project name -->
+                      <StackPanel Grid.Row="0"
+                                  Spacing="6">
+
+                          <TextBlock Text="Project name"
+                                    Foreground="White"
+                                    FontSize="13"
+                                    FontWeight="SemiBold"/>
+
+                          <TextBox Text="{Binding ProjectName, UpdateSourceTrigger=PropertyChanged}"
+                                  Watermark="Enter project name"/>
+
+                          <TextBlock Text="This is the project folder name, not the visual novel title."
+                                    FontSize="11"
+                                    Foreground="#8B929E"
+                                    Margin="2,0,0,0"/>
+
+                      </StackPanel>
+
+                      <!-- Resolution -->
+                      <StackPanel Grid.Row="1"
+                                  Spacing="6">
+
+                          <TextBlock Text="Resolution"
+                                    Foreground="White"
+                                    FontSize="13"
+                                    FontWeight="SemiBold"/>
+
+                          <ComboBox ItemsSource="{Binding Resolutions}"
+                                    SelectedItem="{Binding SelectedResolution}"
+                                    HorizontalAlignment="Stretch"/>
+
+                      </StackPanel>
+
+                      <!-- Accent color -->
+                      <StackPanel Grid.Row="2"
+                                  Spacing="6">
+
+                          <TextBlock Text="Accent color"
+                                    Foreground="White"
+                                    FontSize="13"
+                                    FontWeight="SemiBold"/>
+
+                          <Grid ColumnDefinitions="*,Auto"
+                                ColumnSpacing="10">
+
+                              <ComboBox Grid.Column="0"
+                                        ItemsSource="{Binding AccentColors}"
+                                        SelectedItem="{Binding SelectedAccentColor}"
+                                        HorizontalAlignment="Stretch"/>
+
+                              <Border Grid.Column="1"
+                                      Width="38"
+                                      Height="38"
+                                      CornerRadius="8"
+                                      BorderBrush="#3A3D44"
+                                      BorderThickness="1"
+                                      Background="{Binding SelectedAccentColorBrush}"/>
+
+                          </Grid>
+
+                          <TextBlock Text="Used as --accent hex color."
+                                    FontSize="11"
+                                    Foreground="#8B929E"
+                                    Margin="2,0,0,0"/>
+
+                      </StackPanel>
+
+                      <!-- Language -->
+                      <StackPanel Grid.Row="3"
+                                  Spacing="6">
+
+                          <TextBlock Text="Language"
+                                    Foreground="White"
+                                    FontSize="13"
+                                    FontWeight="SemiBold"/>
+
+                          <ComboBox ItemsSource="{Binding Languages}"
+                                    SelectedItem="{Binding SelectedLanguage}"
+                                    HorizontalAlignment="Stretch"/>
+
+                      </StackPanel>
+
+                  </Grid>
+
+              </Border>
+
+              <!-- Buttons -->
+              <Grid Grid.Row="2"
+                    ColumnDefinitions="*,Auto"
+                    ColumnSpacing="8">
+
+                  <StackPanel Grid.Column="1"
+                              Orientation="Horizontal"
+                              Spacing="8"
+                              HorizontalAlignment="Right">
+
+                      <Button Content="Cancel"
+                              Command="{Binding CancelCmd}"/>
+
+                      <Button Content="Create"
+                              Command="{Binding OkCmd}"
+                              Classes="primary"
+                              MinWidth="110"/>
+
+                  </StackPanel>
+
+              </Grid>
+
+          </Grid>
+
+      </Border>
+
+  </DockPanel>
+
 </Window>

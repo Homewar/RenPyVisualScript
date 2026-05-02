@@ -4,9 +4,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="using:RenPyVisualScriptMVVM.Modules.GraphEditor.Controls"
         xmlns:models="using:RenPyVisualScriptMVVM.Modules.GraphEditor.Models"
+        xmlns:views="clr-namespace:RenPyVisualScriptMVVM.Modules.Shell.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="RenPyVisualScriptMVVM.Modules.GraphEditor.Views.GraphEditorWindow"
-        Background="#1e1e1e"
+        RequestedThemeVariant="Dark"
         Title="Graph Editor">
     <Window.Styles>
         <Style Selector="TextBox.route-input">
@@ -83,13 +84,18 @@
             </Setter>
         </Style>
     </Window.Styles>
-    <DockPanel>
-        <Border DockPanel.Dock="Top" Background="#252526" Padding="12,8">
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
-                <TextBlock x:Name="StatsTextBlock" Grid.Column="1" VerticalAlignment="Center" Foreground="#E6E6E6" FontWeight="SemiBold"/>
-            </Grid>
-        </Border>
 
+    <DockPanel>
+        <views:CustomTitleBar DockPanel.Dock="Top">
+            <views:CustomTitleBar.LeftContent>
+                <Border DockPanel.Dock="Top" Background="#252526" Padding="12,8">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                        <TextBlock x:Name="StatsTextBlock" Grid.Column="1" VerticalAlignment="Center" Foreground="#E6E6E6" FontWeight="SemiBold"/>
+                    </Grid>
+                </Border>
+            </views:CustomTitleBar.LeftContent>
+        </views:CustomTitleBar>
+    <DockPanel>
         <Grid ColumnDefinitions="*,Auto,280">
             <controls:GraphCanvas x:Name="GraphCanvas" Grid.Column="0" Margin="0" />
 
@@ -170,5 +176,6 @@
                 </Grid>
             </Border>
         </Grid>
+    </DockPanel>
     </DockPanel>
 </Window>

@@ -3,68 +3,201 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:RenPyVisualScriptMVVM.Modules.Projects.ViewModels"
-        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
+        xmlns:views="clr-namespace:RenPyVisualScriptMVVM.Modules.Shell.Views"
+        mc:Ignorable="d"
+        d:DesignWidth="520"
+        d:DesignHeight="360"
         x:Class="RenPyVisualScriptMVVM.Modules.Projects.Views.ProjectSelector"
         x:DataType="vm:ProjectSelectorViewModel"
         Title="Выбор проекта"
-        WindowStartupLocation="CenterScreen">
+        RequestedThemeVariant="Dark"
+        WindowStartupLocation="CenterScreen"
+        Width="520"
+        Height="360"
+        MinWidth="460"
+        MinHeight="320"
+        CanResize="False"
+        >
 
-    <Border Background="#2b2b2b" Padding="16" CornerRadius="12">
-        <DockPanel LastChildFill="True">
+    <Window.Styles>
 
-            <!-- Заголовок -->
-            <TextBlock Text="Выберите проект"
-                       FontSize="20"
-                       FontWeight="Bold"
-                       Foreground="White"
-                       DockPanel.Dock="Top"
-                       Margin="0 0 0 12"/>
+        <!-- Общий стиль кнопок -->
+        <Style Selector="Button">
+            <Setter Property="MinWidth" Value="88"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Background" Value="#2A2D33"/>
+            <Setter Property="Foreground" Value="#E8EAED"/>
+            <Setter Property="BorderBrush" Value="#3A3D44"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
 
-            <!-- Список проектов -->
-            <ListBox ItemsSource="{Binding Projects}"
-                     SelectedItem="{Binding SelectedProject, Mode=TwoWay}"
-                     DockPanel.Dock="Top"
-                     Height="220"
-                     Background="#3c3f41"
-                     BorderBrush="#555"
-                     BorderThickness="1">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="4">
-                            <Path Data="M12,2 L2,7 L12,12 L22,7 Z"
-                                  Fill="#cccccc"
-                                  Width="16" Height="16"/>
-                            <TextBlock Text="{Binding Name}"
-                                       VerticalAlignment="Center"
-                                       Foreground="White"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="#343842"/>
+        </Style>
 
-            <!-- Кнопки -->
-            <StackPanel DockPanel.Dock="Bottom"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Right"
-                        Spacing="8"
-                        Margin="0 12 0 0">
+        <Style Selector="Button:pressed">
+            <Setter Property="Background" Value="#202329"/>
+        </Style>
 
-                <Button Content="Удалить"
-                        Command="{Binding RemoveCmd}"
-                        MinWidth="90"/>
-                <Button Content="Обновить"
-                        Command="{Binding RefreshCmd}"
-                        MinWidth="90"/>
-                <Button Content="Отмена"
-                        Command="{Binding CancelCmd}"
-                        MinWidth="90"/>
-                <Button Content="Открыть"
-                        Command="{Binding OkCmd}"
-                        MinWidth="110"
-                        Background="#4caf50"
-                        Foreground="White"/>
-            </StackPanel>
+        <Style Selector="Button:disabled">
+            <Setter Property="Opacity" Value="0.45"/>
+        </Style>
 
-        </DockPanel>
-    </Border>
+        <!-- Основная кнопка -->
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#5FCB64"/>
+        </Style>
+
+        <Style Selector="Button.primary:pointerover">
+            <Setter Property="Background" Value="#5CCB61"/>
+        </Style>
+
+        <Style Selector="Button.primary:pressed">
+            <Setter Property="Background" Value="#3F9E43"/>
+        </Style>
+
+        <!-- Опасная кнопка -->
+        <Style Selector="Button.danger">
+            <Setter Property="Background" Value="#3A2426"/>
+            <Setter Property="Foreground" Value="#FFB4B4"/>
+            <Setter Property="BorderBrush" Value="#5A3033"/>
+        </Style>
+
+        <Style Selector="Button.danger:pointerover">
+            <Setter Property="Background" Value="#5A2C30"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+        <!-- Список -->
+        <Style Selector="ListBoxItem">
+            <Setter Property="Margin" Value="0,3"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Background" Value="#1B1D22"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+        <Style Selector="ListBoxItem:pointerover">
+            <Setter Property="Background" Value="#252934"/>
+        </Style>
+
+        <Style Selector="ListBoxItem:selected">
+            <Setter Property="Background" Value="#2E405C"/>
+        </Style>
+
+    </Window.Styles>
+
+    <DockPanel>
+
+        <views:CustomTitleBar DockPanel.Dock="Top"/>
+
+        <Border Padding="18"
+                Background="#191a1b">
+
+            <Grid RowDefinitions="Auto,* ,Auto"
+                  RowSpacing="14">
+
+                <!-- Заголовок -->
+                <StackPanel Grid.Row="0"
+                            Spacing="4">
+                    <TextBlock Text="Project Selector"
+                               FontSize="22"
+                               FontWeight="Bold"
+                               Foreground="White"/>
+
+                    <TextBlock Text="Select a project to open"
+                               FontSize="13"
+                               Foreground="#A8ADB7"/>
+                </StackPanel>
+
+                <!-- Список проектов -->
+                <Border Grid.Row="1"
+                        Background="#15171B"
+                        BorderBrush="#252932"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        Padding="6">
+
+                    <ListBox ItemsSource="{Binding Projects}"
+                             SelectedItem="{Binding SelectedProject, Mode=TwoWay}"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto">
+
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="Auto,*"
+                                      ColumnSpacing="10">
+
+                                    <Border Width="28"
+                                            Height="28"
+                                            CornerRadius="7"
+                                            Background="#26354A"
+                                            VerticalAlignment="Center">
+
+                                        <Path Data="M12,2 L2,7 L12,12 L22,7 Z"
+                                              Width="15"
+                                              Height="15"
+                                              Fill="#8AB4F8"
+                                              Stretch="Uniform"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                                    </Border>
+
+                                    <StackPanel Grid.Column="1"
+                                                VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}"
+                                                   Foreground="White"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"/>
+
+                                        <TextBlock Text="Ren'Py Project"
+                                                   Foreground="#8B929E"
+                                                   FontSize="12"/>
+                                    </StackPanel>
+
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+
+                    </ListBox>
+                </Border>
+
+                <!-- Кнопки -->
+                <Grid Grid.Row="2"
+                      ColumnDefinitions="Auto,*,Auto"
+                      ColumnSpacing="8">
+
+                    <Button Grid.Column="0"
+                            Content="Delete"
+                            Command="{Binding RemoveCmd}"
+                            Classes="danger"/>
+
+                    <StackPanel Grid.Column="2"
+                                Orientation="Horizontal"
+                                Spacing="8">
+
+                        <Button Content="Refresh"
+                                Command="{Binding RefreshCmd}"/>
+
+                        <Button Content="Cancel"
+                                Command="{Binding CancelCmd}"/>
+
+                        <Button Content="Open"
+                                Command="{Binding OkCmd}"
+                                Classes="primary"
+                                MinWidth="110"/>
+                    </StackPanel>
+
+                </Grid>
+
+            </Grid>
+        </Border>
+
+    </DockPanel>
 </Window>

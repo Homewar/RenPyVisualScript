@@ -6,6 +6,7 @@
         xmlns:vm="using:RenPyVisualScriptMVVM.Modules.StoryEditor.ViewModels"
         xmlns:models="using:RenPyVisualScriptMVVM.Modules.StoryEditor.Models"
         xmlns:graphModels="using:RenPyVisualScriptMVVM.Modules.GraphEditor.Models"
+        xmlns:views="clr-namespace:RenPyVisualScriptMVVM.Modules.Shell.Views"
         x:Class="RenPyVisualScriptMVVM.Modules.StoryEditor.Views.StoryTextEditorWindow"
         x:DataType="vm:StoryTextEditorWindowViewModel"
         mc:Ignorable="d"
@@ -15,6 +16,8 @@
         MinHeight="600"
         Background="#1e1e1e"
         Title="Story Text Editor">
+    <DockPanel>
+        <views:CustomTitleBar DockPanel.Dock="Top"/>
     <Grid RowDefinitions="Auto,*,Auto">
         <Border Grid.Row="0" BorderBrush="#ea592a" BorderThickness="0,0,0,2" Padding="10,6">
             <DockPanel LastChildFill="False">
@@ -145,4 +148,5 @@
             </Grid>
         </Grid>
     </Grid>
+    </DockPanel>
 </Window>

@@ -128,7 +128,7 @@ public partial class ScriptEditor : Window
             if (ReferenceEquals(window, this))
                 continue;
 
-            if (window is GraphEditorWindow or StoryTextEditorWindow)
+            if (window is GraphEditorWindow)
                 window.Close();
         }
     }

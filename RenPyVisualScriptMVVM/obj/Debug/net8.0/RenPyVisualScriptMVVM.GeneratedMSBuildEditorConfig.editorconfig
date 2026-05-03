@@ -96,6 +96,3 @@ build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
 [C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/StoryEditor/Views/StoryTextEditorView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
-
-[C:/Users/Homewarriors/Desktop/RenPyVisualScriptMVVMRebuild/RenPyVisualScriptMVVM/Modules/StoryEditor/Views/StoryTextEditorWindow.axaml]
-build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml

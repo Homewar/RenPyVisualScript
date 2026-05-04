@@ -1,0 +1,12 @@
+﻿Package: Microsoft.Extensions.DependencyInjection.Abstractions
+Version: 8.0.2
+License: MIT
+Authors: Microsoft
+Project URL: https://dot.net/
+Repository: https://github.com/dotnet/runtime
+
+Description:
+Abstractions for dependency injection.
+
+Commonly Used Types:
+Microsoft.Extensions.DependencyInjection.IServiceCollection

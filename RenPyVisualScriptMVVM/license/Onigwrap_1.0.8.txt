@@ -1,0 +1,9 @@
+﻿Package: Onigwrap
+Version: 1.0.8
+License: MIT
+Authors: Aikawa Yataro
+Project URL: https://github.com/aikawayataro/Onigwrap
+Repository: https://github.com/aikawayataro/Onigwrap.git
+
+Description:
+Simple wrapper for Oniguruma.

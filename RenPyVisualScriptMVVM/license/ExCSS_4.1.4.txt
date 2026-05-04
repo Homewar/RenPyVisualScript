@@ -1,0 +1,9 @@
+﻿Package: ExCSS
+Version: 4.1.4
+License: Unknown
+Authors: Tyler Brinks
+Project URL: 
+Repository: https://github.com/TylerBrinks/ExCSS
+
+Description:
+ExCSS is a CSS 2.1 and CSS 3 parser for .NET. ExCSS makes it easy to read and parse stylesheets into a friendly object model with full LINQ support.

@@ -1,0 +1,19 @@
+﻿Package: System.Drawing.Common
+Version: 9.0.4
+License: MIT
+Authors: Microsoft
+Project URL: https://github.com/dotnet/winforms
+Repository: https://github.com/dotnet/winforms
+
+Description:
+Provides access to GDI+ graphics functionality.
+
+      Commonly Used Types:
+      System.Drawing.Bitmap
+      System.Drawing.BitmapData
+      System.Drawing.Brush
+      System.Drawing.Font
+      System.Drawing.Graphics
+      System.Drawing.Icon
+
+      Since .NET 7, non-Windows platforms are not supported, even with the runtime configuration switch. See https://aka.ms/systemdrawingnonwindows for more information.

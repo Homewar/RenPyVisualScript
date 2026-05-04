@@ -1,0 +1,9 @@
+﻿Package: Tmds.DBus.Protocol
+Version: 0.21.2
+License: MIT
+Authors: Tom Deseyn
+Project URL: 
+Repository: https://github.com/tmds/Tmds.DBus.git
+
+Description:
+Tmds.DBus.Protocol Library

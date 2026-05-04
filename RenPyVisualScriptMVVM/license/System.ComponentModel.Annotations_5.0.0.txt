@@ -1,0 +1,23 @@
+﻿Package: System.ComponentModel.Annotations
+Version: 5.0.0
+License: MIT
+Authors: Microsoft
+Project URL: https://github.com/dotnet/runtime
+Repository: git://github.com/dotnet/runtime
+
+Description:
+Provides attributes that are used to define metadata for objects used as data sources.
+
+Commonly Used Types:
+System.ComponentModel.DataAnnotations.ValidationResult
+System.ComponentModel.DataAnnotations.IValidatableObject
+System.ComponentModel.DataAnnotations.ValidationAttribute
+System.ComponentModel.DataAnnotations.RequiredAttribute
+System.ComponentModel.DataAnnotations.StringLengthAttribute
+System.ComponentModel.DataAnnotations.DisplayAttribute
+System.ComponentModel.DataAnnotations.RegularExpressionAttribute
+System.ComponentModel.DataAnnotations.DataTypeAttribute
+System.ComponentModel.DataAnnotations.RangeAttribute
+System.ComponentModel.DataAnnotations.KeyAttribute
+ 
+When using NuGet 3.x this package requires at least version 3.4.

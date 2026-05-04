@@ -1,0 +1,9 @@
+﻿Package: Microsoft.Extensions.Configuration.Abstractions
+Version: 8.0.0
+License: MIT
+Authors: Microsoft
+Project URL: https://dot.net/
+Repository: https://github.com/dotnet/runtime
+
+Description:
+Provides abstractions of key-value pair based configuration. Interfaces defined in this package are implemented by classes in Microsoft.Extensions.Configuration and other configuration packages.

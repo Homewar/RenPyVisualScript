@@ -1,0 +1,13 @@
+﻿Package: Microsoft.Extensions.Caching.Abstractions
+Version: 8.0.0
+License: MIT
+Authors: Microsoft
+Project URL: https://dot.net/
+Repository: https://github.com/dotnet/runtime
+
+Description:
+Caching abstractions for in-memory cache and distributed cache.
+
+Commonly Used Types:
+Microsoft.Extensions.Caching.Distributed.IDistributedCache
+Microsoft.Extensions.Caching.Memory.IMemoryCache

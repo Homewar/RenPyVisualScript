@@ -1,0 +1,9 @@
+﻿Package: Testably.Abstractions.FileSystem.Interface
+Version: 9.0.0
+License: MIT
+Authors: Testably
+Project URL: https://github.com/Testably/Testably.Abstractions
+Repository: https://github.com/Testably/Testably.Abstractions.git
+
+Description:
+A set of abstractions to help make file system interactions testable.

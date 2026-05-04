@@ -1,0 +1,9 @@
+﻿Package: Microsoft.Extensions.Logging
+Version: 8.0.1
+License: MIT
+Authors: Microsoft
+Project URL: https://dot.net/
+Repository: https://github.com/dotnet/runtime
+
+Description:
+Logging infrastructure default implementation for Microsoft.Extensions.Logging.

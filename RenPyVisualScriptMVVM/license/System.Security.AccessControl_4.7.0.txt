@@ -1,0 +1,18 @@
+﻿Package: System.Security.AccessControl
+Version: 4.7.0
+License: MIT
+Authors: Microsoft
+Project URL: https://github.com/dotnet/corefx
+Repository: 
+
+Description:
+Provides base classes that enable managing access and audit control lists on securable objects.
+
+Commonly Used Types:
+System.Security.AccessControl.AccessRule
+System.Security.AccessControl.AuditRule
+System.Security.AccessControl.ObjectAccessRule
+System.Security.AccessControl.ObjectAuditRule
+System.Security.AccessControl.ObjectSecurity
+ 
+When using NuGet 3.x this package requires at least version 3.4.

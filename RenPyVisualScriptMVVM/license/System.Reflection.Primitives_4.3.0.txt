@@ -1,0 +1,23 @@
+﻿Package: System.Reflection.Primitives
+Version: 4.3.0
+License: http://go.microsoft.com/fwlink/?LinkId=329770
+Authors: Microsoft
+Project URL: https://dot.net/
+Repository: 
+
+Description:
+Provides common enumerations for reflection-based libraries.
+
+Commonly Used Types:
+System.Reflection.FieldAttributes
+System.Reflection.Emit.OpCode
+System.Reflection.TypeAttributes
+System.Reflection.MethodAttributes
+System.Reflection.CallingConventions
+System.Reflection.PropertyAttributes
+System.Reflection.EventAttributes
+System.Reflection.ParameterAttributes
+System.Reflection.GenericParameterAttributes
+System.Reflection.MethodImplAttributes
+ 
+When using NuGet 3.x this package requires at least version 3.4.

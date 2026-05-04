@@ -1,0 +1,9 @@
+﻿Package: MicroCom.Runtime
+Version: 0.11.0
+License: MIT
+Authors: MicroCom.Runtime
+Project URL: 
+Repository: https://github.com/kekekeks/MicroCom
+
+Description:
+IDL-based COM interop codegen. Consumes MIDL-like IDL file, generates efficient cross-platform C# interop and C++ header files.

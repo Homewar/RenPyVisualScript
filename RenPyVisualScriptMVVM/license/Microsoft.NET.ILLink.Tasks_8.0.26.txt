@@ -1,0 +1,9 @@
+﻿Package: Microsoft.NET.ILLink.Tasks
+Version: 8.0.26
+License: MIT
+Authors: Microsoft
+Project URL: https://dot.net/
+Repository: https://github.com/dotnet/runtime
+
+Description:
+MSBuild tasks for running the IL Linker

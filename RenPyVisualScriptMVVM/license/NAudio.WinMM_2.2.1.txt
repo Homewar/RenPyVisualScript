@@ -1,0 +1,9 @@
+﻿Package: NAudio.WinMM
+Version: 2.2.1
+License: MIT
+Authors: NAudio.WinMM
+Project URL: https://github.com/naudio/NAudio
+Repository: https://github.com/naudio/NAudio
+
+Description:
+Package Description

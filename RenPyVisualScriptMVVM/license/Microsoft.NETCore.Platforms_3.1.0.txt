@@ -1,0 +1,10 @@
+﻿Package: Microsoft.NETCore.Platforms
+Version: 3.1.0
+License: MIT
+Authors: Microsoft
+Project URL: https://github.com/dotnet/corefx
+Repository: 
+
+Description:
+Provides runtime information required to resolve target framework, platform, and runtime specific implementations of .NETCore packages. 
+When using NuGet 3.x this package requires at least version 3.4.

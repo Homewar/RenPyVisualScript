@@ -1,0 +1,9 @@
+﻿Package: bodong.PropertyModels
+Version: 11.3.0.16
+License: MIT
+Authors: bodong
+Project URL: https://github.com/bodong1987/Avalonia.PropertyGrid
+Repository: https://github.com/bodong1987/Avalonia.PropertyGrid.git
+
+Description:
+Some simple object model class libraries, originally used in the Avalonia.PropertyGrid project, were later split into an independent package in order to achieve the separation of data and presentation.

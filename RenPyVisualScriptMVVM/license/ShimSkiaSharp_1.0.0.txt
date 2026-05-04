@@ -1,0 +1,9 @@
+﻿Package: ShimSkiaSharp
+Version: 1.0.0
+License: MIT
+Authors: Wiesław Šoltés
+Project URL: https://github.com/wieslawsoltes/Svg.Skia
+Repository: https://github.com/wieslawsoltes/Svg.Skia
+
+Description:
+SkiaSharp picture recorder object model shim.

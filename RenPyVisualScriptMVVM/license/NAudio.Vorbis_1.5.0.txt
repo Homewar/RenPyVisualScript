@@ -1,0 +1,9 @@
+﻿Package: NAudio.Vorbis
+Version: 1.5.0
+License: MIT
+Authors: Andrew Ward
+Project URL: https://github.com/naudio/Vorbis
+Repository: https://github.com/naudio/Vorbis
+
+Description:
+NAudio support for Vorbis

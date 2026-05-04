@@ -1,0 +1,14 @@
+﻿Package: Microsoft.Extensions.Primitives
+Version: 8.0.0
+License: MIT
+Authors: Microsoft
+Project URL: https://dot.net/
+Repository: https://github.com/dotnet/runtime
+
+Description:
+Primitives shared by framework extensions. Commonly used types include:
+
+Commonly Used Types:
+Microsoft.Extensions.Primitives.IChangeToken
+Microsoft.Extensions.Primitives.StringValues
+Microsoft.Extensions.Primitives.StringSegment

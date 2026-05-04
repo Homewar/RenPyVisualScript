@@ -1,0 +1,9 @@
+﻿Package: bodong.Avalonia.PropertyGrid
+Version: 11.3.0.16
+License: MIT
+Authors: bodong
+Project URL: https://github.com/bodong1987/Avalonia.PropertyGrid
+Repository: https://github.com/bodong1987/Avalonia.PropertyGrid.git
+
+Description:
+A PropertyGrid control implementation for Avalonia

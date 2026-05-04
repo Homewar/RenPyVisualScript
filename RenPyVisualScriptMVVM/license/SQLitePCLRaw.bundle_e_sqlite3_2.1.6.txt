@@ -1,0 +1,9 @@
+﻿Package: SQLitePCLRaw.bundle_e_sqlite3
+Version: 2.1.6
+License: Apache-2.0
+Authors: Eric Sink
+Project URL: 
+Repository: https://github.com/ericsink/SQLitePCL.raw
+
+Description:
+This 'batteries-included' bundle brings in SQLitePCLRaw.core and the necessary stuff for certain common use cases.  Call SQLitePCL.Batteries.Init().  Policy of this bundle: e_sqlite3 included

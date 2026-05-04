@@ -1,0 +1,9 @@
+﻿Package: Avalonia.AvaloniaEdit
+Version: 11.3.0
+License: MIT
+Authors: Avalonia Team
+Project URL: 
+Repository: https://github.com/AvaloniaUI/AvaloniaEdit/
+
+Description:
+This project is a port of AvalonEdit, a WPF-based text editor for Avalonia.

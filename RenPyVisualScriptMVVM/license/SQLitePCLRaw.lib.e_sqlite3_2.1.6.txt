@@ -1,0 +1,9 @@
+﻿Package: SQLitePCLRaw.lib.e_sqlite3
+Version: 2.1.6
+License: Apache-2.0
+Authors: Eric Sink
+Project URL: 
+Repository: https://github.com/ericsink/SQLitePCL.raw
+
+Description:
+This package contains platform-specific native code builds of SQLite for use with SQLitePCLRaw.  To use this, you need SQLitePCLRaw.core as well as one of the SQLitePCLRaw.provider.* packages.  Convenience packages are named SQLitePCLRaw.bundle_*.

@@ -1,0 +1,13 @@
+﻿Package: Microsoft.EntityFrameworkCore
+Version: 8.0.15
+License: MIT
+Authors: Microsoft
+Project URL: https://docs.microsoft.com/ef/core/
+Repository: https://github.com/dotnet/efcore
+
+Description:
+Entity Framework Core is a modern object-database mapper for .NET. It supports LINQ queries, change tracking, updates, and schema migrations. EF Core works with SQL Server, Azure SQL Database, SQLite, Azure Cosmos DB, MySQL, PostgreSQL, and other databases through a provider plugin API.
+
+Commonly Used Types:
+Microsoft.EntityFrameworkCore.DbContext
+Microsoft.EntityFrameworkCore.DbSet

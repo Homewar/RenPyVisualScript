@@ -1,0 +1,9 @@
+﻿Package: Microsoft.Extensions.Options
+Version: 8.0.2
+License: MIT
+Authors: Microsoft
+Project URL: https://dot.net/
+Repository: https://github.com/dotnet/runtime
+
+Description:
+Provides a strongly typed way of specifying and accessing settings using dependency injection.

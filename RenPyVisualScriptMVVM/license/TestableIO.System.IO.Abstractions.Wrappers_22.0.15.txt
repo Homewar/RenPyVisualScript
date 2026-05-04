@@ -1,0 +1,9 @@
+﻿Package: TestableIO.System.IO.Abstractions.Wrappers
+Version: 22.0.15
+License: MIT
+Authors: Tatham Oddie & friends
+Project URL: https://github.com/TestableIO/System.IO.Abstractions
+Repository: https://github.com/TestableIO/System.IO.Abstractions.git
+
+Description:
+A set of abstractions to help make file system interactions testable.

@@ -1,0 +1,9 @@
+﻿Package: HarfBuzzSharp.NativeAssets.Linux
+Version: 7.3.0.3
+License: MIT
+Authors: Microsoft
+Project URL: https://go.microsoft.com/fwlink/?linkid=868515
+Repository: https://github.com/mono/SkiaSharp
+
+Description:
+HarfBuzzSharp is a cross-platform OpenType text shaping engine for .NET platforms.

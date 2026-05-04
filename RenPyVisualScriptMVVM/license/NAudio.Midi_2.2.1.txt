@@ -1,0 +1,9 @@
+﻿Package: NAudio.Midi
+Version: 2.2.1
+License: MIT
+Authors: Mark Heath
+Project URL: https://github.com/naudio/NAudio
+Repository: https://github.com/naudio/NAudio
+
+Description:
+Package Description

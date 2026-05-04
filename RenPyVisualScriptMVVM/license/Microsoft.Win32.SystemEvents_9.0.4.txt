@@ -1,0 +1,12 @@
+﻿Package: Microsoft.Win32.SystemEvents
+Version: 9.0.4
+License: MIT
+Authors: Microsoft
+Project URL: https://dot.net/
+Repository: https://github.com/dotnet/runtime
+
+Description:
+Provides access to Windows system event notifications.
+
+Commonly Used Types:
+Microsoft.Win32.SystemEvents

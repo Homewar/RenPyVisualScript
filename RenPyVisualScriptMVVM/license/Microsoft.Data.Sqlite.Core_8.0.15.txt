@@ -1,0 +1,19 @@
+﻿Package: Microsoft.Data.Sqlite.Core
+Version: 8.0.15
+License: MIT
+Authors: Microsoft
+Project URL: https://docs.microsoft.com/dotnet/standard/data/sqlite/
+Repository: https://github.com/dotnet/efcore
+
+Description:
+Microsoft.Data.Sqlite is a lightweight ADO.NET provider for SQLite. This package does not include a copy of the native SQLite library.
+
+Commonly Used Types:
+Microsoft.Data.Sqlite.SqliteCommand
+Microsoft.Data.Sqlite.SqliteConnection
+Microsoft.Data.Sqlite.SqliteConnectionStringBuilder
+Microsoft.Data.Sqlite.SqliteDataReader
+Microsoft.Data.Sqlite.SqliteException
+Microsoft.Data.Sqlite.SqliteFactory
+Microsoft.Data.Sqlite.SqliteParameter
+Microsoft.Data.Sqlite.SqliteTransaction

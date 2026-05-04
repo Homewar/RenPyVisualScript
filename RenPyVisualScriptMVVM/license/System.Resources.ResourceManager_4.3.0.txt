@@ -1,0 +1,17 @@
+﻿Package: System.Resources.ResourceManager
+Version: 4.3.0
+License: http://go.microsoft.com/fwlink/?LinkId=329770
+Authors: Microsoft
+Project URL: https://dot.net/
+Repository: 
+
+Description:
+Provides classes and attributes that allow developers to create, store, and manage various culture-specific resources used in an application.
+
+Commonly Used Types:
+System.Resources.ResourceManager
+System.Resources.NeutralResourcesLanguageAttribute
+System.Resources.SatelliteContractVersionAttribute
+System.Resources.MissingManifestResourceException
+ 
+When using NuGet 3.x this package requires at least version 3.4.

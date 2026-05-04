@@ -1,0 +1,9 @@
+﻿Package: Microsoft.Extensions.Caching.Memory
+Version: 8.0.1
+License: MIT
+Authors: Microsoft
+Project URL: https://dot.net/
+Repository: https://github.com/dotnet/runtime
+
+Description:
+In-memory cache implementation of Microsoft.Extensions.Caching.Memory.IMemoryCache.

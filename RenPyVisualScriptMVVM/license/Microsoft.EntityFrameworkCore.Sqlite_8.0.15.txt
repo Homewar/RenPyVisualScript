@@ -1,0 +1,9 @@
+﻿Package: Microsoft.EntityFrameworkCore.Sqlite
+Version: 8.0.15
+License: MIT
+Authors: Microsoft
+Project URL: https://docs.microsoft.com/ef/core/
+Repository: https://github.com/dotnet/efcore
+
+Description:
+SQLite database provider for Entity Framework Core.

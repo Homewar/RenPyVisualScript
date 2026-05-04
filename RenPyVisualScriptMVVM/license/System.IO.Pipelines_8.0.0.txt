@@ -1,0 +1,14 @@
+﻿Package: System.IO.Pipelines
+Version: 8.0.0
+License: MIT
+Authors: Microsoft
+Project URL: https://dot.net/
+Repository: https://github.com/dotnet/runtime
+
+Description:
+Single producer single consumer byte buffer management.
+
+Commonly Used Types:
+System.IO.Pipelines.Pipe
+System.IO.Pipelines.PipeWriter
+System.IO.Pipelines.PipeReader

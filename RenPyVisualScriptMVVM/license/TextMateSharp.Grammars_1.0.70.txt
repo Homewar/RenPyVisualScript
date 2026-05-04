@@ -1,0 +1,9 @@
+﻿Package: TextMateSharp.Grammars
+Version: 1.0.70
+License: MIT
+Authors: Daniel Peñalba
+Project URL: https://github.com/danipen/TextMateSharp
+Repository: 
+
+Description:
+A set of grammars and Themes that can be used by TextMateSharp

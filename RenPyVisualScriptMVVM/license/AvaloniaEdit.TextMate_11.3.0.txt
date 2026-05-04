@@ -1,0 +1,9 @@
+﻿Package: AvaloniaEdit.TextMate
+Version: 11.3.0
+License: MIT
+Authors: Avalonia Team
+Project URL: 
+Repository: https://github.com/AvaloniaUI/AvaloniaEdit/
+
+Description:
+TextMate integration for AvaloniaEdit.

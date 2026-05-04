@@ -1,0 +1,9 @@
+﻿Package: Svg.Custom
+Version: 1.0.0
+License: MS-PL
+Authors: Wiesław Šoltés
+Project URL: https://github.com/wieslawsoltes/Svg.Skia
+Repository: https://github.com/wieslawsoltes/Svg.Skia
+
+Description:
+Custom build of the SVG rendering library.

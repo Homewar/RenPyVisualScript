@@ -1,0 +1,18 @@
+﻿Package: Microsoft.Extensions.Logging.Abstractions
+Version: 8.0.2
+License: MIT
+Authors: Microsoft
+Project URL: https://dot.net/
+Repository: https://github.com/dotnet/runtime
+
+Description:
+Logging abstractions for Microsoft.Extensions.Logging.
+
+Commonly Used Types:
+Microsoft.Extensions.Logging.ILogger
+Microsoft.Extensions.Logging.ILoggerFactory
+Microsoft.Extensions.Logging.ILogger<TCategoryName>
+Microsoft.Extensions.Logging.LogLevel
+Microsoft.Extensions.Logging.Logger<T>
+Microsoft.Extensions.Logging.LoggerMessage
+Microsoft.Extensions.Logging.Abstractions.NullLogger

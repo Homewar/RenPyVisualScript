@@ -1,0 +1,23 @@
+﻿Package: System.ObjectModel
+Version: 4.3.0
+License: http://go.microsoft.com/fwlink/?LinkId=329770
+Authors: Microsoft
+Project URL: https://dot.net/
+Repository: 
+
+Description:
+Provides types and interfaces that allow the creation of observable types that provide notifications to clients when changes are made to it.
+
+Commonly Used Types:
+System.ComponentModel.INotifyPropertyChanged
+System.Collections.ObjectModel.ObservableCollection<T>
+System.ComponentModel.PropertyChangedEventHandler
+System.Windows.Input.ICommand
+System.Collections.Specialized.INotifyCollectionChanged
+System.Collections.Specialized.NotifyCollectionChangedEventArgs
+System.Collections.Specialized.NotifyCollectionChangedEventHandler
+System.Collections.ObjectModel.KeyedCollection<TKey, TItem>
+System.ComponentModel.PropertyChangedEventArgs
+System.Collections.ObjectModel.ReadOnlyDictionary<TKey, TValue>
+ 
+When using NuGet 3.x this package requires at least version 3.4.

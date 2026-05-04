@@ -1,0 +1,9 @@
+﻿Package: SQLitePCLRaw.provider.e_sqlite3
+Version: 2.1.6
+License: Apache-2.0
+Authors: Eric Sink
+Project URL: 
+Repository: https://github.com/ericsink/SQLitePCL.raw
+
+Description:
+SQLitePCLRaw is a Portable Class Library (PCL) for low-level (raw) access to SQLite.  Packages named 'SQLitePCLRaw.provider.*' (like this one) are 'plugins' that allow SQLitePCLRaw.core to access the native SQLite library.  This provider does DllImport of 'e_sqlite3', the SQLite builds provided with SQLitePCLRaw.

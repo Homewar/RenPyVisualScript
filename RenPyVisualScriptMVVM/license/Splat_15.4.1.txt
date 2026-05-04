@@ -1,0 +1,9 @@
+﻿Package: Splat
+Version: 15.4.1
+License: MIT
+Authors: .NET Foundation and Contributors
+Project URL: https://github.com/reactiveui/splat/
+Repository: https://github.com/reactiveui/splat
+
+Description:
+A library to make things cross-platform that should be.

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "aXtNjebBVjo=",
+  "dgSpecHash": "uevsBRwRnyc=",
   "success": true,
   "projectFilePath": "C:\\Users\\Homewarriors\\Desktop\\RenPyVisualScriptMVVMRebuild\\RenPyVisualScriptMVVM\\RenPyVisualScriptMVVM.csproj",
   "expectedPackageFiles": [
@@ -50,7 +50,6 @@
     "C:\\Users\\Homewarriors\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.2\\microsoft.extensions.logging.abstractions.8.0.2.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\microsoft.extensions.options\\8.0.2\\microsoft.extensions.options.8.0.2.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\microsoft.extensions.primitives\\8.0.0\\microsoft.extensions.primitives.8.0.0.nupkg.sha512",
-    "C:\\Users\\Homewarriors\\.nuget\\packages\\microsoft.net.illink.tasks\\8.0.26\\microsoft.net.illink.tasks.8.0.26.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\microsoft.netcore.platforms\\3.1.0\\microsoft.netcore.platforms.3.1.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\microsoft.netcore.targets\\1.1.0\\microsoft.netcore.targets.1.1.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\microsoft.win32.registry\\4.7.0\\microsoft.win32.registry.4.7.0.nupkg.sha512",
@@ -64,16 +63,6 @@
     "C:\\Users\\Homewarriors\\.nuget\\packages\\naudio.winmm\\2.2.1\\naudio.winmm.2.2.1.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\nvorbis\\0.10.4\\nvorbis.0.10.4.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\onigwrap\\1.0.8\\onigwrap.1.0.8.nupkg.sha512",
-    "C:\\Users\\Homewarriors\\.nuget\\packages\\runtime.any.system.collections\\4.3.0\\runtime.any.system.collections.4.3.0.nupkg.sha512",
-    "C:\\Users\\Homewarriors\\.nuget\\packages\\runtime.any.system.globalization\\4.3.0\\runtime.any.system.globalization.4.3.0.nupkg.sha512",
-    "C:\\Users\\Homewarriors\\.nuget\\packages\\runtime.any.system.io\\4.3.0\\runtime.any.system.io.4.3.0.nupkg.sha512",
-    "C:\\Users\\Homewarriors\\.nuget\\packages\\runtime.any.system.reflection\\4.3.0\\runtime.any.system.reflection.4.3.0.nupkg.sha512",
-    "C:\\Users\\Homewarriors\\.nuget\\packages\\runtime.any.system.reflection.primitives\\4.3.0\\runtime.any.system.reflection.primitives.4.3.0.nupkg.sha512",
-    "C:\\Users\\Homewarriors\\.nuget\\packages\\runtime.any.system.resources.resourcemanager\\4.3.0\\runtime.any.system.resources.resourcemanager.4.3.0.nupkg.sha512",
-    "C:\\Users\\Homewarriors\\.nuget\\packages\\runtime.any.system.runtime\\4.3.0\\runtime.any.system.runtime.4.3.0.nupkg.sha512",
-    "C:\\Users\\Homewarriors\\.nuget\\packages\\runtime.any.system.text.encoding\\4.3.0\\runtime.any.system.text.encoding.4.3.0.nupkg.sha512",
-    "C:\\Users\\Homewarriors\\.nuget\\packages\\runtime.any.system.threading.tasks\\4.3.0\\runtime.any.system.threading.tasks.4.3.0.nupkg.sha512",
-    "C:\\Users\\Homewarriors\\.nuget\\packages\\runtime.win.system.diagnostics.debug\\4.3.0\\runtime.win.system.diagnostics.debug.4.3.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\shimskiasharp\\1.0.0\\shimskiasharp.1.0.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\skiasharp\\2.88.9\\skiasharp.2.88.9.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\skiasharp.nativeassets.linux\\2.88.9\\skiasharp.nativeassets.linux.2.88.9.nupkg.sha512",
@@ -97,7 +86,6 @@
     "C:\\Users\\Homewarriors\\.nuget\\packages\\system.io.pipelines\\8.0.0\\system.io.pipelines.8.0.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\system.memory\\4.5.4\\system.memory.4.5.4.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\system.objectmodel\\4.3.0\\system.objectmodel.4.3.0.nupkg.sha512",
-    "C:\\Users\\Homewarriors\\.nuget\\packages\\system.private.uri\\4.3.0\\system.private.uri.4.3.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\system.reflection\\4.3.0\\system.reflection.4.3.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\system.reflection.primitives\\4.3.0\\system.reflection.primitives.4.3.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\system.resources.resourcemanager\\4.3.0\\system.resources.resourcemanager.4.3.0.nupkg.sha512",
@@ -114,10 +102,7 @@
     "C:\\Users\\Homewarriors\\.nuget\\packages\\testably.abstractions.filesystem.interface\\9.0.0\\testably.abstractions.filesystem.interface.9.0.0.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\textmatesharp\\1.0.70\\textmatesharp.1.0.70.nupkg.sha512",
     "C:\\Users\\Homewarriors\\.nuget\\packages\\textmatesharp.grammars\\1.0.70\\textmatesharp.grammars.1.0.70.nupkg.sha512",
-    "C:\\Users\\Homewarriors\\.nuget\\packages\\tmds.dbus.protocol\\0.21.2\\tmds.dbus.protocol.0.21.2.nupkg.sha512",
-    "C:\\Users\\Homewarriors\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x64\\8.0.26\\microsoft.netcore.app.runtime.win-x64.8.0.26.nupkg.sha512",
-    "C:\\Users\\Homewarriors\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x64\\8.0.26\\microsoft.windowsdesktop.app.runtime.win-x64.8.0.26.nupkg.sha512",
-    "C:\\Users\\Homewarriors\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x64\\8.0.26\\microsoft.aspnetcore.app.runtime.win-x64.8.0.26.nupkg.sha512"
+    "C:\\Users\\Homewarriors\\.nuget\\packages\\tmds.dbus.protocol\\0.21.2\\tmds.dbus.protocol.0.21.2.nupkg.sha512"
   ],
   "logs": []
 }

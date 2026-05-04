@@ -136,19 +136,6 @@
           }
         }
       },
-      "Avalonia.Controls.TreeDataGrid/11.1.1": {
-        "type": "package",
-        "dependencies": {
-          "Avalonia": "11.0.0",
-          "System.Reactive": "5.0.0"
-        },
-        "compile": {
-          "lib/net5.0/Avalonia.Controls.TreeDataGrid.dll": {}
-        },
-        "runtime": {
-          "lib/net5.0/Avalonia.Controls.TreeDataGrid.dll": {}
-        }
-      },
       "Avalonia.Desktop/11.3.0": {
         "type": "package",
         "dependencies": {
@@ -165,24 +152,6 @@
         },
         "runtime": {
           "lib/net8.0/Avalonia.Desktop.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "Avalonia.Diagnostics/11.3.0": {
-        "type": "package",
-        "dependencies": {
-          "Avalonia": "11.3.0",
-          "Avalonia.Controls.ColorPicker": "11.3.0",
-          "Avalonia.Themes.Simple": "11.3.0"
-        },
-        "compile": {
-          "lib/net8.0/Avalonia.Diagnostics.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/Avalonia.Diagnostics.dll": {
             "related": ".xml"
           }
         }
@@ -306,22 +275,6 @@
           }
         }
       },
-      "Avalonia.Themes.Simple/11.3.0": {
-        "type": "package",
-        "dependencies": {
-          "Avalonia": "11.3.0"
-        },
-        "compile": {
-          "lib/net8.0/Avalonia.Themes.Simple.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/Avalonia.Themes.Simple.dll": {
-            "related": ".xml"
-          }
-        }
-      },
       "Avalonia.Win32/11.3.0": {
         "type": "package",
         "dependencies": {
@@ -396,19 +349,6 @@
           }
         }
       },
-      "bodong.BuildPipeline.Core/1.0.0.2": {
-        "type": "package",
-        "dependencies": {
-          "bodong.PropertyModels": "11.0.4.1",
-          "plist-cil": "2.2.0"
-        },
-        "compile": {
-          "lib/net6.0/BuildPipeline.Core.dll": {}
-        },
-        "runtime": {
-          "lib/net6.0/BuildPipeline.Core.dll": {}
-        }
-      },
       "bodong.PropertyModels/11.3.0.16": {
         "type": "package",
         "dependencies": {
@@ -425,18 +365,6 @@
           }
         }
       },
-      "ColorTextBlock.Avalonia/11.0.2": {
-        "type": "package",
-        "dependencies": {
-          "Avalonia": "11.0.0"
-        },
-        "compile": {
-          "lib/net6.0/ColorTextBlock.Avalonia.dll": {}
-        },
-        "runtime": {
-          "lib/net6.0/ColorTextBlock.Avalonia.dll": {}
-        }
-      },
       "CommunityToolkit.Mvvm/8.4.0": {
         "type": "package",
         "compile": {
@@ -451,122 +379,6 @@
         },
         "build": {
           "buildTransitive/CommunityToolkit.Mvvm.targets": {}
-        }
-      },
-      "Dock.Avalonia/11.3.0.2": {
-        "type": "package",
-        "dependencies": {
-          "Avalonia": "11.3.0",
-          "Dock.Controls.ProportionalStackPanel": "11.3.0.2",
-          "Dock.Controls.Recycling": "11.3.0.2",
-          "Dock.MarkupExtension": "11.3.0.2",
-          "Dock.Model": "11.3.0.2",
-          "Dock.Settings": "11.3.0.2"
-        },
-        "compile": {
-          "lib/net8.0/Dock.Avalonia.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/Dock.Avalonia.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "Dock.Controls.ProportionalStackPanel/11.3.0.2": {
-        "type": "package",
-        "dependencies": {
-          "Avalonia": "11.3.0"
-        },
-        "compile": {
-          "lib/net8.0/Dock.Controls.ProportionalStackPanel.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/Dock.Controls.ProportionalStackPanel.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "Dock.Controls.Recycling/11.3.0.2": {
-        "type": "package",
-        "dependencies": {
-          "Avalonia": "11.3.0",
-          "Dock.Controls.Recycling.Model": "11.3.0.2"
-        },
-        "compile": {
-          "lib/net8.0/Dock.Controls.Recycling.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/Dock.Controls.Recycling.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "Dock.Controls.Recycling.Model/11.3.0.2": {
-        "type": "package",
-        "compile": {
-          "lib/net8.0/Dock.Controls.Recycling.Model.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/Dock.Controls.Recycling.Model.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "Dock.MarkupExtension/11.3.0.2": {
-        "type": "package",
-        "dependencies": {
-          "Avalonia": "11.3.0"
-        },
-        "compile": {
-          "lib/net8.0/Dock.MarkupExtension.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/Dock.MarkupExtension.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "Dock.Model/11.3.0.2": {
-        "type": "package",
-        "dependencies": {
-          "Dock.Controls.Recycling.Model": "11.3.0.2"
-        },
-        "compile": {
-          "lib/net8.0/Dock.Model.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/Dock.Model.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "Dock.Settings/11.3.0.2": {
-        "type": "package",
-        "dependencies": {
-          "Avalonia": "11.3.0",
-          "Dock.Model": "11.3.0.2"
-        },
-        "compile": {
-          "lib/net8.0/Dock.Settings.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/Dock.Settings.dll": {
-            "related": ".xml"
-          }
         }
       },
       "ExCSS/4.1.4": {
@@ -689,19 +501,6 @@
           }
         }
       },
-      "HtmlAgilityPack/1.11.42": {
-        "type": "package",
-        "compile": {
-          "lib/netstandard2.0/HtmlAgilityPack.dll": {
-            "related": ".deps.json;.pdb;.xml"
-          }
-        },
-        "runtime": {
-          "lib/netstandard2.0/HtmlAgilityPack.dll": {
-            "related": ".deps.json;.pdb;.xml"
-          }
-        }
-      },
       "Magick.NET-Q8-AnyCPU/14.12.0": {
         "type": "package",
         "dependencies": {
@@ -766,77 +565,6 @@
           "lib/net8.0/Magick.NET.Core.dll": {
             "related": ".xml"
           }
-        }
-      },
-      "Markdown.Avalonia/11.0.2": {
-        "type": "package",
-        "dependencies": {
-          "Markdown.Avalonia.Html": "11.0.2",
-          "Markdown.Avalonia.Svg": "11.0.2",
-          "Markdown.Avalonia.SyntaxHigh": "11.0.2",
-          "Markdown.Avalonia.Tight": "11.0.2"
-        },
-        "compile": {
-          "lib/net6.0/Markdown.Avalonia.Full.dll": {}
-        },
-        "runtime": {
-          "lib/net6.0/Markdown.Avalonia.Full.dll": {}
-        }
-      },
-      "Markdown.Avalonia.Html/11.0.2": {
-        "type": "package",
-        "dependencies": {
-          "Avalonia": "11.0.0",
-          "ColorTextBlock.Avalonia": "11.0.2",
-          "HtmlAgilityPack": "1.11.42",
-          "Markdown.Avalonia.SyntaxHigh": "11.0.2",
-          "Markdown.Avalonia.Tight": "11.0.2"
-        },
-        "compile": {
-          "lib/net6.0/Markdown.Avalonia.Html.dll": {}
-        },
-        "runtime": {
-          "lib/net6.0/Markdown.Avalonia.Html.dll": {}
-        }
-      },
-      "Markdown.Avalonia.Svg/11.0.2": {
-        "type": "package",
-        "dependencies": {
-          "Avalonia": "11.0.0",
-          "Avalonia.Svg": "11.0.0",
-          "Markdown.Avalonia.Tight": "11.0.2"
-        },
-        "compile": {
-          "lib/net6.0/Markdown.Avalonia.Svg.dll": {}
-        },
-        "runtime": {
-          "lib/net6.0/Markdown.Avalonia.Svg.dll": {}
-        }
-      },
-      "Markdown.Avalonia.SyntaxHigh/11.0.2": {
-        "type": "package",
-        "dependencies": {
-          "Avalonia": "11.0.0",
-          "Avalonia.AvaloniaEdit": "11.0.0"
-        },
-        "compile": {
-          "lib/net6.0/Markdown.Avalonia.SyntaxHigh.dll": {}
-        },
-        "runtime": {
-          "lib/net6.0/Markdown.Avalonia.SyntaxHigh.dll": {}
-        }
-      },
-      "Markdown.Avalonia.Tight/11.0.2": {
-        "type": "package",
-        "dependencies": {
-          "Avalonia": "11.0.0",
-          "ColorTextBlock.Avalonia": "11.0.2"
-        },
-        "compile": {
-          "lib/net6.0/Markdown.Avalonia.dll": {}
-        },
-        "runtime": {
-          "lib/net6.0/Markdown.Avalonia.dll": {}
         }
       },
       "MicroCom.Runtime/0.11.0": {
@@ -1017,10 +745,10 @@
           "buildTransitive/net6.0/_._": {}
         }
       },
-      "Microsoft.Extensions.DependencyInjection/9.0.6": {
+      "Microsoft.Extensions.DependencyInjection/8.0.1": {
         "type": "package",
         "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "9.0.6"
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2"
         },
         "compile": {
           "lib/net8.0/Microsoft.Extensions.DependencyInjection.dll": {
@@ -1033,10 +761,10 @@
           }
         },
         "build": {
-          "buildTransitive/net8.0/_._": {}
+          "buildTransitive/net6.0/_._": {}
         }
       },
-      "Microsoft.Extensions.DependencyInjection.Abstractions/9.0.6": {
+      "Microsoft.Extensions.DependencyInjection.Abstractions/8.0.2": {
         "type": "package",
         "compile": {
           "lib/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
@@ -1049,7 +777,7 @@
           }
         },
         "build": {
-          "buildTransitive/net8.0/_._": {}
+          "buildTransitive/net6.0/_._": {}
         }
       },
       "Microsoft.Extensions.DependencyModel/8.0.2": {
@@ -1402,19 +1130,6 @@
           }
         }
       },
-      "plist-cil/2.2.0": {
-        "type": "package",
-        "compile": {
-          "lib/net5.0/plist-cil.dll": {
-            "related": ".pdb"
-          }
-        },
-        "runtime": {
-          "lib/net5.0/plist-cil.dll": {
-            "related": ".pdb"
-          }
-        }
-      },
       "ShimSkiaSharp/1.0.0": {
         "type": "package",
         "compile": {
@@ -1531,23 +1246,6 @@
         },
         "runtime": {
           "lib/net8.0/Splat.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "Splat.Microsoft.Extensions.DependencyInjection/15.4.1": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.Extensions.DependencyInjection": "9.0.6",
-          "Splat": "15.4.1"
-        },
-        "compile": {
-          "lib/net8.0/Splat.Microsoft.Extensions.DependencyInjection.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/Splat.Microsoft.Extensions.DependencyInjection.dll": {
             "related": ".xml"
           }
         }
@@ -1862,22 +1560,6 @@
         },
         "runtime": {
           "lib/netstandard1.3/System.ObjectModel.dll": {}
-        }
-      },
-      "System.Reactive/5.0.0": {
-        "type": "package",
-        "compile": {
-          "lib/net5.0/System.Reactive.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net5.0/System.Reactive.dll": {
-            "related": ".xml"
-          }
-        },
-        "build": {
-          "buildTransitive/net5.0/_._": {}
         }
       },
       "System.Reflection/4.3.0": {
@@ -2368,18 +2050,6 @@
         "lib/netstandard2.0/Avalonia.Controls.ColorPicker.xml"
       ]
     },
-    "Avalonia.Controls.TreeDataGrid/11.1.1": {
-      "sha512": "PAkASZ1mpkQGwalxh21o/KPAaWQ5HuTsJUcKbpM9R9gvzLLvN4GC7ee3dBxcoXL5lkQge3GMwTu47QcdjQPkBg==",
-      "type": "package",
-      "path": "avalonia.controls.treedatagrid/11.1.1",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "avalonia.controls.treedatagrid.11.1.1.nupkg.sha512",
-        "avalonia.controls.treedatagrid.nuspec",
-        "lib/net5.0/Avalonia.Controls.TreeDataGrid.dll"
-      ]
-    },
     "Avalonia.Desktop/11.3.0": {
       "sha512": "X1nUSIDHPFt34U8Dn4Hk8/c/i+rN3pA0Nv4awfYHlYdenmLqE82gm8fpKmQE6/OfguUN1yMYi/uU9lAAAbd2hg==",
       "type": "package",
@@ -2396,24 +2066,6 @@
         "lib/net8.0/Avalonia.Desktop.xml",
         "lib/netstandard2.0/Avalonia.Desktop.dll",
         "lib/netstandard2.0/Avalonia.Desktop.xml"
-      ]
-    },
-    "Avalonia.Diagnostics/11.3.0": {
-      "sha512": "P152VhCexkrvTLRiRj7mSzUSMGKwTEsbz/XWTogV/33vGVWeCC8tStf/c8YsRrU5kSITtKeCV52UOh4m46hTfA==",
-      "type": "package",
-      "path": "avalonia.diagnostics/11.3.0",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "Icon.png",
-        "avalonia.diagnostics.11.3.0.nupkg.sha512",
-        "avalonia.diagnostics.nuspec",
-        "lib/net6.0/Avalonia.Diagnostics.dll",
-        "lib/net6.0/Avalonia.Diagnostics.xml",
-        "lib/net8.0/Avalonia.Diagnostics.dll",
-        "lib/net8.0/Avalonia.Diagnostics.xml",
-        "lib/netstandard2.0/Avalonia.Diagnostics.dll",
-        "lib/netstandard2.0/Avalonia.Diagnostics.xml"
       ]
     },
     "Avalonia.Fonts.Inter/11.3.0": {
@@ -2538,24 +2190,6 @@
         "lib/netstandard2.0/Avalonia.Themes.Fluent.xml"
       ]
     },
-    "Avalonia.Themes.Simple/11.3.0": {
-      "sha512": "pGurEpish9NS89iiBLbvIlN+DJ5hGaW1ABxcIl6XL9M/WcvUPtLznxoI0dbW2zw8OLDSsvowbsvQLdyknEvmhA==",
-      "type": "package",
-      "path": "avalonia.themes.simple/11.3.0",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "Icon.png",
-        "avalonia.themes.simple.11.3.0.nupkg.sha512",
-        "avalonia.themes.simple.nuspec",
-        "lib/net6.0/Avalonia.Themes.Simple.dll",
-        "lib/net6.0/Avalonia.Themes.Simple.xml",
-        "lib/net8.0/Avalonia.Themes.Simple.dll",
-        "lib/net8.0/Avalonia.Themes.Simple.xml",
-        "lib/netstandard2.0/Avalonia.Themes.Simple.dll",
-        "lib/netstandard2.0/Avalonia.Themes.Simple.xml"
-      ]
-    },
     "Avalonia.Win32/11.3.0": {
       "sha512": "25gOjtAyWTEMCfOGioJEZ1iOH2jdOTnVpyK4y8ku1n4CKwnsml9XFbQum253y5rFlty29Vs0TiYzsC0CWuWAVg==",
       "type": "package",
@@ -2632,19 +2266,6 @@
         "lib/netstandard2.1/Avalonia.PropertyGrid.xml"
       ]
     },
-    "bodong.BuildPipeline.Core/1.0.0.2": {
-      "sha512": "46xpxLrTeNYGgqHDMLyDLduIupZjTzrBI5xCOVxPLNIW3+oZTm0nEc1hJrrFU66L9NyGvYVKT1RpUoYBGbrImw==",
-      "type": "package",
-      "path": "bodong.buildpipeline.core/1.0.0.2",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "ReadMe.md",
-        "bodong.buildpipeline.core.1.0.0.2.nupkg.sha512",
-        "bodong.buildpipeline.core.nuspec",
-        "lib/net6.0/BuildPipeline.Core.dll"
-      ]
-    },
     "bodong.PropertyModels/11.3.0.16": {
       "sha512": "Y8HRecBtH2k6RG1ReBcu9gHhImgEvqSCB5Q+UrNyy1v+iKpyQOggoFAqICBD+7I0J1zD+kFat/oPwLx++2Uo7Q==",
       "type": "package",
@@ -2663,21 +2284,6 @@
         "lib/net9.0/PropertyModels.xml",
         "lib/netstandard2.1/PropertyModels.dll",
         "lib/netstandard2.1/PropertyModels.xml"
-      ]
-    },
-    "ColorTextBlock.Avalonia/11.0.2": {
-      "sha512": "MsWu5aAbDpstAmJ+TTSgC6Q7YdjKB7Na912GMr3oWl9ag8TH2HNpglzgo+kIAuB4C4wswKfrzhso4UcpvgMuHg==",
-      "type": "package",
-      "path": "colortextblock.avalonia/11.0.2",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "colortextblock.avalonia.11.0.2.nupkg.sha512",
-        "colortextblock.avalonia.nuspec",
-        "lib/net461/ColorTextBlock.Avalonia.dll",
-        "lib/net6.0/ColorTextBlock.Avalonia.dll",
-        "lib/netcoreapp2.0/ColorTextBlock.Avalonia.dll",
-        "lib/netstandard2.0/ColorTextBlock.Avalonia.dll"
       ]
     },
     "CommunityToolkit.Mvvm/8.4.0": {
@@ -2720,125 +2326,6 @@
         "lib/netstandard2.1/CommunityToolkit.Mvvm.dll",
         "lib/netstandard2.1/CommunityToolkit.Mvvm.pdb",
         "lib/netstandard2.1/CommunityToolkit.Mvvm.xml"
-      ]
-    },
-    "Dock.Avalonia/11.3.0.2": {
-      "sha512": "FdWbGwYq95ifSXf7BCZQJ6pghX6lf+5wjHrIpzlmJnZkOR1IVg+72F4jwSeu4wcCG1ZfwK/bitPk6E+XRVMVOg==",
-      "type": "package",
-      "path": "dock.avalonia/11.3.0.2",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "dock.avalonia.11.3.0.2.nupkg.sha512",
-        "dock.avalonia.nuspec",
-        "lib/net6.0/Dock.Avalonia.dll",
-        "lib/net6.0/Dock.Avalonia.xml",
-        "lib/net8.0/Dock.Avalonia.dll",
-        "lib/net8.0/Dock.Avalonia.xml",
-        "lib/netstandard2.0/Dock.Avalonia.dll",
-        "lib/netstandard2.0/Dock.Avalonia.xml"
-      ]
-    },
-    "Dock.Controls.ProportionalStackPanel/11.3.0.2": {
-      "sha512": "4TDIwhIAQBYW7caSl/BDD0Oy9ULLnPXVqV2m1f58C6wSFwCF70N5hvi5ryOqrCzT8ZAjAofvb9oec5foGYmoPQ==",
-      "type": "package",
-      "path": "dock.controls.proportionalstackpanel/11.3.0.2",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "dock.controls.proportionalstackpanel.11.3.0.2.nupkg.sha512",
-        "dock.controls.proportionalstackpanel.nuspec",
-        "lib/net6.0/Dock.Controls.ProportionalStackPanel.dll",
-        "lib/net6.0/Dock.Controls.ProportionalStackPanel.xml",
-        "lib/net8.0/Dock.Controls.ProportionalStackPanel.dll",
-        "lib/net8.0/Dock.Controls.ProportionalStackPanel.xml",
-        "lib/netstandard2.0/Dock.Controls.ProportionalStackPanel.dll",
-        "lib/netstandard2.0/Dock.Controls.ProportionalStackPanel.xml"
-      ]
-    },
-    "Dock.Controls.Recycling/11.3.0.2": {
-      "sha512": "/weC0enjIYepRF3mOKe7Chf1p1b/rti9g9i7vbMakpXX6+IDYNENQpBimAe28Bk0g3mcVp/aRQTgRjFXOsd5ZQ==",
-      "type": "package",
-      "path": "dock.controls.recycling/11.3.0.2",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "dock.controls.recycling.11.3.0.2.nupkg.sha512",
-        "dock.controls.recycling.nuspec",
-        "lib/net6.0/Dock.Controls.Recycling.dll",
-        "lib/net6.0/Dock.Controls.Recycling.xml",
-        "lib/net8.0/Dock.Controls.Recycling.dll",
-        "lib/net8.0/Dock.Controls.Recycling.xml",
-        "lib/netstandard2.0/Dock.Controls.Recycling.dll",
-        "lib/netstandard2.0/Dock.Controls.Recycling.xml"
-      ]
-    },
-    "Dock.Controls.Recycling.Model/11.3.0.2": {
-      "sha512": "1+QOpkJpybLFXfXMMN++S1DcCBwUuv8thfSST4+4ZKfvH3+lo8ahgGMl6ATvms9BgPb2ziHr1GmxdRHg9BFM7g==",
-      "type": "package",
-      "path": "dock.controls.recycling.model/11.3.0.2",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "dock.controls.recycling.model.11.3.0.2.nupkg.sha512",
-        "dock.controls.recycling.model.nuspec",
-        "lib/net6.0/Dock.Controls.Recycling.Model.dll",
-        "lib/net6.0/Dock.Controls.Recycling.Model.xml",
-        "lib/net8.0/Dock.Controls.Recycling.Model.dll",
-        "lib/net8.0/Dock.Controls.Recycling.Model.xml",
-        "lib/netstandard2.0/Dock.Controls.Recycling.Model.dll",
-        "lib/netstandard2.0/Dock.Controls.Recycling.Model.xml"
-      ]
-    },
-    "Dock.MarkupExtension/11.3.0.2": {
-      "sha512": "kLCcmMBtgfUNAdLddo0RGtNu+8+rNI63bA0ax7UpfNhYF8SMd6Y5aula314DvKFepmt+L9wG1s92iYd7pGmclA==",
-      "type": "package",
-      "path": "dock.markupextension/11.3.0.2",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "dock.markupextension.11.3.0.2.nupkg.sha512",
-        "dock.markupextension.nuspec",
-        "lib/net6.0/Dock.MarkupExtension.dll",
-        "lib/net6.0/Dock.MarkupExtension.xml",
-        "lib/net8.0/Dock.MarkupExtension.dll",
-        "lib/net8.0/Dock.MarkupExtension.xml",
-        "lib/netstandard2.0/Dock.MarkupExtension.dll",
-        "lib/netstandard2.0/Dock.MarkupExtension.xml"
-      ]
-    },
-    "Dock.Model/11.3.0.2": {
-      "sha512": "1/0RxP23muKRG+ui/ZGcnyFuV0MyzWyhPkCtYvJ4gaCfkui9Z6uTootOIaGiuH+UHK+yumjsYhOm/QK/Nmrj8w==",
-      "type": "package",
-      "path": "dock.model/11.3.0.2",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "dock.model.11.3.0.2.nupkg.sha512",
-        "dock.model.nuspec",
-        "lib/net6.0/Dock.Model.dll",
-        "lib/net6.0/Dock.Model.xml",
-        "lib/net8.0/Dock.Model.dll",
-        "lib/net8.0/Dock.Model.xml",
-        "lib/netstandard2.0/Dock.Model.dll",
-        "lib/netstandard2.0/Dock.Model.xml"
-      ]
-    },
-    "Dock.Settings/11.3.0.2": {
-      "sha512": "ncn+OVkmh9V/7cRCYFG87+c1InENHjmpYkbYzA978oREou1nOlsoO3ZqkJy0qXgGvVh0O5cGM7c6XWKTSv5U/A==",
-      "type": "package",
-      "path": "dock.settings/11.3.0.2",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "dock.settings.11.3.0.2.nupkg.sha512",
-        "dock.settings.nuspec",
-        "lib/net6.0/Dock.Settings.dll",
-        "lib/net6.0/Dock.Settings.xml",
-        "lib/net8.0/Dock.Settings.dll",
-        "lib/net8.0/Dock.Settings.xml",
-        "lib/netstandard2.0/Dock.Settings.dll",
-        "lib/netstandard2.0/Dock.Settings.xml"
       ]
     },
     "ExCSS/4.1.4": {
@@ -3047,54 +2534,6 @@
         "runtimes/win-x86/native/libHarfBuzzSharp.dll"
       ]
     },
-    "HtmlAgilityPack/1.11.42": {
-      "sha512": "LDc1bEfF14EY2DZzak4xvzWvbpNXK3vi1u0KQbBpLUN4+cx/VrvXhgCAMSJhSU5vz0oMfW9JZIR20vj/PkDHPA==",
-      "type": "package",
-      "path": "htmlagilitypack/1.11.42",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "htmlagilitypack.1.11.42.nupkg.sha512",
-        "htmlagilitypack.nuspec",
-        "lib/Net35/HtmlAgilityPack.dll",
-        "lib/Net35/HtmlAgilityPack.pdb",
-        "lib/Net35/HtmlAgilityPack.xml",
-        "lib/Net40-client/HtmlAgilityPack.dll",
-        "lib/Net40-client/HtmlAgilityPack.pdb",
-        "lib/Net40-client/HtmlAgilityPack.xml",
-        "lib/Net40/HtmlAgilityPack.XML",
-        "lib/Net40/HtmlAgilityPack.dll",
-        "lib/Net40/HtmlAgilityPack.pdb",
-        "lib/Net45/HtmlAgilityPack.XML",
-        "lib/Net45/HtmlAgilityPack.dll",
-        "lib/Net45/HtmlAgilityPack.pdb",
-        "lib/NetCore45/HtmlAgilityPack.XML",
-        "lib/NetCore45/HtmlAgilityPack.dll",
-        "lib/NetCore45/HtmlAgilityPack.pdb",
-        "lib/netstandard1.3/HtmlAgilityPack.deps.json",
-        "lib/netstandard1.3/HtmlAgilityPack.dll",
-        "lib/netstandard1.3/HtmlAgilityPack.pdb",
-        "lib/netstandard1.3/HtmlAgilityPack.xml",
-        "lib/netstandard1.6/HtmlAgilityPack.deps.json",
-        "lib/netstandard1.6/HtmlAgilityPack.dll",
-        "lib/netstandard1.6/HtmlAgilityPack.pdb",
-        "lib/netstandard1.6/HtmlAgilityPack.xml",
-        "lib/netstandard2.0/HtmlAgilityPack.deps.json",
-        "lib/netstandard2.0/HtmlAgilityPack.dll",
-        "lib/netstandard2.0/HtmlAgilityPack.pdb",
-        "lib/netstandard2.0/HtmlAgilityPack.xml",
-        "lib/portable-net45+netcore45+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.XML",
-        "lib/portable-net45+netcore45+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.dll",
-        "lib/portable-net45+netcore45+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.pdb",
-        "lib/portable-net45+netcore45+wpa81+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.XML",
-        "lib/portable-net45+netcore45+wpa81+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.dll",
-        "lib/portable-net45+netcore45+wpa81+wp8+MonoAndroid+MonoTouch/HtmlAgilityPack.pdb",
-        "lib/uap10.0/HtmlAgilityPack.XML",
-        "lib/uap10.0/HtmlAgilityPack.dll",
-        "lib/uap10.0/HtmlAgilityPack.pdb",
-        "lib/uap10.0/HtmlAgilityPack.pri"
-      ]
-    },
     "Magick.NET-Q8-AnyCPU/14.12.0": {
       "sha512": "YGEgNTZ6DaMhXgJYLClRrmEe6CMsEL5E8hy4c2iH/aEmj41ojFAtA/PIXYH1AOYINNEUX/83nLp/y5obt9P/vw==",
       "type": "package",
@@ -3139,86 +2578,6 @@
         "lib/netstandard20/Magick.NET.Core.xml",
         "magick.net.core.14.12.0.nupkg.sha512",
         "magick.net.core.nuspec"
-      ]
-    },
-    "Markdown.Avalonia/11.0.2": {
-      "sha512": "44NeKDwRuusHT3rNoBYZ80xioEZLue910h+rSI+kRgA5mZLAeATYcFQ4YN5fyY+kMMR+ZcS8woiOSAMYm08Qrw==",
-      "type": "package",
-      "path": "markdown.avalonia/11.0.2",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "Markdown.Avalonia.md",
-        "lib/net461/Markdown.Avalonia.Full.dll",
-        "lib/net6.0/Markdown.Avalonia.Full.dll",
-        "lib/netcoreapp2.0/Markdown.Avalonia.Full.dll",
-        "lib/netstandard2.0/Markdown.Avalonia.Full.dll",
-        "markdown.avalonia.11.0.2.nupkg.sha512",
-        "markdown.avalonia.nuspec"
-      ]
-    },
-    "Markdown.Avalonia.Html/11.0.2": {
-      "sha512": "e/oDOdn3SlK0qDO9ud9CqpGup9Byre9VGflqNZbhStvgQygaYVDYLCjTnzzleD4bVvgrrJD5eNq4dZm0JpvfzQ==",
-      "type": "package",
-      "path": "markdown.avalonia.html/11.0.2",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "Markdown.Avalonia.Html.md",
-        "lib/net461/Markdown.Avalonia.Html.dll",
-        "lib/net6.0/Markdown.Avalonia.Html.dll",
-        "lib/netcoreapp2.0/Markdown.Avalonia.Html.dll",
-        "lib/netstandard2.0/Markdown.Avalonia.Html.dll",
-        "markdown.avalonia.html.11.0.2.nupkg.sha512",
-        "markdown.avalonia.html.nuspec"
-      ]
-    },
-    "Markdown.Avalonia.Svg/11.0.2": {
-      "sha512": "TVQs0b1l1/9vKqX7B8+7OxUceVORDgTp9p+QzoPyynGEqDE9VdPUW0Z8e/Tl9cgLgtuIZYhcphb8Ypcr/egafw==",
-      "type": "package",
-      "path": "markdown.avalonia.svg/11.0.2",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "Markdown.Avalonia.Svg.md",
-        "lib/net461/Markdown.Avalonia.Svg.dll",
-        "lib/net6.0/Markdown.Avalonia.Svg.dll",
-        "lib/netcoreapp2.0/Markdown.Avalonia.Svg.dll",
-        "lib/netstandard2.0/Markdown.Avalonia.Svg.dll",
-        "markdown.avalonia.svg.11.0.2.nupkg.sha512",
-        "markdown.avalonia.svg.nuspec"
-      ]
-    },
-    "Markdown.Avalonia.SyntaxHigh/11.0.2": {
-      "sha512": "wbOcs07u8JUf329Ct4h5XjL0LTbB0mOi3U3ViVnC8OmnGcb8c8LLd56tdmXdahYgk4RYs9OFAibQFhhB22hdBQ==",
-      "type": "package",
-      "path": "markdown.avalonia.syntaxhigh/11.0.2",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "Markdown.Avalonia.SyntaxHigh.md",
-        "lib/net461/Markdown.Avalonia.SyntaxHigh.dll",
-        "lib/net6.0/Markdown.Avalonia.SyntaxHigh.dll",
-        "lib/netcoreapp2.0/Markdown.Avalonia.SyntaxHigh.dll",
-        "lib/netstandard2.0/Markdown.Avalonia.SyntaxHigh.dll",
-        "markdown.avalonia.syntaxhigh.11.0.2.nupkg.sha512",
-        "markdown.avalonia.syntaxhigh.nuspec"
-      ]
-    },
-    "Markdown.Avalonia.Tight/11.0.2": {
-      "sha512": "Ylg0EkSUId42dVUFQvU7UJGWcKiJ+g7TesRe/KCzUYzlypWf1lTiVveT2j60QSldCtuAw3o/aEOEjIahMdRGig==",
-      "type": "package",
-      "path": "markdown.avalonia.tight/11.0.2",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "Markdown.Avalonia.Tight.md",
-        "lib/net461/Markdown.Avalonia.dll",
-        "lib/net6.0/Markdown.Avalonia.dll",
-        "lib/netcoreapp2.0/Markdown.Avalonia.dll",
-        "lib/netstandard2.0/Markdown.Avalonia.dll",
-        "markdown.avalonia.tight.11.0.2.nupkg.sha512",
-        "markdown.avalonia.tight.nuspec"
       ]
     },
     "MicroCom.Runtime/0.11.0": {
@@ -3433,10 +2792,10 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "Microsoft.Extensions.DependencyInjection/9.0.6": {
-      "sha512": "vS65HMo5RS10DD543fknsyVDxihMcVxVn3/hNaILgBxWYnOLxWIeCIO9X0QFuCvPRNjClvXe9Aj8KaQNx7vFkQ==",
+    "Microsoft.Extensions.DependencyInjection/8.0.1": {
+      "sha512": "BmANAnR5Xd4Oqw7yQ75xOAYODybZQRzdeNucg7kS5wWKd2PNnMdYtJ2Vciy0QLylRmv42DGl5+AFL9izA6F1Rw==",
       "type": "package",
-      "path": "microsoft.extensions.dependencyinjection/9.0.6",
+      "path": "microsoft.extensions.dependencyinjection/8.0.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -3446,27 +2805,29 @@
         "THIRD-PARTY-NOTICES.TXT",
         "buildTransitive/net461/Microsoft.Extensions.DependencyInjection.targets",
         "buildTransitive/net462/_._",
-        "buildTransitive/net8.0/_._",
+        "buildTransitive/net6.0/_._",
         "buildTransitive/netcoreapp2.0/Microsoft.Extensions.DependencyInjection.targets",
         "lib/net462/Microsoft.Extensions.DependencyInjection.dll",
         "lib/net462/Microsoft.Extensions.DependencyInjection.xml",
+        "lib/net6.0/Microsoft.Extensions.DependencyInjection.dll",
+        "lib/net6.0/Microsoft.Extensions.DependencyInjection.xml",
+        "lib/net7.0/Microsoft.Extensions.DependencyInjection.dll",
+        "lib/net7.0/Microsoft.Extensions.DependencyInjection.xml",
         "lib/net8.0/Microsoft.Extensions.DependencyInjection.dll",
         "lib/net8.0/Microsoft.Extensions.DependencyInjection.xml",
-        "lib/net9.0/Microsoft.Extensions.DependencyInjection.dll",
-        "lib/net9.0/Microsoft.Extensions.DependencyInjection.xml",
         "lib/netstandard2.0/Microsoft.Extensions.DependencyInjection.dll",
         "lib/netstandard2.0/Microsoft.Extensions.DependencyInjection.xml",
         "lib/netstandard2.1/Microsoft.Extensions.DependencyInjection.dll",
         "lib/netstandard2.1/Microsoft.Extensions.DependencyInjection.xml",
-        "microsoft.extensions.dependencyinjection.9.0.6.nupkg.sha512",
+        "microsoft.extensions.dependencyinjection.8.0.1.nupkg.sha512",
         "microsoft.extensions.dependencyinjection.nuspec",
         "useSharedDesignerContext.txt"
       ]
     },
-    "Microsoft.Extensions.DependencyInjection.Abstractions/9.0.6": {
-      "sha512": "0Zn6nR/6g+90MxskZyOOMPQvnPnrrGu6bytPwkV+azDcTtCSuQ1+GJUrg8Klmnrjk1i6zMpw2lXijl+tw7Q3kA==",
+    "Microsoft.Extensions.DependencyInjection.Abstractions/8.0.2": {
+      "sha512": "3iE7UF7MQkCv1cxzCahz+Y/guQbTqieyxyaWKhrRO91itI9cOKO76OHeQDahqG4MmW5umr3CcCvGmK92lWNlbg==",
       "type": "package",
-      "path": "microsoft.extensions.dependencyinjection.abstractions/9.0.6",
+      "path": "microsoft.extensions.dependencyinjection.abstractions/8.0.2",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -3476,19 +2837,21 @@
         "THIRD-PARTY-NOTICES.TXT",
         "buildTransitive/net461/Microsoft.Extensions.DependencyInjection.Abstractions.targets",
         "buildTransitive/net462/_._",
-        "buildTransitive/net8.0/_._",
+        "buildTransitive/net6.0/_._",
         "buildTransitive/netcoreapp2.0/Microsoft.Extensions.DependencyInjection.Abstractions.targets",
         "lib/net462/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
         "lib/net462/Microsoft.Extensions.DependencyInjection.Abstractions.xml",
+        "lib/net6.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+        "lib/net6.0/Microsoft.Extensions.DependencyInjection.Abstractions.xml",
+        "lib/net7.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+        "lib/net7.0/Microsoft.Extensions.DependencyInjection.Abstractions.xml",
         "lib/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
         "lib/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.xml",
-        "lib/net9.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
-        "lib/net9.0/Microsoft.Extensions.DependencyInjection.Abstractions.xml",
         "lib/netstandard2.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
         "lib/netstandard2.0/Microsoft.Extensions.DependencyInjection.Abstractions.xml",
         "lib/netstandard2.1/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
         "lib/netstandard2.1/Microsoft.Extensions.DependencyInjection.Abstractions.xml",
-        "microsoft.extensions.dependencyinjection.abstractions.9.0.6.nupkg.sha512",
+        "microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
         "microsoft.extensions.dependencyinjection.abstractions.nuspec",
         "useSharedDesignerContext.txt"
       ]
@@ -3976,27 +3339,6 @@
         "runtimes/win-x86/native/libonigwrap.dll"
       ]
     },
-    "plist-cil/2.2.0": {
-      "sha512": "Y1+I11Aani2FGdWRnHCdp9O3ZQDcPKd+rflO83ZtJ1Cm3OEaKuvz4w9BCq/HXJn6tB5lhv1Dmhrt9Jgxx3Uftg==",
-      "type": "package",
-      "path": "plist-cil/2.2.0",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "lib/net45/plist-cil.dll",
-        "lib/net45/plist-cil.pdb",
-        "lib/net5.0/plist-cil.dll",
-        "lib/net5.0/plist-cil.pdb",
-        "lib/netcoreapp2.1/plist-cil.dll",
-        "lib/netcoreapp2.1/plist-cil.pdb",
-        "lib/netcoreapp3.1/plist-cil.dll",
-        "lib/netcoreapp3.1/plist-cil.pdb",
-        "lib/netstandard2.0/plist-cil.dll",
-        "lib/netstandard2.0/plist-cil.pdb",
-        "plist-cil.2.2.0.nupkg.sha512",
-        "plist-cil.nuspec"
-      ]
-    },
     "ShimSkiaSharp/1.0.0": {
       "sha512": "aO0ERDXKTcGGkxY3V+yp+gkx/dtlyMVS5jMe2S3ajvsSHvlB3IQJHSCvOjoYJRjnf9mMXTIUL5EDKM/yqZ2E3A==",
       "type": "package",
@@ -4206,28 +3548,6 @@
         "logo.png",
         "splat.15.4.1.nupkg.sha512",
         "splat.nuspec"
-      ]
-    },
-    "Splat.Microsoft.Extensions.DependencyInjection/15.4.1": {
-      "sha512": "9Bi2sQ+ImWjJyWTRlKaJ3tkpYeYwl95k/Pas1H9qUv3od/opsutBldndoWNGaImbdZ6F2sbsQr9ZXMUAzVffQQ==",
-      "type": "package",
-      "path": "splat.microsoft.extensions.dependencyinjection/15.4.1",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "LICENSE/LICENSE",
-        "README.md",
-        "lib/net462/Splat.Microsoft.Extensions.DependencyInjection.dll",
-        "lib/net462/Splat.Microsoft.Extensions.DependencyInjection.xml",
-        "lib/net8.0/Splat.Microsoft.Extensions.DependencyInjection.dll",
-        "lib/net8.0/Splat.Microsoft.Extensions.DependencyInjection.xml",
-        "lib/net9.0/Splat.Microsoft.Extensions.DependencyInjection.dll",
-        "lib/net9.0/Splat.Microsoft.Extensions.DependencyInjection.xml",
-        "lib/netstandard2.0/Splat.Microsoft.Extensions.DependencyInjection.dll",
-        "lib/netstandard2.0/Splat.Microsoft.Extensions.DependencyInjection.xml",
-        "logo.png",
-        "splat.microsoft.extensions.dependencyinjection.15.4.1.nupkg.sha512",
-        "splat.microsoft.extensions.dependencyinjection.nuspec"
       ]
     },
     "SQLitePCLRaw.bundle_e_sqlite3/2.1.6": {
@@ -4907,35 +4227,6 @@
         "ref/xamarinwatchos10/_._",
         "system.objectmodel.4.3.0.nupkg.sha512",
         "system.objectmodel.nuspec"
-      ]
-    },
-    "System.Reactive/5.0.0": {
-      "sha512": "erBZjkQHWL9jpasCE/0qKAryzVBJFxGHVBAvgRN1bzM0q2s1S4oYREEEL0Vb+1kA/6BKb5FjUZMp5VXmy+gzkQ==",
-      "type": "package",
-      "path": "system.reactive/5.0.0",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "build/net5.0/_._",
-        "build/netcoreapp3.1/System.Reactive.dll",
-        "build/netcoreapp3.1/System.Reactive.targets",
-        "build/netcoreapp3.1/System.Reactive.xml",
-        "buildTransitive/net5.0/_._",
-        "buildTransitive/netcoreapp3.1/System.Reactive.targets",
-        "lib/net472/System.Reactive.dll",
-        "lib/net472/System.Reactive.xml",
-        "lib/net5.0-windows10.0.19041/System.Reactive.dll",
-        "lib/net5.0-windows10.0.19041/System.Reactive.xml",
-        "lib/net5.0/System.Reactive.dll",
-        "lib/net5.0/System.Reactive.xml",
-        "lib/netcoreapp3.1/_._",
-        "lib/netstandard2.0/System.Reactive.dll",
-        "lib/netstandard2.0/System.Reactive.xml",
-        "lib/uap10.0.16299/System.Reactive.dll",
-        "lib/uap10.0.16299/System.Reactive.pri",
-        "lib/uap10.0.16299/System.Reactive.xml",
-        "system.reactive.5.0.0.nupkg.sha512",
-        "system.reactive.nuspec"
       ]
     },
     "System.Reflection/4.3.0": {
@@ -5766,29 +5057,22 @@
     "net8.0": [
       "Avalonia >= 11.3.0",
       "Avalonia.AvaloniaEdit >= 11.3.0",
-      "Avalonia.Controls.ColorPicker >= 11.3.0",
-      "Avalonia.Controls.TreeDataGrid >= 11.1.1",
       "Avalonia.Desktop >= 11.3.0",
-      "Avalonia.Diagnostics >= 11.3.0",
       "Avalonia.Fonts.Inter >= 11.3.0",
+      "Avalonia.Svg >= 11.0.0",
       "Avalonia.Themes.Fluent >= 11.3.0",
       "AvaloniaEdit.TextMate >= 11.3.0",
       "CommunityToolkit.Mvvm >= 8.4.0",
-      "Dock.Avalonia >= 11.3.0.2",
       "Magick.NET-Q8-AnyCPU >= 14.12.0",
-      "Markdown.Avalonia >= 11.0.2",
-      "Markdown.Avalonia.SyntaxHigh >= 11.0.2",
       "Microsoft.EntityFrameworkCore >= 8.0.15",
       "Microsoft.EntityFrameworkCore.Sqlite >= 8.0.15",
       "NAudio >= 2.2.1",
       "NAudio.Vorbis >= 1.5.0",
       "Splat >= 15.4.1",
-      "Splat.Microsoft.Extensions.DependencyInjection >= 15.4.1",
       "System.Drawing.Common >= 9.0.4",
       "System.IO.Abstractions >= 22.0.15",
       "TextMateSharp.Grammars >= 1.0.70",
       "bodong.Avalonia.PropertyGrid >= 11.3.0.16",
-      "bodong.BuildPipeline.Core >= 1.0.0.2",
       "bodong.PropertyModels >= 11.3.0.16"
     ]
   },
@@ -5850,25 +5134,17 @@
             "target": "Package",
             "version": "[11.3.0, )"
           },
-          "Avalonia.Controls.ColorPicker": {
-            "target": "Package",
-            "version": "[11.3.0, )"
-          },
-          "Avalonia.Controls.TreeDataGrid": {
-            "target": "Package",
-            "version": "[11.1.1, )"
-          },
           "Avalonia.Desktop": {
-            "target": "Package",
-            "version": "[11.3.0, )"
-          },
-          "Avalonia.Diagnostics": {
             "target": "Package",
             "version": "[11.3.0, )"
           },
           "Avalonia.Fonts.Inter": {
             "target": "Package",
             "version": "[11.3.0, )"
+          },
+          "Avalonia.Svg": {
+            "target": "Package",
+            "version": "[11.0.0, )"
           },
           "Avalonia.Themes.Fluent": {
             "target": "Package",
@@ -5882,21 +5158,9 @@
             "target": "Package",
             "version": "[8.4.0, )"
           },
-          "Dock.Avalonia": {
-            "target": "Package",
-            "version": "[11.3.0.2, )"
-          },
           "Magick.NET-Q8-AnyCPU": {
             "target": "Package",
             "version": "[14.12.0, )"
-          },
-          "Markdown.Avalonia": {
-            "target": "Package",
-            "version": "[11.0.2, )"
-          },
-          "Markdown.Avalonia.SyntaxHigh": {
-            "target": "Package",
-            "version": "[11.0.2, )"
           },
           "Microsoft.EntityFrameworkCore": {
             "target": "Package",
@@ -5918,10 +5182,6 @@
             "target": "Package",
             "version": "[15.4.1, )"
           },
-          "Splat.Microsoft.Extensions.DependencyInjection": {
-            "target": "Package",
-            "version": "[15.4.1, )"
-          },
           "System.Drawing.Common": {
             "target": "Package",
             "version": "[9.0.4, )"
@@ -5937,10 +5197,6 @@
           "bodong.Avalonia.PropertyGrid": {
             "target": "Package",
             "version": "[11.3.0.16, )"
-          },
-          "bodong.BuildPipeline.Core": {
-            "target": "Package",
-            "version": "[1.0.0.2, )"
           },
           "bodong.PropertyModels": {
             "target": "Package",
@@ -5958,24 +5214,6 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
-        "downloadDependencies": [
-          {
-            "name": "Microsoft.AspNetCore.App.Ref",
-            "version": "[8.0.26, 8.0.26]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Host.win-x64",
-            "version": "[8.0.26, 8.0.26]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Ref",
-            "version": "[8.0.26, 8.0.26]"
-          },
-          {
-            "name": "Microsoft.WindowsDesktop.App.Ref",
-            "version": "[8.0.26, 8.0.26]"
-          }
-        ],
         "frameworkReferences": {
           "Microsoft.NETCore.App": {
             "privateAssets": "all"

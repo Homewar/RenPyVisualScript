@@ -1,0 +1,10 @@
+bin/
+obj/
+.vs/
+.tmp/
+.dotnet/
+.templateengine/
+licenses/
+
+*.user
+*.suo

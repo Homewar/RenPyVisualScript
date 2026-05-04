@@ -39,7 +39,6 @@
 
         <conv:StringToBrushConverter x:Key="StrToBrush"/>
         <editConv:ImagePreviewConverter x:Key="ImagePreviewConverter"/>
-        <editConv:VideoPreviewConverter x:Key="VideoPreviewConverter"/>
         <editConv:FontPreviewConverter x:Key="FontPreviewConverter"/>
     </Window.Resources>
 

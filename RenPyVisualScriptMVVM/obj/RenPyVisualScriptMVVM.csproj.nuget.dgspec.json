@@ -58,25 +58,17 @@
               "target": "Package",
               "version": "[11.3.0, )"
             },
-            "Avalonia.Controls.ColorPicker": {
-              "target": "Package",
-              "version": "[11.3.0, )"
-            },
-            "Avalonia.Controls.TreeDataGrid": {
-              "target": "Package",
-              "version": "[11.1.1, )"
-            },
             "Avalonia.Desktop": {
-              "target": "Package",
-              "version": "[11.3.0, )"
-            },
-            "Avalonia.Diagnostics": {
               "target": "Package",
               "version": "[11.3.0, )"
             },
             "Avalonia.Fonts.Inter": {
               "target": "Package",
               "version": "[11.3.0, )"
+            },
+            "Avalonia.Svg": {
+              "target": "Package",
+              "version": "[11.0.0, )"
             },
             "Avalonia.Themes.Fluent": {
               "target": "Package",
@@ -90,21 +82,9 @@
               "target": "Package",
               "version": "[8.4.0, )"
             },
-            "Dock.Avalonia": {
-              "target": "Package",
-              "version": "[11.3.0.2, )"
-            },
             "Magick.NET-Q8-AnyCPU": {
               "target": "Package",
               "version": "[14.12.0, )"
-            },
-            "Markdown.Avalonia": {
-              "target": "Package",
-              "version": "[11.0.2, )"
-            },
-            "Markdown.Avalonia.SyntaxHigh": {
-              "target": "Package",
-              "version": "[11.0.2, )"
             },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
@@ -126,10 +106,6 @@
               "target": "Package",
               "version": "[15.4.1, )"
             },
-            "Splat.Microsoft.Extensions.DependencyInjection": {
-              "target": "Package",
-              "version": "[15.4.1, )"
-            },
             "System.Drawing.Common": {
               "target": "Package",
               "version": "[9.0.4, )"
@@ -145,10 +121,6 @@
             "bodong.Avalonia.PropertyGrid": {
               "target": "Package",
               "version": "[11.3.0.16, )"
-            },
-            "bodong.BuildPipeline.Core": {
-              "target": "Package",
-              "version": "[1.0.0.2, )"
             },
             "bodong.PropertyModels": {
               "target": "Package",
@@ -166,24 +138,6 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "downloadDependencies": [
-            {
-              "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[8.0.26, 8.0.26]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Host.win-x64",
-              "version": "[8.0.26, 8.0.26]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Ref",
-              "version": "[8.0.26, 8.0.26]"
-            },
-            {
-              "name": "Microsoft.WindowsDesktop.App.Ref",
-              "version": "[8.0.26, 8.0.26]"
-            }
-          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"

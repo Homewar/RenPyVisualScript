@@ -28,10 +28,6 @@
         </Style>
 
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml"/>
-        <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Fluent/Fluent.xaml"/>
-        <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Simple/Simple.xaml"/>
-        <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
-
         <Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
             <Setter Property="Background" Value="Red"/>
             <Setter Property="MaxHeight" Value="10"/>

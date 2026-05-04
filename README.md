@@ -151,6 +151,18 @@ dotnet publish .\RenPyVisualScriptMVVM.csproj -c Release -r win-x64 --self-conta
 
 The generated artifacts are placed in the `publish/` folder.
 
+## Roadmap
+
+Planned future improvements:
+
+- Add translation tools to the story editor so story text can be translated directly inside the application.
+- Add spell checking and spelling issue highlighting.
+- Improve the code editor with diagnostics, including warnings and errors, more advanced syntax highlighting, and an expanded snippet set.
+- Add a scene and Ren'Py screen/window builder with preview support, making it easier to see how scenes and UI windows will look in-game.
+- Expand the story graph to show where global variables are changed and which labels use them.
+- Improve the graph parser so it can detect more non-standard and unusual transition patterns.
+
+
 ## Technologies
 
 - C# / .NET 8
@@ -319,6 +331,18 @@ dotnet publish .\RenPyVisualScriptMVVM.csproj -c Release -r win-x64 --self-conta
 ```
 
 Готовые артефакты попадают в папку `publish/`.
+
+## Roadmap
+
+В планах:
+
+- Добавить в редактор сюжета инструменты перевода текста прямо внутри приложения.
+- Добавить проверку орфографии и подсветку орфографических ошибок.
+- Развить редактор кода: диагностика предупреждений и ошибок, более продвинутая подсветка синтаксиса и расширенный набор сниппетов.
+- Добавить окно сборки сцен и Ren'Py screens/windows с предпросмотром, чтобы заранее видеть, как сцена или окно будет выглядеть в игре.
+- Расширить возможности графа: показывать, где изменяются глобальные переменные и в каких лейблах они используются.
+- Улучшить парсер графа, чтобы он распознавал больше нестандартных и экзотических способов перехода.
+
 
 ## Технологии
 

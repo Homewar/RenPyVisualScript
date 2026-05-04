@@ -36,12 +36,12 @@ public partial class ScriptEditor : Window
         InitializeComponent();
         _dialogService = Locator.Current.GetService<IEditorDialogService>() ?? new EditorDialogService();
         LoadOptionalToolbarIcon(RunActivityIcon, RunActivityFallback,
-            "avares://RenPyVisualScriptMVVM/Assets/Icons/activity-run.png",
-            "avares://RenPyVisualScriptMVVM/Assets/Icons/run.png");
+            AssetUri("Assets/Icons/activity-run.png"),
+            AssetUri("Assets/Icons/run.png"));
         LoadOptionalToolbarIcon(GraphActivityIcon, GraphActivityFallback,
-            "avares://RenPyVisualScriptMVVM/Assets/Icons/activity-graph.png",
-            "avares://RenPyVisualScriptMVVM/Assets/Icons/graph.png",
-            "avares://RenPyVisualScriptMVVM/Assets/Icons/graph_editor.png");
+            AssetUri("Assets/Icons/activity-graph.png"),
+            AssetUri("Assets/Icons/graph.png"),
+            AssetUri("Assets/Icons/graph_editor.png"));
         Closing += OnClosing;
         Closed += (_, _) =>
         {
@@ -503,4 +503,7 @@ public partial class ScriptEditor : Window
         image.IsVisible = false;
         fallback.IsVisible = true;
     }
+
+    private static string AssetUri(string path)
+        => $"avares://{typeof(App).Assembly.GetName().Name}/{path}";
 }

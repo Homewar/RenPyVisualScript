@@ -199,7 +199,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
         {
             try
             {
-                _tipsBitmap ??= new Bitmap(AssetLoader.Open(new Uri("avares://RenPyVisualScriptMVVM/Assets/tips.png")));
+                _tipsBitmap ??= new Bitmap(AssetLoader.Open(new Uri($"avares://{typeof(App).Assembly.GetName().Name}/Assets/tips.png")));
                 var origin = ToScreen(new Point(0, 0));
 
                 var image = new Image

@@ -11,7 +11,7 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Models
     {
         public static readonly Size DefaultSize = new(210, 96);
         public static readonly Size ScreenConnectorSize = new(110, 44);
-        private static readonly Lazy<Bitmap> PlaceholderBitmap = new(() => new Bitmap(AssetLoader.Open(new Uri("avares://RenPyVisualScriptMVVM/Assets/GraphEditor/placeholder.jpg"))));
+        private static readonly Lazy<Bitmap> PlaceholderBitmap = new(() => new Bitmap(AssetLoader.Open(new Uri($"avares://{typeof(App).Assembly.GetName().Name}/Assets/GraphEditor/placeholder.jpg"))));
         private static readonly Lazy<ImageBrush> PlaceholderImageBrush = new(() => new ImageBrush
         {
             Source = PlaceholderBitmap.Value,

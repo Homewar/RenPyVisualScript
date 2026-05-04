@@ -49,7 +49,7 @@
                 </Button>
                 <Button Background="#191a1b" FontSize="24" Margin="5" BorderThickness="0" HorizontalAlignment="Stretch">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock LetterSpacing="2" VerticalAlignment="Center" Text=" Clone Git Repository"/>
+                        <TextBlock LetterSpacing="2" VerticalAlignment="Center" Text="Clone Git Repository"/>
                     </StackPanel>
                 </Button>
             </StackPanel>

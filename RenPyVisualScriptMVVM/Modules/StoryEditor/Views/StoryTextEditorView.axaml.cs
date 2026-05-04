@@ -35,6 +35,8 @@ public partial class StoryTextEditorView : UserControl
         StoryTextEditor.TextArea.TextView.LineTransformers.Add(_fragmentHeaderColorizer);
         StoryTextEditor.TextArea.TextView.LineTransformers.Add(_storyFontTagColorizer);
         SourceContextEditor.TextArea.TextView.LineTransformers.Add(_sourceFontTagColorizer);
+        ApplyVisibleSelectionColors(StoryTextEditor);
+        ApplyVisibleSelectionColors(SourceContextEditor);
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
         DataContextChanged += OnDataContextChanged;
         AttachedToVisualTree += async (_, _) => await InitializeViewModelAsync();
@@ -42,6 +44,13 @@ public partial class StoryTextEditorView : UserControl
         StoryTextEditor.PointerPressed += OnStoryTextEditorPointerPressed;
         StoryTextEditor.TextChanged += OnStoryTextEditorTextChanged;
         StoryTextEditor.TextArea.Caret.PositionChanged += OnStoryTextEditorCaretPositionChanged;
+    }
+
+    private static void ApplyVisibleSelectionColors(AvaloniaEdit.TextEditor editor)
+    {
+        editor.TextArea.SelectionBrush = new SolidColorBrush(Color.FromRgb(45, 105, 190));
+        editor.TextArea.SelectionForeground = Brushes.White;
+        editor.TextArea.TextView.Redraw();
     }
 
     public Task InitializeViewModelAsync()

@@ -158,6 +158,7 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
             _breakpointColorizer = new BreakpointLineColorizer();
             textEditor.TextArea.TextView.LineTransformers.Add(_characterColorizer);
             textEditor.TextArea.TextView.LineTransformers.Add(_breakpointColorizer);
+            ApplyVisibleSelectionColors(textEditor);
             textEditor.FontSize = 20.0;
             textEditor.Options.ConvertTabsToSpaces = true;
             textEditor.Options.IndentationSize = 4;
@@ -357,6 +358,13 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
             textEditor.PointerPressed += TextEditor_PointerPressed;
         }
 
+        private static void ApplyVisibleSelectionColors(TextEditor editor)
+        {
+            editor.TextArea.SelectionBrush = new SolidColorBrush(Color.FromRgb(45, 105, 190));
+            editor.TextArea.SelectionForeground = Brushes.White;
+            editor.TextArea.TextView.Redraw();
+        }
+
         private void OnDataContextChanged(object? sender, EventArgs e)
         {
             RefreshBreakpointVisuals();
@@ -370,7 +378,7 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
 
             try
             {
-                var uri = new Uri("avares://RenPyVisualScriptMVVM/Assets/RenPy.xshd");
+                var uri = new Uri($"avares://{typeof(App).Assembly.GetName().Name}/Assets/RenPy.xshd");
                 using var stream = AssetLoader.Open(uri);
                 using var reader = new XmlTextReader(stream);
                 var definition = HighlightingLoader.Load(reader, HighlightingManager.Instance);

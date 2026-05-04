@@ -161,7 +161,7 @@
                                    Width="26"
                                    Height="26"
                                    IsVisible="False"
-                                   Source="avares://RenPyVisualScriptMVVM/Assets/Icons/graph_editor.png"/>
+                                   Source="/Assets/Icons/graph_editor.png"/>
 
                             <TextBlock x:Name="GraphActivityFallback"
                                        Text="◫"

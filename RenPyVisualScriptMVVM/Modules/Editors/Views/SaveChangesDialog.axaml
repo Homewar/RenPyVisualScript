@@ -2,30 +2,134 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="RenPyVisualScriptMVVM.Modules.Editors.Views.SaveChangesDialog"
         Width="460"
-        Height="180"
+        Height="220"
+        MinWidth="460"
+        MinHeight="220"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
-        Background="#1e1e1e">
+        RequestedThemeVariant="Dark"
+        Background="#191a1b"
+        Title="Unsaved Changes">
 
-  <StackPanel Margin="16" Spacing="12">
-    <TextBlock x:Name="MessageTextBlock"
-               TextWrapping="Wrap"
-               Foreground="#d6d6d6"/>
+    <Window.Styles>
 
-    <StackPanel Orientation="Horizontal"
-                Spacing="8"
-                HorizontalAlignment="Right">
-      <Button Content="Cancel"
-              Width="96"
-              IsCancel="True"
-              Click="Cancel_OnClick"/>
-      <Button Content="Don't save"
-              Width="110"
-              Click="DontSave_OnClick"/>
-      <Button Content="Save"
-              Width="96"
-              IsDefault="True"
-              Click="Save_OnClick"/>
-    </StackPanel>
-  </StackPanel>
+        <!-- Buttons -->
+        <Style Selector="Button">
+            <Setter Property="MinWidth" Value="96"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Background" Value="#2A2D33"/>
+            <Setter Property="Foreground" Value="#E8EAED"/>
+            <Setter Property="BorderBrush" Value="#3A3D44"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="#343842"/>
+        </Style>
+
+        <Style Selector="Button:pressed">
+            <Setter Property="Background" Value="#202329"/>
+        </Style>
+
+        <Style Selector="Button:disabled">
+            <Setter Property="Opacity" Value="0.45"/>
+        </Style>
+
+        <!-- Primary -->
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#5FCB64"/>
+        </Style>
+
+        <Style Selector="Button.primary:pointerover">
+            <Setter Property="Background" Value="#5CCB61"/>
+        </Style>
+
+        <Style Selector="Button.primary:pressed">
+            <Setter Property="Background" Value="#3F9E43"/>
+        </Style>
+
+        <!-- Danger -->
+        <Style Selector="Button.danger">
+            <Setter Property="Background" Value="#3A2426"/>
+            <Setter Property="Foreground" Value="#FFB4B4"/>
+            <Setter Property="BorderBrush" Value="#5A3033"/>
+        </Style>
+
+        <Style Selector="Button.danger:pointerover">
+            <Setter Property="Background" Value="#5A2C30"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+    </Window.Styles>
+
+    <Border Background="#191a1b"
+            Padding="18">
+
+        <Grid RowDefinitions="Auto,Auto,* ,Auto"
+              RowSpacing="14">
+
+            <!-- Header -->
+            <StackPanel Grid.Row="0"
+                        Spacing="4">
+
+                <TextBlock Text="Unsaved Changes"
+                           FontSize="22"
+                           FontWeight="Bold"
+                           Foreground="White"/>
+
+                <TextBlock Text="Choose what to do before closing."
+                           FontSize="13"
+                           Foreground="#A8ADB7"/>
+
+            </StackPanel>
+
+            <!-- Message -->
+            <Border Grid.Row="1"
+                    Background="#15171B"
+                    BorderBrush="#252932"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Padding="14">
+
+                <TextBlock x:Name="MessageTextBlock"
+                           TextWrapping="Wrap"
+                           Foreground="#F3F3F3"
+                           FontSize="14"/>
+
+            </Border>
+
+            <!-- Spacer -->
+            <Border Grid.Row="2"
+                    Background="Transparent"/>
+
+            <!-- Buttons -->
+            <StackPanel Grid.Row="3"
+                        Orientation="Horizontal"
+                        Spacing="8"
+                        HorizontalAlignment="Right">
+
+                <Button Content="Cancel"
+                        IsCancel="True"
+                        Click="Cancel_OnClick"/>
+
+                <Button Content="Don't save"
+                        Classes="danger"
+                        Click="DontSave_OnClick"/>
+
+                <Button Content="Save"
+                        Classes="primary"
+                        IsDefault="True"
+                        Click="Save_OnClick"/>
+
+            </StackPanel>
+
+        </Grid>
+
+    </Border>
+
 </Window>

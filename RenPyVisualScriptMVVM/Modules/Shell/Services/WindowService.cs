@@ -64,6 +64,12 @@ namespace RenPyVisualScriptMVVM.Modules.Shell.Services
                         ? mw
                         : _lifetime.Windows.FirstOrDefault(w => w.IsVisible);
 
+            if (owner is null)
+            {
+                dlg.Show();
+                return null;
+            }
+
             return await dlg.ShowDialog<bool?>(owner);
         }
 

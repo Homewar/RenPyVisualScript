@@ -61,7 +61,7 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
         private readonly RenPyCharacterColorizer _characterColorizer;
         private readonly BreakpointLineColorizer _breakpointColorizer;
 
-        private CompletionWindow _completionWindow;
+        private CompletionWindow? _completionWindow;
         private int? _contextMenuLine;
 
         //вынести в отдельный файл или класс, если нужно будет расширять
@@ -423,7 +423,7 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
 
         private void TextArea_TextEntered(object? sender, TextInputEventArgs e)
         {
-            if (char.IsLetter(e.Text[0]))
+            if (!string.IsNullOrEmpty(e.Text) && char.IsLetter(e.Text[0]))
             {
                 ShowCompletion();
             }
@@ -433,7 +433,7 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
         {
             if (_completionWindow != null)
             {
-                if (e.Text.Length > 0 && !char.IsLetterOrDigit(e.Text[0]))
+                if (!string.IsNullOrEmpty(e.Text) && !char.IsLetterOrDigit(e.Text[0]))
                 {
                     _completionWindow.CompletionList.RequestInsertion(e);
                 }
@@ -890,7 +890,7 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
 
         public double Priority => 0;
 
-        public IImage Image => null;
+        public IImage? Image => null;
 
         public string Text { get; }
 
@@ -1061,9 +1061,9 @@ namespace RenPyVisualScriptMVVM.Modules.Editors.Views
         public string Text { get; }
         private readonly string _rawSnippet;
         private readonly string _description;
-        public IImage Image => null;
+        public IImage? Image => null;
 
-        public SnippetCompletionData(string text, string insertText, string description = null)
+        public SnippetCompletionData(string text, string insertText, string? description = null)
         {
             Text = text;
             _rawSnippet = insertText;

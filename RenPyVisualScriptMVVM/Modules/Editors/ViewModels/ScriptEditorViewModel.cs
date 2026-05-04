@@ -1313,12 +1313,12 @@ public sealed class ScriptEditorViewModel : BaseViewModel
 
 public sealed class StringToBrushConverter : IValueConverter
 {
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         => value is string s && !string.IsNullOrWhiteSpace(s)
            ? TryParseBrush(s)
            : Brushes.Transparent;
 
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 
     private static IBrush TryParseBrush(string s)

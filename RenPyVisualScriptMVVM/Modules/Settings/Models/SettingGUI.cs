@@ -301,19 +301,19 @@ public partial class GUISettings : ObservableObject, ICustomTypeDescriptor
             _e = e;
         }
 
-        public override bool CanResetValue(object component) => false;
+        public override bool CanResetValue(object? component) => false;
         public override Type ComponentType => typeof(GUISettings);
-        public override object? GetValue(object component) => _e.Value;
+        public override object? GetValue(object? component) => _e.Value;
         public override bool IsReadOnly => false;
         public override Type PropertyType => _e.ValueType;
-        public override void ResetValue(object component) { }
-        public override void SetValue(object component, object? value)
+        public override void ResetValue(object? component) { }
+        public override void SetValue(object? component, object? value)
         {
             _e.Value = value;
             // Уведомляем PropertyGrid, если он подписан.
             OnValueChanged(component, EventArgs.Empty);
         }
-        public override bool ShouldSerializeValue(object component) => true;
+        public override bool ShouldSerializeValue(object? component) => true;
 
         private static Attribute[] BuildAttributes(GuiRpyEntry e)
         {

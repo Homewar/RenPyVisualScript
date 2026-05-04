@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using RenPyVisualScriptMVVM.Modules.Editors.Services.Preview;
+using System;
 using System.IO;
 
 namespace RenPyVisualScriptMVVM.Modules.Editors.Controls;
@@ -65,6 +66,12 @@ public sealed class VideoThumbnailPreview : Border
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
         {
             ShowFallback("File not found");
+            return;
+        }
+
+        if (!OperatingSystem.IsWindowsVersionAtLeast(6, 1))
+        {
+            ShowFallback("Preview unavailable");
             return;
         }
 

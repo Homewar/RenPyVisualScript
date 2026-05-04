@@ -1564,9 +1564,12 @@ namespace RenPyVisualScriptMVVM.Modules.GraphEditor.Controls
 
         private void UpdateTempLine(Point screenPoint)
         {
-            var startPoint = GetConnectorPoint(_lineStartNode!, _lineStartConnector.Value);
-            var tempPoints = GetManhattanPointsToPoint(_lineStartNode!, screenPoint, _lineStartConnector);
-            _tempLine!.Data = CreateRoundedPathGeometry(tempPoints, 10);
+            if (_lineStartNode is null || _lineStartConnector is null || _tempLine is null)
+                return;
+
+            var startPoint = GetConnectorPoint(_lineStartNode, _lineStartConnector.Value);
+            var tempPoints = GetManhattanPointsToPoint(_lineStartNode, screenPoint, _lineStartConnector);
+            _tempLine.Data = CreateRoundedPathGeometry(tempPoints, 10);
             RebuildChildren();
         }
 

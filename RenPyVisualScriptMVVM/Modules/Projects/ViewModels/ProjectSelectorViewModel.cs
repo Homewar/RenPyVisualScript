@@ -87,6 +87,7 @@ public sealed class ProjectSelectorViewModel : BaseViewModel
 
         var dirs = Directory.GetDirectories(root)
                             .Select(Path.GetFileName)!
+                            .OfType<string>()
                             .Where(name => !string.IsNullOrWhiteSpace(name))
                             .ToHashSet();
 

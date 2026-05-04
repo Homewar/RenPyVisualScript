@@ -147,10 +147,10 @@ internal static class CheckedListExtensions
         if (checkMethod != null)
         {
             foreach (var item in list.ToArray())
-                checkMethod.Invoke(list, new object[] { item, false });
+                checkMethod.Invoke(list, new object?[] { item, false });
 
             foreach (var v in values)
-                checkMethod.Invoke(list, new object[] { v, true });
+                checkMethod.Invoke(list, new object?[] { v, true });
             return;
         }
 

@@ -298,3 +298,4 @@ C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\obj\Debug\net8.0\RenPyVisualScriptMVVM.pdb
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\obj\Debug\net8.0\RenPyVisualScriptMVVM.genruntimeconfig.cache
 C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\obj\Debug\net8.0\ref\RenPyVisualScriptMVVM.dll
+C:\Users\Homewarriors\Desktop\RenPyVisualScriptMVVMRebuild\RenPyVisualScriptMVVM\bin\Debug\net8.0\RenPyVisualScriptMVVM.exe

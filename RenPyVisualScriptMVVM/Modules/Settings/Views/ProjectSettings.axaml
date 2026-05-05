@@ -4,6 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:pg="clr-namespace:Avalonia.PropertyGrid.Controls;assembly=Avalonia.PropertyGrid"
 		xmlns:vm="using:RenPyVisualScriptMVVM.Modules.Settings.ViewModels"
+        xmlns:views="clr-namespace:RenPyVisualScriptMVVM.Modules.Shell.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="RenPyVisualScriptMVVM.Modules.Settings.Views.ProjectSettings"
 		x:DataType="vm:ProjectSettingsViewModel"
@@ -16,6 +17,8 @@
 
 	
 	
+	<DockPanel>
+        <views:CustomTitleBar DockPanel.Dock="Top"/>
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="*"/>
@@ -33,6 +36,7 @@
 			Save Settings
 		</Button>
 	</Grid>
+	</DockPanel>
 	
 	
 	

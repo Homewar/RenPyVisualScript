@@ -248,6 +248,18 @@ public partial class App : Application
                     }
                 };
 
+                var titleBar = new CustomTitleBar();
+                DockPanel.SetDock(titleBar, Dock.Top);
+
+                var dockPanel = new DockPanel
+                {
+                    Children =
+                    {
+                        titleBar,
+                        content
+                    }
+                };
+
                 var window = new Window
                 {
                     Title = "Application Error",
@@ -256,7 +268,7 @@ public partial class App : Application
                     MinWidth = 720,
                     MinHeight = 420,
                     WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                    Content = content
+                    Content = dockPanel
                 };
 
                 copyButton.Click += async (_, _) =>

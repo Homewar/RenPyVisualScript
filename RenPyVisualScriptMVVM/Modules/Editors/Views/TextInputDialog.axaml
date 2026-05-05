@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:RenPyVisualScriptMVVM.Modules.Shell.Views"
         x:Class="RenPyVisualScriptMVVM.Modules.Editors.Views.TextInputDialog"
         Width="420"
         Height="170"
@@ -7,6 +8,8 @@
         WindowStartupLocation="CenterOwner"
         Background="#1e1e1e">
 
+  <DockPanel>
+  <views:CustomTitleBar DockPanel.Dock="Top"/>
   <StackPanel Margin="16" Spacing="10">
     <TextBlock x:Name="LabelTextBlock"
                Foreground="#d6d6d6"/>
@@ -30,4 +33,5 @@
               Click="Ok_OnClick"/>
     </StackPanel>
   </StackPanel>
+  </DockPanel>
 </Window>

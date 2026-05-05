@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:RenPyVisualScriptMVVM.Modules.Settings.ViewModels"
+        xmlns:views="clr-namespace:RenPyVisualScriptMVVM.Modules.Shell.Views"
         mc:Ignorable="d" d:DesignWidth="640" d:DesignHeight="260"
         x:Class="RenPyVisualScriptMVVM.Modules.Settings.Views.IDESettings"
         x:DataType="vm:IDESettingsViewModel"
@@ -12,6 +13,8 @@
         <vm:IDESettingsViewModel />
     </Design.DataContext>
 
+    <DockPanel>
+    <views:CustomTitleBar DockPanel.Dock="Top"/>
     <Grid RowDefinitions="*,Auto" Margin="16">
         <StackPanel Spacing="16">
             <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="180,*" ColumnSpacing="12">
@@ -44,4 +47,5 @@
                 Background="#EA592A"
                 Content="Save Settings"/>
     </Grid>
+    </DockPanel>
 </Window>

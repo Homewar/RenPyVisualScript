@@ -4,6 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:RenPyVisualScriptMVVM.Modules.Editors.ViewModels"
         xmlns:editConv="using:RenPyVisualScriptMVVM.Modules.Editors.Converters"
+        xmlns:views="clr-namespace:RenPyVisualScriptMVVM.Modules.Shell.Views"
         mc:Ignorable="d"
         x:Class="RenPyVisualScriptMVVM.Modules.Editors.Views.CharacterCreateDialog"
         x:DataType="vm:CharacterCreateDialogViewModel"
@@ -64,6 +65,8 @@
 
   </Window.Styles>
 
+  <DockPanel>
+  <views:CustomTitleBar DockPanel.Dock="Top"/>
   <Border Background="#1e1e1e">
     <Grid Margin="16"
           RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*"
@@ -153,4 +156,5 @@
       </StackPanel>
     </Grid>
   </Border>
+  </DockPanel>
 </Window>

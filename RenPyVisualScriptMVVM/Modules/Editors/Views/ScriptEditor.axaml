@@ -78,12 +78,14 @@
                         <MenuItem Header="Save Project" Command="{Binding SaveCmd}"/>
                     </MenuItem>
 
-                    <MenuItem Header="Menu"/>
-
-                    <MenuItem Header="Project">
+                    <MenuItem Header="Menu">
                         <MenuItem Header="Project Settings" Command="{Binding ShowProjectSetCmd}"/>
                         <MenuItem Header="GUI Settings" Command="{Binding ShowAppSettingsCmd}"/>
                         <MenuItem Header="IDE Settings" Command="{Binding ShowIdeSettingsCmd}"/>
+                    </MenuItem>
+
+                    <MenuItem Header="Project">
+
                     </MenuItem>
 
                     <MenuItem Header="Addon">

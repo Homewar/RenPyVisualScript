@@ -4,7 +4,7 @@ using Avalonia.Markup.Xaml;
 using RenPyVisualScriptMVVM.Modules.Shell.ViewModels;
 using Splat;
 
-namespace RenPyVisualScriptMVVM;
+namespace RenPyVisualScriptMVVM.Modules.Shell.Views;
 
 public partial class SDKrequest : Window
 {

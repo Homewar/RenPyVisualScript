@@ -95,6 +95,8 @@ public partial class App : Application
                 Locator.Current.GetService<IWindowService>()!,
                 Locator.Current.GetService<IApplicationDialogService>()!,
                 settingsSvc,
+                Locator.Current.GetService<ISettingsIDE>()!,
+                Locator.Current.GetService<RenPyVisualScriptMVVM.Core.Models.IDESettings>()!,
                 () => Locator.Current.GetService<NewProjectDialogViewModel>()!,
                 () => Locator.Current.GetService<ProjectSelectorViewModel>()!,
                 () => Locator.Current.GetService<ScriptEditorViewModel>()!));
@@ -150,9 +152,9 @@ public partial class App : Application
 
         if (!IDEsettingsStoreService.IsValidSdkPath(ide.RenPySDKPath))
         {
-            var vm = new SDKrequestViewModel(ideStore, isFirstRun: true);
+            var vm = new SDKrequestViewModel(ideStore, ide, isFirstRun: true);
             var win = new SDKrequest { DataContext = vm };
-            vm.RequestClose += () => win.Close();
+            vm.RequestClose += result => win.Close(result);
             win.ShowDialog(mainWindow);
         }
 

@@ -10,12 +10,12 @@
         MinWidth="620" MinHeight="240"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
-        x:Class="RenPyVisualScriptMVVM.SDKrequest"
+        x:Class="RenPyVisualScriptMVVM.Modules.Shell.Views.SDKrequest"
         x:DataType="vm:SDKrequestViewModel"
         Title="Ren'Py SDK">
   <DockPanel>
         <views:CustomTitleBar DockPanel.Dock="Top"/>
-  <Grid Margin="16" RowDefinitions="Auto,Auto,Auto,Auto,*" ColumnDefinitions="*,Auto">
+  <Grid Margin="16" RowDefinitions="Auto,Auto,Auto,Auto,*,Auto" ColumnDefinitions="*,Auto">
     
     <TextBlock Grid.Row="0" Grid.ColumnSpan="2"
                FontSize="18" FontWeight="SemiBold"
@@ -50,6 +50,7 @@
     <StackPanel Grid.Row="5" Grid.ColumnSpan="2" Margin="0,16,0,0"
                 Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
       <Button Content="Отмена" MinWidth="110"
+              IsVisible="{Binding CanCancel}"
               Command="{Binding CancelCommand}" />
       <Button Content="Сохранить" MinWidth="140"
               IsDefault="True"

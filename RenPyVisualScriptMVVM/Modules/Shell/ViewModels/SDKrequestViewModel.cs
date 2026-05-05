@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using RenPyVisualScriptMVVM.Core.Models;
 using RenPyVisualScriptMVVM.Core.Services;
 using RenPyVisualScriptMVVM.Core.Services.Interfaces;
+using RenPyVisualScriptMVVM.Modules.Shell.Services.Interfaces;
 using RenPyVisualScriptMVVM.Modules.Shell.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -16,18 +17,21 @@ using System.Threading.Tasks;
 
 namespace RenPyVisualScriptMVVM.Modules.Shell.ViewModels
 {
-    internal partial class SDKrequestViewModel : BaseViewModel
+    internal partial class SDKrequestViewModel : BaseViewModel, ICloseRequest
     {
-        private readonly ISettingsIDE IDEsettingsStoreService;
-        public event Action? RequestClose;
+        private readonly ISettingsIDE _ideSettingsStoreService;
+        private readonly IDESettings _settings;
+        public event Action<bool?>? RequestClose;
 
         private readonly bool _isFirstRun; 
         public bool CanCancel => !_isFirstRun;
 
-        public SDKrequestViewModel(ISettingsIDE ideSettingsStoreService, bool isFirstRun)
+        public SDKrequestViewModel(ISettingsIDE ideSettingsStoreService, IDESettings settings, bool isFirstRun)
         {
-            IDEsettingsStoreService = ideSettingsStoreService;
+            _ideSettingsStoreService = ideSettingsStoreService;
+            _settings = settings;
             _isFirstRun = isFirstRun;
+            Sdkpath = settings.RenPySDKPath ?? string.Empty;
         }
 
         private string _sdkPath = string.Empty;
@@ -58,20 +62,21 @@ namespace RenPyVisualScriptMVVM.Modules.Shell.ViewModels
             try
             {
                 ErrorText = null;
+                HasError = false;
 
                 // 1) получаем активное окно
                 var lifetime = Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
                 var window = lifetime?.Windows.FirstOrDefault(w => w.IsActive) ?? lifetime?.MainWindow;
                 if (window is null)
                 {
-                    ErrorText = "Не удалось открыть диалог выбора папки (окно не найдено).";
+                    SetError("Не удалось открыть диалог выбора папки (окно не найдено).");
                     return;
                 }
 
                 var sp = window.StorageProvider;
                 if (sp is null)
                 {
-                    ErrorText = "StorageProvider недоступен (обнови Avalonia до версии с StorageProvider).";
+                    SetError("StorageProvider недоступен (обнови Avalonia до версии с StorageProvider).");
                     return;
                 }
 
@@ -89,38 +94,57 @@ namespace RenPyVisualScriptMVVM.Modules.Shell.ViewModels
                 var path = folder.TryGetLocalPath();
                 if (string.IsNullOrWhiteSpace(path))
                 {
-                    ErrorText = "Выбранная папка не имеет локального пути.";
+                    SetError("Выбранная папка не имеет локального пути.");
                     return;
                 }
 
                 // 3) валидируем, что это действительно SDK
                 if (!IsValidRenPySdk(path, out var reason))
                 {
-                    ErrorText = reason;
+                    SetError(reason);
                     return;
                 }
 
                 Sdkpath = path;
+                ClearError();
             }
             catch (Exception ex)
             {
-                ErrorText = "Ошибка выбора папки: " + ex.Message;
+                SetError("Ошибка выбора папки: " + ex.Message);
             }
         }
 
         [RelayCommand]
         public void CancelCommand()
         {
-            RequestClose?.Invoke();
+            RequestClose?.Invoke(false);
         }
 
         [RelayCommand]
         public async Task SaveCommand()
         {
-            var s = await IDEsettingsStoreService.LoadAsync();
-            s.RenPySDKPath = Sdkpath;
-            await IDEsettingsStoreService.SaveAsync(s);
-            RequestClose?.Invoke();
+            if (!IsValidRenPySdk(Sdkpath, out var reason))
+            {
+                SetError(reason);
+                return;
+            }
+
+            _settings.RenPySDKPath = RenPySdkPathResolver.NormalizePath(Sdkpath);
+            await _ideSettingsStoreService.SaveAsync(_settings);
+            ClearError();
+            RequestClose?.Invoke(true);
+        }
+
+        private void SetError(string message)
+        {
+            ErrorText = message;
+            HasError = true;
+        }
+
+        private void ClearError()
+        {
+            ErrorText = null;
+            HasError = false;
         }
 
         private static bool IsValidRenPySdk(string path, out string reason)

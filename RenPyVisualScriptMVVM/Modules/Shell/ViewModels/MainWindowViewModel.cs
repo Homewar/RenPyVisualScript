@@ -1,4 +1,6 @@
 using CommunityToolkit.Mvvm.Input;
+using RenPyVisualScriptMVVM.Core.Models;
+using RenPyVisualScriptMVVM.Core.Services;
 using RenPyVisualScriptMVVM.Core.Services.Interfaces;
 using RenPyVisualScriptMVVM.Modules.Shell.Services.Interfaces;
 using System;
@@ -18,6 +20,8 @@ public sealed class MainWindowViewModel : BaseViewModel
     private readonly IWindowService _windows;
     private readonly IApplicationDialogService _dialogs;
     private readonly ISettingsService _settings;
+    private readonly ISettingsIDE _ideSettingsStore;
+    private readonly IDESettings _ideSettings;
 
     private readonly Func<NewProjectDialogViewModel> _newProjectDialogFactory;
     private readonly Func<ProjectSelectorViewModel> _projectSelectorFactory;
@@ -34,6 +38,8 @@ public sealed class MainWindowViewModel : BaseViewModel
         IWindowService windows,
         IApplicationDialogService dialogs,
         ISettingsService settings,
+        ISettingsIDE ideSettingsStore,
+        IDESettings ideSettings,
         Func<NewProjectDialogViewModel> newProjectDialogFactory,
         Func<ProjectSelectorViewModel> projectSelectorFactory,
         Func<ScriptEditorViewModel> scriptEditorFactory)
@@ -43,6 +49,8 @@ public sealed class MainWindowViewModel : BaseViewModel
         _windows = windows ?? throw new ArgumentNullException(nameof(windows));
         _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        _ideSettingsStore = ideSettingsStore ?? throw new ArgumentNullException(nameof(ideSettingsStore));
+        _ideSettings = ideSettings ?? throw new ArgumentNullException(nameof(ideSettings));
 
         _newProjectDialogFactory = newProjectDialogFactory ?? throw new ArgumentNullException(nameof(newProjectDialogFactory));
         _projectSelectorFactory = projectSelectorFactory ?? throw new ArgumentNullException(nameof(projectSelectorFactory));
@@ -64,6 +72,9 @@ public sealed class MainWindowViewModel : BaseViewModel
             var ok = await _windows.ShowDialogAsync(dlgVm);
 
             if (ok != true || dlgVm.Result is null)
+                return;
+
+            if (!await EnsureRenPySdkAsync())
                 return;
 
             var model = await _projects.CreateNewAsync(dlgVm.Result);
@@ -185,6 +196,17 @@ public sealed class MainWindowViewModel : BaseViewModel
     {
         _windows.ShowWindow(_scriptEditorFactory());
         RequestClose?.Invoke();
+    }
+
+    private async Task<bool> EnsureRenPySdkAsync()
+    {
+        if (RenPySdkPathResolver.IsValidSdkPath(_ideSettings.RenPySDKPath))
+            return true;
+
+        var sdkVm = new SDKrequestViewModel(_ideSettingsStore, _ideSettings, isFirstRun: false);
+        var ok = await _windows.ShowDialogAsync(sdkVm);
+
+        return ok == true && RenPySdkPathResolver.IsValidSdkPath(_ideSettings.RenPySDKPath);
     }
 
     private static void LogError(Exception ex) =>
